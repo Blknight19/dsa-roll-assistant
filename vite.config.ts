@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: '/dsa-roll-assistant/',
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
