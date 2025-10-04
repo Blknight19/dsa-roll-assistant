@@ -66,7 +66,7 @@ function App() {
             </button>
           </div>
           {talentResults.length >0 && (<div className='card'>
-          <ul>
+          <ul className='text-muted-foreground'>
               <li>Eigenschaft 1 - Würfelzahl + Modifier: {talentResults[0]}</li>
               <li>Eigenschaft 2 - Würfelzahl + Modifier: {talentResults[1]}</li>
               <li>Eigenschaft 3 - Würfelzahl + Modifier: {talentResults[2]}</li>
