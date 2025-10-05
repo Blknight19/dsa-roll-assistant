@@ -43,7 +43,6 @@ function App() {
   // Modifier kann auch mit rein
   return (
     <>
-    
     <div className='dark flex flex-col items-center'>
       <Tabs defaultValue="account" className="h-[35rem]">
         <TabsList>
@@ -51,38 +50,40 @@ function App() {
           <TabsTrigger value="password">Einzelroll</TabsTrigger>
         </TabsList>
         <TabsContent value="account">
-          <div className='flex space-x-6'>
-            <PropertyNumber label='Eigenschaft 1' value={firstProperty} onChange={setFirstProperty}/>
-            <PropertyNumber label='Eigenschaft 2' value={secondProperty} onChange={setSecondProperty}/>
-            <PropertyNumber label='Eigenschaft 3' value={thirdProperty} onChange={setThirdProperty} min={-100}/>
-            <PropertyNumber label='Modifier' value={modifier} onChange={setModifier} min={-20} max={20}/>
+          <div className='flex flex-col items-center space-y-6'>
+            <div className='grid grid-cols-3 gap-4 max-w-[800px] place-items-center'>
+              <PropertyNumber label='Eigenschaft 1' value={firstProperty} onChange={setFirstProperty}/>
+              <PropertyNumber label='Eigenschaft 2' value={secondProperty} onChange={setSecondProperty}/>
+              <PropertyNumber label='Eigenschaft 3' value={thirdProperty} onChange={setThirdProperty} min={-100}/>
+              <div className="col-start-2">
+                <PropertyNumber label='Modifier' value={modifier} onChange={setModifier} min={-20} max={20} size='s'/>
+              </div>
+            </div>
+            
+              <PropertyNumber label='Talentwert' value={talentValue} onChange={setTalentValue}/>
+            <div className="card">
+              <button onClick={handleRoll}>
+                {rollResult.length===0?'Roll':rollResult.join(', ')}
+              </button>
+            </div>
+            {talentResults.length >0 && (<div className='card'>
+            <p>{getResult()}</p>
+            <ul className='text-muted-foreground mt-4'>
+                <li>Eigenschaft 1 - Würfelzahl + Modifier: {talentResults[0]}</li>
+                <li>Eigenschaft 2 - Würfelzahl + Modifier: {talentResults[1]}</li>
+                <li>Eigenschaft 3 - Würfelzahl + Modifier: {talentResults[2]}</li>
+            </ul>
+            </div>)}
           </div>
-          <div>
-            <PropertyNumber label='Talentwert' value={talentValue} onChange={setTalentValue}/>
-          </div>
-          <div className="card">
-            <button onClick={handleRoll}>
-              {rollResult.length===0?'Roll':rollResult.join(', ')}
-            </button>
-          </div>
-          {talentResults.length >0 && (<div className='card'>
-          <ul className='text-muted-foreground'>
-              <li>Eigenschaft 1 - Würfelzahl + Modifier: {talentResults[0]}</li>
-              <li>Eigenschaft 2 - Würfelzahl + Modifier: {talentResults[1]}</li>
-              <li>Eigenschaft 3 - Würfelzahl + Modifier: {talentResults[2]}</li>
-          </ul>
-          <p>{getResult()}</p>
-          </div>)}
         </TabsContent>
         <TabsContent value="password">
-          <div className='flex'>
+          <div className='flex flex-wrap justify-center'>
             <div className="card">D20</div>
             <div className="card">D10</div>
             <div className="card">D6</div>
           </div>
         </TabsContent>
       </Tabs>
-
     </div>
     </>
   )
