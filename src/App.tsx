@@ -44,7 +44,7 @@ function App() {
   return (
     <>
     <div className='dark flex flex-col items-center'>
-      <Tabs defaultValue="account" className="h-[35rem]">
+      <Tabs defaultValue="account" className="min-h-[35rem]">
         <TabsList>
           <TabsTrigger value="account">Talentroll</TabsTrigger>
           <TabsTrigger value="password">Einzelroll</TabsTrigger>
@@ -61,12 +61,12 @@ function App() {
             </div>
             
               <PropertyNumber label='Talentwert' value={talentValue} onChange={setTalentValue}/>
-            <div className="card">
+            <div className="p-4">
               <button onClick={handleRoll}>
                 {rollResult.length===0?'Roll':rollResult.join(', ')}
               </button>
             </div>
-            {talentResults.length >0 && (<div className='card'>
+            {talentResults.length >0 && (<div>
             <p>{getResult()}</p>
             <ul className='text-muted-foreground mt-4'>
                 <li>Eigenschaft 1 - Würfelzahl + Modifier: {talentResults[0]}</li>
