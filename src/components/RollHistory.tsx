@@ -1,38 +1,17 @@
-type RollHistoryEntry = {
-	id: string,
-	type: 'Einzel' | 'Talent',
-	values: number[],
-	result: string,
-	date: string
-}
+import type { RootState } from "@/store";
+import { clearHistory, type RollHistoryEntry } from "@/store/rollSlice";
+import { useDispatch, useSelector } from "react-redux";
 
-
-
-const generateMockHistory = (count = 20): RollHistoryEntry[] =>
-	Array.from({ length: count }, (_, i) => {
-		const isTalent = Math.random() > 0.5;
-
-		const values = isTalent
-			? [Math.ceil(Math.random() * 20), Math.ceil(Math.random() * 20), Math.ceil(Math.random() * 20)]
-			: [Math.ceil(Math.random() * 20)];
-
-		const result = isTalent
-			? `Ergebnis: ${Math.ceil(Math.random() * 10)} (QS ${Math.ceil(Math.random() * 6)})`
-			: `Wurf: ${values[0]}`;
-
-		return {
-			id: String(i),
-			type: isTalent ? "Talent" : "Einzel",
-			values,
-			result,
-			date: new Date(Date.now() - i * 1000 * 60 * 15).toISOString(),
-		};
-	});
 
 
 
 const RollHistory = () => {
-	const rollHistory: RollHistoryEntry[] = generateMockHistory(15)
+	const dispatch = useDispatch()
+	const rollHistory: RollHistoryEntry[] = useSelector((state: RootState) => state.roll.history)
+
+	const handleClear = () => {
+		dispatch(clearHistory())
+	}
 
 	return (
 		<div className="mt-6">
@@ -40,7 +19,7 @@ const RollHistory = () => {
 				<h3 className="text-lg font-semibold">Wurf-Historie</h3>
 				<button
 					className="text-sm text-muted-foreground hover:text-destructive"
-				// onClick={clearHistory}
+					onClick={handleClear}
 				>
 					Löschen
 				</button>
@@ -62,11 +41,12 @@ const RollHistory = () => {
 							</div>
 
 							{/* Anzeige der einzelnen Würfel */}
+							<div className="mt-1">{roll.result}</div>
 							<div className="mt-1 text-xs text-muted-foreground">
 								Würfel: {roll.values.join(", ")}
 							</div>
 
-							<div className="mt-1">{roll.result}</div>
+
 						</li>
 					))
 				)}

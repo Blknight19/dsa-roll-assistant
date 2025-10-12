@@ -8,6 +8,8 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { roll } from "@/utils/dice"
+import { useDispatch } from "react-redux"
+import { addRoll } from "@/store/rollSlice"
 
 const diceOptions = [
     { label: "W20", value: "20" },
@@ -19,6 +21,7 @@ const diceOptions = [
 ]
 
 const SimpleRoll = () => {
+    const dispatch = useDispatch()
     const [diceCount, setDiceCount] = useState<number>(1)
     const [modifier, setModifier] = useState<number>(0)
     const [selectedDice, setSelectedDice] = useState<string>('20')
@@ -29,7 +32,16 @@ const SimpleRoll = () => {
         const dices = `${diceCount}d${selectedDice}`
         const rolls = roll(dices)
         setResults(rolls)
-        setTotal(rolls.reduce((sum, currentValue) => sum + currentValue, 0) + modifier)
+        const total = rolls.reduce((sum, currentValue) => sum + currentValue, 0) + modifier
+        setTotal(total)
+
+        dispatch(addRoll({
+            id: crypto.randomUUID(),
+            type: 'Einzel',
+            values: rolls,
+            result: `Gesamt: ${total} (${diceCount}W${selectedDice} ${modifier >= 0 ? `+${modifier}` : modifier})`,
+            date: new Date().toISOString()
+        }))
     }
 
     return (

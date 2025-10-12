@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { roll3D20 } from '../utils/dice'
 import PropertyNumber from './PropertyNumber'
+import { useDispatch } from 'react-redux'
+import { addRoll } from '@/store/rollSlice'
 
 
 const TalentRoll = () => {
+  const dispatch = useDispatch();
 
   const [firstProperty, setFirstProperty] = useState<number>(10)
   const [secondProperty, setSecondProperty] = useState<number>(10)
@@ -24,6 +27,20 @@ const TalentRoll = () => {
       getCorrectPropertyValue(thirdProperty + modifier - roll[2])
     ]
     setTalentResults(results)
+
+    const total = talentValue + results.reduce((sum, currentValue) => sum + currentValue, 0)
+    const quality = Math.max(0, Math.ceil(total / 3));
+    const qualityResult = total >= 0 ? `(QS: ${quality})` : `(Misslungen)`
+    const modifierText = modifier >= 0 ? `+${modifier}` : `${modifier}`
+    const result = `Ergebnis: ${total} ${qualityResult} [Modifikator: ${modifierText}]`
+
+    dispatch(addRoll({
+      id: crypto.randomUUID(),
+      type: 'Talent',
+      values: roll,
+      result,
+      date: new Date().toISOString()
+    }))
   }
 
   const getTalentEvaluation = (): number => talentValue + talentResults[0] + talentResults[1] + talentResults[2]

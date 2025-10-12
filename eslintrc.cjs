@@ -23,7 +23,7 @@ module.exports = {
   ],
   rules: {
     // Stil
-    semi: ['error', 'never'],
+    semi: ['error', 'always'],
     quotes: ['error', 'single'],
     'no-console': 'warn',
 
