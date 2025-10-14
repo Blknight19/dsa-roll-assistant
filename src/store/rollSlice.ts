@@ -1,5 +1,5 @@
-import { createSlice } from '@reduxjs/toolkit'
-import type { PayloadAction } from '@reduxjs/toolkit'
+import { createSlice } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
 
 // const generateMockHistory = (count = 20): RollHistoryEntry[] =>
 // 	Array.from({ length: count }, (_, i) => {
@@ -34,20 +34,20 @@ type RollState = {
 	history: RollHistoryEntry[]
 }
 
-const initialState: RollState = { history: [] }
+const initialState: RollState = { history: [] };
 
 const rollSlice = createSlice({
 	name: 'roll',
 	initialState,
 	reducers: {
 		addRoll: (state, action: PayloadAction<RollHistoryEntry>) => {
-			state.history.unshift(action.payload)
+			state.history.unshift(action.payload);
 		},
 		clearHistory: (state) => {
-			state.history = []
+			state.history = [];
 		}
 	}
-})
+});
 
-export const { addRoll, clearHistory } = rollSlice.actions
-export const rollReducer = rollSlice.reducer
+export const { addRoll, clearHistory } = rollSlice.actions;
+export const rollReducer = rollSlice.reducer;

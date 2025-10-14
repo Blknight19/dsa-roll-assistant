@@ -1,9 +1,9 @@
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import './App.css'
-import TalentRoll from './components/TalentRoll'
-import SimpleRoll from "./components/SimpleRoll"
-import RollHistory from "./components/RollHistory"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import './App.css';
+import TalentRoll from './components/TalentRoll';
+import SimpleRoll from './components/SimpleRoll';
+import RollHistory from './components/RollHistory';
 
 
 function App() {
@@ -28,7 +28,7 @@ function App() {
         </Tabs>
       </div>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

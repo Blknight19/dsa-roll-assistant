@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 interface PropertyNumberProps {
   label: string;
@@ -11,7 +11,7 @@ interface PropertyNumberProps {
 
 const PropertyNumber: React.FC<PropertyNumberProps> = ({ label, onChange, value, min = 0, max = 20, size = 'm' }) => {
   const inputSizes= size==='m' ? 'w-16 h-16 text-3xl':'w-12 h-12 text-2xl';
-  const labelMargin = size ==='m' ? 'mb-1' : 'mb-3'
+  const labelMargin = size ==='m' ? 'mb-1' : 'mb-3';
   return (
     <div className="flex flex-col items-center">
       <label className={labelMargin}>{label}</label>

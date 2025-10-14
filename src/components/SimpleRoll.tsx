@@ -1,39 +1,39 @@
-import { useState } from "react"
-import PropertyNumber from "./PropertyNumber"
+import { useState } from 'react';
+import PropertyNumber from './PropertyNumber';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select"
-import { roll } from "@/utils/dice"
-import { useDispatch } from "react-redux"
-import { addRoll } from "@/store/rollSlice"
+} from '@/components/ui/select';
+import { roll } from '@/utils/dice';
+import { useDispatch } from 'react-redux';
+import { addRoll } from '@/store/rollSlice';
 
 const diceOptions = [
-    { label: "W20", value: "20" },
-    { label: "W12", value: "12" },
-    { label: "W10", value: "10" },
-    { label: "W8", value: "8" },
-    { label: "W6", value: "6" },
-    { label: "W4", value: "4" },
-]
+    { label: 'W20', value: '20' },
+    { label: 'W12', value: '12' },
+    { label: 'W10', value: '10' },
+    { label: 'W8', value: '8' },
+    { label: 'W6', value: '6' },
+    { label: 'W4', value: '4' },
+];
 
 const SimpleRoll = () => {
-    const dispatch = useDispatch()
-    const [diceCount, setDiceCount] = useState<number>(1)
-    const [modifier, setModifier] = useState<number>(0)
-    const [selectedDice, setSelectedDice] = useState<string>('20')
-    const [results, setResults] = useState<number[]>([])
-    const [total, setTotal] = useState<number | null>(null)
+    const dispatch = useDispatch();
+    const [diceCount, setDiceCount] = useState<number>(1);
+    const [modifier, setModifier] = useState<number>(0);
+    const [selectedDice, setSelectedDice] = useState<string>('20');
+    const [results, setResults] = useState<number[]>([]);
+    const [total, setTotal] = useState<number | null>(null);
 
     const handleRoll = () => {
-        const dices = `${diceCount}d${selectedDice}`
-        const rolls = roll(dices)
-        setResults(rolls)
-        const total = rolls.reduce((sum, currentValue) => sum + currentValue, 0) + modifier
-        setTotal(total)
+        const dices = `${diceCount}d${selectedDice}`;
+        const rolls = roll(dices);
+        setResults(rolls);
+        const total = rolls.reduce((sum, currentValue) => sum + currentValue, 0) + modifier;
+        setTotal(total);
 
         dispatch(addRoll({
             id: crypto.randomUUID(),
@@ -41,8 +41,8 @@ const SimpleRoll = () => {
             values: rolls,
             result: `Gesamt: ${total} (${diceCount}W${selectedDice} ${modifier >= 0 ? `+${modifier}` : modifier})`,
             date: new Date().toISOString()
-        }))
-    }
+        }));
+    };
 
     return (
         <div className="flex flex-col items-center space-y-6 mt-6">
@@ -70,7 +70,7 @@ const SimpleRoll = () => {
                 </div>
             )}
         </div>
-    )
-}
+    );
+};
 
-export default SimpleRoll
+export default SimpleRoll;

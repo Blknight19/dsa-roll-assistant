@@ -1,38 +1,38 @@
-import { useState } from 'react'
-import { roll3D20 } from '../utils/dice'
-import PropertyNumber from './PropertyNumber'
-import { useDispatch } from 'react-redux'
-import { addRoll } from '@/store/rollSlice'
+import { useState } from 'react';
+import { roll3D20 } from '../utils/dice';
+import PropertyNumber from './PropertyNumber';
+import { useDispatch } from 'react-redux';
+import { addRoll } from '@/store/rollSlice';
 
 
 const TalentRoll = () => {
   const dispatch = useDispatch();
 
-  const [firstProperty, setFirstProperty] = useState<number>(10)
-  const [secondProperty, setSecondProperty] = useState<number>(10)
-  const [thirdProperty, setThirdProperty] = useState<number>(10)
-  const [modifier, setModifier] = useState<number>(0)
-  const [talentValue, setTalentValue] = useState<number>(10)
-  const [rollResult, setRollResult] = useState<number[]>([])
-  const [talentResults, setTalentResults] = useState<number[]>([])
+  const [firstProperty, setFirstProperty] = useState<number>(10);
+  const [secondProperty, setSecondProperty] = useState<number>(10);
+  const [thirdProperty, setThirdProperty] = useState<number>(10);
+  const [modifier, setModifier] = useState<number>(0);
+  const [talentValue, setTalentValue] = useState<number>(10);
+  const [rollResult, setRollResult] = useState<number[]>([]);
+  const [talentResults, setTalentResults] = useState<number[]>([]);
 
-  const getCorrectPropertyValue = (rollResult: number): number => rollResult < 0 ? rollResult : 0
+  const getCorrectPropertyValue = (rollResult: number): number => rollResult < 0 ? rollResult : 0;
 
   const handleRoll = () => {
-    const roll = roll3D20()
-    setRollResult(roll)
+    const roll = roll3D20();
+    setRollResult(roll);
     const results = [
       getCorrectPropertyValue(firstProperty + modifier - roll[0]),
       getCorrectPropertyValue(secondProperty + modifier - roll[1]),
       getCorrectPropertyValue(thirdProperty + modifier - roll[2])
-    ]
-    setTalentResults(results)
+    ];
+    setTalentResults(results);
 
-    const total = talentValue + results.reduce((sum, currentValue) => sum + currentValue, 0)
+    const total = talentValue + results.reduce((sum, currentValue) => sum + currentValue, 0);
     const quality = Math.max(0, Math.ceil(total / 3));
-    const qualityResult = total >= 0 ? `(QS: ${quality})` : `(Misslungen)`
-    const modifierText = modifier >= 0 ? `+${modifier}` : `${modifier}`
-    const result = `Ergebnis: ${total} ${qualityResult} [Modifikator: ${modifierText}]`
+    const qualityResult = total >= 0 ? `(QS: ${quality})` : '(Misslungen)';
+    const modifierText = modifier >= 0 ? `+${modifier}` : `${modifier}`;
+    const result = `Ergebnis: ${total} ${qualityResult} [Modifikator: ${modifierText}]`;
 
     dispatch(addRoll({
       id: crypto.randomUUID(),
@@ -40,22 +40,22 @@ const TalentRoll = () => {
       values: roll,
       result,
       date: new Date().toISOString()
-    }))
-  }
+    }));
+  };
 
-  const getTalentEvaluation = (): number => talentValue + talentResults[0] + talentResults[1] + talentResults[2]
+  const getTalentEvaluation = (): number => talentValue + talentResults[0] + talentResults[1] + talentResults[2];
 
   const getQualityLevel = (): number => {
-    const level = Math.ceil(getTalentEvaluation() / 3)
-    return level >= 0 ? level : 0
-  }
+    const level = Math.ceil(getTalentEvaluation() / 3);
+    return level >= 0 ? level : 0;
+  };
 
   const getResult = () => {
-    const talentEvaluation = getTalentEvaluation()
-    let output = `Ergebnis: ${getTalentEvaluation()} `
-    output += talentEvaluation >= 0 ? `(QS: ${getQualityLevel()})` : `(Misslungen)`
-    return output
-  }
+    const talentEvaluation = getTalentEvaluation();
+    let output = `Ergebnis: ${getTalentEvaluation()} `;
+    output += talentEvaluation >= 0 ? `(QS: ${getQualityLevel()})` : '(Misslungen)';
+    return output;
+  };
 
   return (
     <div className='flex flex-col items-center space-y-6'>
@@ -83,7 +83,7 @@ const TalentRoll = () => {
         </ul>
       </div>)}
     </div>
-  )
-}
+  );
+};
 
-export default TalentRoll
+export default TalentRoll;

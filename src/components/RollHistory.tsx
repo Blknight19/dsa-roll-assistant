@@ -1,17 +1,17 @@
-import type { RootState } from "@/store";
-import { clearHistory, type RollHistoryEntry } from "@/store/rollSlice";
-import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from '@/store';
+import { clearHistory, type RollHistoryEntry } from '@/store/rollSlice';
+import { useDispatch, useSelector } from 'react-redux';
 
 
 
 
 const RollHistory = () => {
-	const dispatch = useDispatch()
-	const rollHistory: RollHistoryEntry[] = useSelector((state: RootState) => state.roll.history)
+	const dispatch = useDispatch();
+	const rollHistory: RollHistoryEntry[] = useSelector((state: RootState) => state.roll.history);
 
 	const handleClear = () => {
-		dispatch(clearHistory())
-	}
+		dispatch(clearHistory());
+	};
 
 	return (
 		<div className="mt-6">
@@ -43,7 +43,7 @@ const RollHistory = () => {
 							{/* Anzeige der einzelnen Würfel */}
 							<div className="mt-1">{roll.result}</div>
 							<div className="mt-1 text-xs text-muted-foreground">
-								Würfel: {roll.values.join(", ")}
+								Würfel: {roll.values.join(', ')}
 							</div>
 
 
@@ -53,7 +53,7 @@ const RollHistory = () => {
 			</ul>
 		</div>
 	);
-}
+};
 
 
-export default RollHistory
+export default RollHistory;
