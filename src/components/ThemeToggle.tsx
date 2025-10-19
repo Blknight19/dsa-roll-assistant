@@ -9,6 +9,7 @@ const ThemeToggle = () => {
 	const [mounted, setMounted] = useState<boolean>(false);
 	useEffect(() => setMounted(true), []);
 	if (!mounted) return null;
+	if (!theme || !['light', 'dark'].includes(theme)) setTheme('dark');
 
 	return <button
 		onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
