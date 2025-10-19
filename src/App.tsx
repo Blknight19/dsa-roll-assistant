@@ -9,7 +9,7 @@ import ThemeToggle from './components/ThemeToggle';
 function App() {
   return (
     <>
-      <div className='min-h-screen bg-background text-foreground p-4 flex flex-col items-center justify-center'>
+      <div className='min-h-screen bg-background text-foreground p-4 flex flex-col items-center'>
         {/* Desktop: Toggle oben rechts */}
         <div className="hidden md:block absolute top-4 right-4">
           <ThemeToggle />
