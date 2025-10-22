@@ -5,6 +5,7 @@ import TalentRoll from './components/TalentRoll';
 import SimpleRoll from './components/SimpleRoll';
 import RollHistory from './components/RollHistory';
 import ThemeToggle from './components/ThemeToggle';
+import Character from './components/Character';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
               <TabsTrigger value="talentRoll">Talentroll</TabsTrigger>
               <TabsTrigger value="simpleRoll">Einzelroll</TabsTrigger>
               <TabsTrigger value="history">Historie</TabsTrigger>
+              <TabsTrigger value="character">Charakter</TabsTrigger>
             </TabsList>
             <TabsContent value="talentRoll">
               <TalentRoll />
@@ -35,6 +37,9 @@ function App() {
             </TabsContent>
             <TabsContent value="history">
               <RollHistory />
+            </TabsContent>
+            <TabsContent value="character">
+              <Character />
             </TabsContent>
           </Tabs>
         </div>

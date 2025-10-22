@@ -60,9 +60,9 @@ const TalentRoll = () => {
   return (
     <div className='flex flex-col items-center space-y-6'>
       <div className='grid grid-cols-3 gap-4 max-w-[800px] place-items-center'>
-        <PropertyNumber label='Eigenschaft 1' value={firstProperty} onChange={setFirstProperty} />
-        <PropertyNumber label='Eigenschaft 2' value={secondProperty} onChange={setSecondProperty} />
-        <PropertyNumber label='Eigenschaft 3' value={thirdProperty} onChange={setThirdProperty} min={-100} />
+        <PropertyNumber label='Eig. 1' value={firstProperty} onChange={setFirstProperty} />
+        <PropertyNumber label='Eig. 2' value={secondProperty} onChange={setSecondProperty} />
+        <PropertyNumber label='Eig. 3' value={thirdProperty} onChange={setThirdProperty} min={-100} />
         <div className="col-start-2">
           <PropertyNumber label='Modifier' value={modifier} onChange={setModifier} min={-20} max={20} size='s' />
         </div>
