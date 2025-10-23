@@ -29,7 +29,7 @@ const TalentRoll = () => {
     setTalentResults(results);
 
     const total = talentValue + results.reduce((sum, currentValue) => sum + currentValue, 0);
-    const quality = Math.max(0, Math.ceil(total / 3));
+    const quality = Math.max(1, Math.ceil(total / 3));
     const qualityResult = total >= 0 ? `(QS: ${quality})` : '(Misslungen)';
     const modifierText = modifier >= 0 ? `+${modifier}` : `${modifier}`;
     const result = `Ergebnis: ${total} ${qualityResult} [Modifikator: ${modifierText}]`;
@@ -46,8 +46,7 @@ const TalentRoll = () => {
   const getTalentEvaluation = (): number => talentValue + talentResults[0] + talentResults[1] + talentResults[2];
 
   const getQualityLevel = (): number => {
-    const level = Math.ceil(getTalentEvaluation() / 3);
-    return level >= 0 ? level : 0;
+    return Math.max(1, Math.ceil(getTalentEvaluation() / 3));
   };
 
   const getResult = () => {
