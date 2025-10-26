@@ -1,8 +1,32 @@
 import { useState } from 'react';
 import { roll3D20 } from '../utils/dice';
 import PropertyNumber from './PropertyNumber';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addRoll } from '@/store/rollSlice';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import type { RootState } from '@/store';
+import type { AttributeKey } from '@/store/attributesSlice';
+import { ChevronDown } from 'lucide-react';
 // import { Info } from 'lucide-react';
 // import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -10,13 +34,47 @@ import { addRoll } from '@/store/rollSlice';
 const TalentRoll = () => {
   const dispatch = useDispatch();
 
-  const [firstProperty, setFirstProperty] = useState<number>(10);
-  const [secondProperty, setSecondProperty] = useState<number>(10);
-  const [thirdProperty, setThirdProperty] = useState<number>(10);
+  const attributes = useSelector((state: RootState) => state.attributes);
+  const talents = useSelector((state: RootState) => state.talents.talents);
+
+  const [firstAttribute, setFirstAttribute] = useState<AttributeKey>('MU');
+  const [secondAttribute, setSecondAttribute] = useState<AttributeKey>('KL');
+  const [thirdAttribute, setThirdAttribute] = useState<AttributeKey>('IN');
+  const [firstProperty, setFirstProperty] = useState<number>(attributes[firstAttribute]);
+  const [secondProperty, setSecondProperty] = useState<number>(attributes[secondAttribute]);
+  const [thirdProperty, setThirdProperty] = useState<number>(attributes[thirdAttribute]);
+
   const [modifier, setModifier] = useState<number>(0);
   const [talentValue, setTalentValue] = useState<number>(10);
   const [rollResult, setRollResult] = useState<number[]>([]);
   const [talentResults, setTalentResults] = useState<number[]>([]);
+  const [open, setOpen] = useState<boolean>(false);
+  const [talentName, setTalentName] = useState<string>('');
+  const [selectedTalentId, setSelectedTalentId] = useState<string>('');
+
+
+  const attributeKeys: AttributeKey[] = ['MU', 'KL', 'IN', 'CH', 'FF', 'GE', 'KO', 'KK'];
+
+  const handleSelectTalent = (talentId: string) => {
+    const currentTalent = talents.find(talent => talent.id === talentId);
+    if (!currentTalent) return;
+
+    const { attribute1, attribute2, attribute3, id, name, value } = currentTalent;
+    setTalentName(name);
+    setSelectedTalentId(id);
+    console.log('selectedTalentId :>> ', selectedTalentId);
+
+    setFirstAttribute(attribute1);
+    setSecondAttribute(attribute2);
+    setThirdAttribute(attribute3);
+
+    setTalentValue(value);
+
+    setFirstProperty(attributes[attribute1]);
+    setSecondProperty(attributes[attribute2]);
+    setThirdProperty(attributes[attribute3]);
+    setOpen(false);
+  };
 
   // Hilfsfunktion für negative Ergebnisse
   const getCorrectPropertyValue = (rollResult: number): number => rollResult < 0 ? rollResult : 0;
@@ -75,10 +133,105 @@ const TalentRoll = () => {
 
   return (
     <div className='flex flex-col items-center space-y-6'>
+      {/* //Auswahl Talent */}
+      <div className="flex flex-col items-center">
+        <label className="mb-1">Talent</label>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              className="w-56 justify-between"
+              aria-expanded={open}
+            >
+              {talentName || 'Talent wählen'}
+              <ChevronDown className="opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-56 p-0">
+            <Command>
+              <CommandInput placeholder="Talent suchen..." />
+              <CommandList>
+                <CommandEmpty>Kein Talent gefunden</CommandEmpty>
+                <CommandGroup>
+                  {talents.map((talent) => (
+                    <CommandItem
+                      key={talent.id}
+                      onSelect={() => handleSelectTalent(talent.id)}>
+                      {talent.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </div>
+
       <div className='grid grid-cols-3 gap-4 max-w-[800px] place-items-center'>
-        <PropertyNumber label='Eig. 1' value={firstProperty} onChange={setFirstProperty} />
-        <PropertyNumber label='Eig. 2' value={secondProperty} onChange={setSecondProperty} />
-        <PropertyNumber label='Eig. 3' value={thirdProperty} onChange={setThirdProperty} min={-100} />
+        <div className='flex flex-col items-center gap-3'>
+          <Select
+            value={firstAttribute}
+            onValueChange={(val) => {
+              setFirstAttribute(val as AttributeKey);
+              setFirstProperty(attributes[val as AttributeKey]); // nur beim Auswählen aktualisieren
+            }}
+          >
+            <SelectTrigger className="w-20 text-center">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {attributeKeys.map((key) => (
+                <SelectItem key={key} value={key}>
+                  {key}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <PropertyNumber value={firstProperty} onChange={setFirstProperty} />
+        </div>
+        <div className='flex flex-col items-center  gap-3'>
+          <Select
+            value={secondAttribute}
+            onValueChange={(val) => {
+              setSecondAttribute(val as AttributeKey);
+              setSecondProperty(attributes[val as AttributeKey]); // nur beim Auswählen aktualisieren
+            }}
+          >
+            <SelectTrigger className="w-20 text-center">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {attributeKeys.map((key) => (
+                <SelectItem key={key} value={key}>
+                  {key}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <PropertyNumber value={secondProperty} onChange={setSecondProperty} />
+        </div>
+        <div className='flex flex-col items-center  gap-3'>
+          <Select
+            value={thirdAttribute}
+            onValueChange={(val) => {
+              setThirdAttribute(val as AttributeKey);
+              setThirdProperty(attributes[val as AttributeKey]); // nur beim Auswählen aktualisieren
+            }}
+          >
+            <SelectTrigger className="w-20 text-center">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {attributeKeys.map((key) => (
+                <SelectItem key={key} value={key}>
+                  {key}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <PropertyNumber value={thirdProperty} onChange={setThirdProperty} min={-100} />
+        </div>
         <div className="col-start-2">
           <div className="flex items-center gap-2">
             <PropertyNumber
