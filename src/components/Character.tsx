@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PropertyNumber from './PropertyNumber';
 import { setAttribute } from '@/store/attributesSlice';
 import type { AttributeKey } from '@/store/attributesSlice';
+import { updateTalent } from '@/store/talentsSlice';
+
 const Character = () => {
 	const dispatch = useDispatch();
 	const attributes = useSelector((state: RootState) => state.attributes);
@@ -52,20 +54,26 @@ const Character = () => {
 									<thead>
 										<tr className="border-b border-border text-left">
 											<th className="p-2">Name</th>
-											<th className="p-2">Eig. 1</th>
-											<th className="p-2">Eig. 2</th>
-											<th className="p-2">Eig. 3</th>
-											<th className="p-2 text-right">Wert</th>
+											<th className="p-2 text-center">Eig. 1</th>
+											<th className="p-2 text-center">Eig. 2</th>
+											<th className="p-2 text-center">Eig. 3</th>
+											<th className="p-2 text-center">Wert</th>
 										</tr>
 									</thead>
 									<tbody>
 										{talents.map(talent => (
 											<tr key={talent.id} className="border-b border-border text-left">
 												<td className="p-2 font-medium">{talent.name}</td>
-												<td className="p-2">{talent.attribute1}</td>
-												<td className="p-2">{talent.attribute2}</td>
-												<td className="p-2">{talent.attribute3}</td>
-												<td className="p-2 text-right">{talent.value}</td>
+												<td className="p-2 text-center">{talent.attribute1}</td>
+												<td className="p-2 text-center">{talent.attribute2}</td>
+												<td className="p-2 text-center">{talent.attribute3}</td>
+												<td className="p-2 text-center">
+													<PropertyNumber
+														value={talent.value}
+														size="s"
+														onChange={(value) => { dispatch(updateTalent({ id: talent.id, value })); }}
+													/>
+												</td>
 											</tr>
 										))}
 									</tbody>
