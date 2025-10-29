@@ -52,6 +52,8 @@ const TalentRoll = () => {
   const [talentName, setTalentName] = useState<string>('');
   const [selectedTalentId, setSelectedTalentId] = useState<string>('');
 
+  const [special, setSpecial] = useState<'krit' | 'patzer' | null>(null);
+
 
   const attributeKeys: AttributeKey[] = ['MU', 'KL', 'IN', 'CH', 'FF', 'GE', 'KO', 'KK'];
 
@@ -83,6 +85,13 @@ const TalentRoll = () => {
   const handleRoll = () => {
     const roll = roll3D20();
     setRollResult(roll);
+
+    const isKriticalSuccess = roll.filter(x => x === 1).length >= 2;
+    const isKriticalFail = roll.filter(x => x === 20).length >= 2;
+
+    if (isKriticalSuccess) setSpecial('krit');
+    if (isKriticalFail) setSpecial('patzer');
+
     const results = [
       getCorrectPropertyValue(firstProperty - modifier - roll[0]),
       getCorrectPropertyValue(secondProperty - modifier - roll[1]),
@@ -95,7 +104,10 @@ const TalentRoll = () => {
     const quality = Math.max(1, Math.ceil(total / 3));
     const qualityResult = total >= 0 ? `(QS: ${quality})` : '(Misslungen)';
     const modifierText = modifier >= 0 ? `+${modifier}` : `${modifier}`;
-    const result = `Ergebnis: ${total} ${qualityResult} [Modifikator: ${modifierText}]`;
+    let result = `Ergebnis: ${total} ${qualityResult} [Modifikator: ${modifierText}]`;
+
+    if (isKriticalSuccess) result = '⭐ Kritischer Erfolg!';
+    if (isKriticalFail) result = '⚠️ Patzer!';
 
     dispatch(addRoll({
       id: crypto.randomUUID(),
@@ -268,14 +280,23 @@ const TalentRoll = () => {
         <button onClick={handleRoll}>Würfeln</button>
         {rollResult.length !== 0 && (<p className='mt-2 text-muted-foreground'>{rollResult.join(', ')}</p>)}
       </div>
-      {talentResults.length > 0 && (<div>
-        <p>{getResult()}</p>
-        <ul className='text-muted-foreground mt-4'>
-          <li>Eigenschaft 1 - Würfelzahl - Modifier: {talentResults[0]}</li>
-          <li>Eigenschaft 2 - Würfelzahl - Modifier: {talentResults[1]}</li>
-          <li>Eigenschaft 3 - Würfelzahl - Modifier: {talentResults[2]}</li>
-        </ul>
-      </div>)}
+      {talentResults.length > 0 && (
+        <div>
+          {special === 'krit' && (
+            <p className="text-green-400 font-bold text-lg glow-success">⭐ Kritischer Erfolg!</p>
+          )}
+          {special === 'patzer' && (
+            <p className="text-red-500 font-bold text-lg shake-error">⚠️ Patzer!</p>
+          )}
+          {special === null && (
+            <p>{getResult()}</p>
+          )}
+          <ul className='text-muted-foreground mt-4'>
+            <li>Eigenschaft 1 - Würfelzahl - Modifier: {talentResults[0]}</li>
+            <li>Eigenschaft 2 - Würfelzahl - Modifier: {talentResults[1]}</li>
+            <li>Eigenschaft 3 - Würfelzahl - Modifier: {talentResults[2]}</li>
+          </ul>
+        </div>)}
     </div>
   );
 };

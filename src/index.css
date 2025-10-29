@@ -157,3 +157,49 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
   appearance: textfield;
 }
+
+/* 🟢 Glow Animation für kritischen Erfolg */
+@keyframes glow {
+  0% {
+    filter: drop-shadow(0 0 0px #22c55e);
+  }
+
+  50% {
+    filter: drop-shadow(0 0 5px #22c55e);
+  }
+
+  100% {
+    filter: drop-shadow(0 0 0px #22c55e);
+  }
+}
+
+/* 🔴 Shake Animation für Patzer */
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-6px);
+  }
+
+  50% {
+    transform: translateX(6px);
+  }
+
+  75% {
+    transform: translateX(-3px);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.glow-success {
+  animation: glow 1s ease-in-out;
+}
+
+.shake-error {
+  animation: shake 0.4s ease-in-out;
+}
