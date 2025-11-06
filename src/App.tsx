@@ -1,5 +1,6 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Toaster } from '@/components/ui/sonner';
 import './App.css';
 import TalentRoll from './components/TalentRoll';
 import SimpleRoll from './components/SimpleRoll';
@@ -44,6 +45,7 @@ function App() {
           </Tabs>
         </div>
       </div>
+      <Toaster />
     </>
   );
 }

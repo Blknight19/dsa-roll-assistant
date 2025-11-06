@@ -1,8 +1,9 @@
 import { useDispatch, useSelector } from 'react-redux';
-import type { RootState } from '@/store';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PropertyNumber from './PropertyNumber';
+import ImportExportSettings from './ImportExportSettings';
+import type { RootState } from '@/store';
 import { setAttribute } from '@/store/attributesSlice';
 import type { AttributeKey } from '@/store/attributesSlice';
 import { updateTalent } from '@/store/talentsSlice';
@@ -18,6 +19,7 @@ const Character = () => {
 				<TabsList className="mb-4">
 					<TabsTrigger value="attributes">Eigenschaften</TabsTrigger>
 					<TabsTrigger value="talents">Talente</TabsTrigger>
+					<TabsTrigger value="settings">Einstellungen</TabsTrigger>
 				</TabsList>
 
 				{/* Eigenschaften */}
@@ -81,6 +83,9 @@ const Character = () => {
 							</div>
 						</CardContent>
 					</Card>
+				</TabsContent>
+				<TabsContent value='settings'>
+					<ImportExportSettings />
 				</TabsContent>
 			</Tabs>
 		</div>

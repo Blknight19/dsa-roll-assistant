@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { AttributeKey } from './attributesSlice';
 
-type Talent = {
+export type Talent = {
 	id: string;
 	name: string;
 	attribute1: AttributeKey;
