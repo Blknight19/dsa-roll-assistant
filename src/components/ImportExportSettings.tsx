@@ -31,7 +31,7 @@ const ImportExportSettings = () => {
 				<input
 					id="characterImportInput"
 					type="file"
-					accept="application/json"
+					accept=".dsa"
 					className="hidden"
 					onChange={(e) => {
 						if (e.target.files?.length) handleFileSelected(e.target.files[0]);

@@ -8,7 +8,8 @@ import { toast } from 'sonner';
 
 export const importCharacter = async (file: File) => {
 	try {
-		const json = await file.text();
+		const encodedText = await file.text();
+		const json = atob(encodedText);
 		const data: {
 			attributes: Record<AttributeKey, number>;
 			talents: Pick<Talent, 'id' | 'value'>[];
