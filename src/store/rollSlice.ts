@@ -24,7 +24,7 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 
 export type RollHistoryEntry = {
 	id: string,
-	type: 'Einzel' | 'Talent',
+	type: 'Einzel' | 'Talent' | 'Kampf',
 	values: number[],
 	result: string,
 	date: string

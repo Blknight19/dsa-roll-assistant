@@ -2,6 +2,7 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { attributeReducer } from './attributesSlice';
 import { rollReducer } from './rollSlice';
 import { talentReducer } from './talentsSlice';
+import { combatReducer } from './combatSlice';
 
 const loadState = () => {
 	try {
@@ -17,7 +18,8 @@ const loadState = () => {
 const rootReducer = combineReducers({
 	roll: rollReducer,
 	talents: talentReducer,
-	attributes: attributeReducer
+	attributes: attributeReducer,
+	combat: combatReducer,
 });
 
 export const store = configureStore({
