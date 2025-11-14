@@ -9,24 +9,28 @@ import { roll } from '@/utils/dice';
 import { nanoid } from '@reduxjs/toolkit';
 import { addRoll } from '@/store/rollSlice';
 
-
 const Combat = () => {
 	const dispatch = useDispatch();
 	const combat = useSelector((state: RootState) => state.combat);
+	const [modifier, setModifier] = useState<number>(0);
+	const [rollText, setRollText] = useState<string>('');
 
+	type CombatType = 'AT' | 'PA' | 'AW' | 'FK' | 'INI'
 	type LastCombatResult = {
+		type: CombatType;
 		label: string;
-		result: string;
 		values: number[];
+		isSuccessful: boolean;
 		crit?: boolean;
 		fail?: boolean;
 	}
 
 	const [lastCombatResult, setLastCombatResult] = useState<LastCombatResult | null>(null);
 
-	const addCombatResult = (label: string, result: string, values: number[], crit = false, fail = false) => {
-		setLastCombatResult({ label, result, values, crit, fail });
+	const isAttackType = (type: CombatType) => ['AT', 'PA', 'AW', 'FK'].includes(type);
 
+	const addCombatResult = (type: CombatType, label: string, result: string, values: number[], isSuccessful = false, crit = false, fail = false) => {
+		setLastCombatResult({ type, label, values, isSuccessful, crit, fail });
 		dispatch(addRoll({
 			id: nanoid(),
 			type: 'Kampf',
@@ -36,7 +40,7 @@ const Combat = () => {
 		}));
 	};
 
-	const rollCombatValue = (name: string, value: number) => {
+	const rollCombatValue = (name: CombatType, value: number) => {
 		const labelEnum: Record<string, string> = {
 			'AT': '⚔️ Attacke',
 			'PA': '🛡️ Parade',
@@ -45,11 +49,15 @@ const Combat = () => {
 			'INI': '⏱ Initiative',
 		};
 		const currentCombatLabel = labelEnum[name];
+
 		if (name === 'INI') {
 			const [w6] = roll('1d6');
-			const initiative = w6 + value;
-			const result = `⏱ Initiative: ${value} + ${w6} = ${initiative}`;
-			addCombatResult(currentCombatLabel, result, [w6]);
+			const initiative = w6 + value + modifier;
+			const modifierText = modifier < 0 ? modifier.toString().split('-').join('- ') : `+ ${modifier}`;
+
+			const result = `⏱ Initiative: ${value} + ${w6} ${modifierText} = ${initiative}`;
+			setRollText(result);
+			addCombatResult(name, currentCombatLabel, result, [w6]);
 
 			return;
 		}
@@ -57,19 +65,45 @@ const Combat = () => {
 		const [d20] = roll('1d20');
 
 		if (d20 === 1) {
-			addCombatResult(currentCombatLabel, `${currentCombatLabel}: ⭐ Kritischer Erfolg!`, [d20], true, false);
+			const failText = '⭐ Kritischer Erfolg!';
+			setRollText(failText);
+			addCombatResult(name, currentCombatLabel, failText, [d20], false, true, false);
 			return;
 		}
 
 		if (d20 === 20) {
-			addCombatResult(currentCombatLabel, `${currentCombatLabel}: ⚠️ Patzer!`, [d20], false, true);
+			const critText = '⚠️ Patzer!';
+			setRollText(critText);
+			addCombatResult(name, currentCombatLabel, critText, [d20], true, false, true);
 			return;
 		}
 
-		const isSuccessful = d20 < value;
-		const resultText = `${currentCombatLabel} ${isSuccessful ? '✅ gelungen' : '❌ nicht gelungen'}(Wurf: ${d20} / Wert: ${value})`;
-		addCombatResult(currentCombatLabel, resultText, [d20]);
+		const currentRoll = d20;
+		const finalValue = value + modifier;
+		const isSuccessful = currentRoll <= finalValue;
+		let valueText = `(Wurf: ${d20}, Basiswert: ${finalValue})`;
+
+		if (modifier !== 0) {
+			valueText = `(Wurf: ${d20}, Basiswert: ${value}${modifier !== 0 ? `, Mod: ${modifier > 0 ? '+' : ''}${modifier}` : ''} → Endwert: ${finalValue})`;
+		}
+		setRollText(valueText);
+		const resultText = `${currentCombatLabel} ${isSuccessful ? '✅ gelungen' : '❌ nicht gelungen'} (Wurf: ${d20}, ${valueText}`;
+
+		addCombatResult(name, currentCombatLabel, resultText, [d20], isSuccessful);
 	};
+
+
+	let modifierText = null;
+	let modifierColor = '';
+
+	if (modifier < 0) {
+		modifierText = 'Erschwernis';
+		modifierColor = 'text-amber-400';
+	} else if (modifier > 0) {
+		modifierText = 'Erleichterung';
+		modifierColor = 'text-sky-400';
+	}
+
 	return (
 		<div className="space-y-6">
 			<Card>
@@ -97,10 +131,10 @@ const Combat = () => {
 					<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
 						{[
 							{ label: 'AT', key: 'attack' },
+							{ label: 'FK', key: 'ranged' },
 							{ label: 'PA', key: 'save' },
 							{ label: 'AW', key: 'dodge' },
 							{ label: 'INI', key: 'initiative' },
-							{ label: 'FK', key: 'ranged' },
 						].map((item) => (
 							<div key={item.key} className="flex flex-col items-center gap-2">
 								<PropertyNumber
@@ -116,11 +150,24 @@ const Combat = () => {
 										)
 									}
 								/>
-								<Button size="sm" variant="outline" onClick={() => rollCombatValue(item.label, combat[item.key as keyof typeof combat] as number)}>
+								<Button size="sm" variant="outline" onClick={() => rollCombatValue(item.label as CombatType, combat[item.key as keyof typeof combat] as number)}>
 									🎲 Würfeln
 								</Button>
 							</div>
 						))}
+					</div>
+					<div className="flex flex-col items-center justify-center">
+						<PropertyNumber
+							label="Modifikator"
+							value={modifier}
+							size="s"
+							min={-20}
+							max={20}
+							onChange={setModifier}
+						/>
+						{modifierText && (
+							<span className={`text-xs mt-1 ${modifierColor}`}>{modifierText}</span>
+						)}
 					</div>
 				</CardContent>
 			</Card>
@@ -131,10 +178,13 @@ const Combat = () => {
 					${lastCombatResult.fail ? 'shake-error border-red-500' : ''}
 				`}>
 					<CardHeader>
-						<CardTitle>🎯 Letzter Kampfwurf</CardTitle>
+						<CardTitle className='text-xl'>Letzter Kampfwurf: {lastCombatResult.label}</CardTitle>
 					</CardHeader>
-					<CardContent className="text-center">
-						<div className="text-xl font-semibold">{lastCombatResult.result}</div>
+					<CardContent className="flex flex-col items-center gap-3">
+						{(isAttackType(lastCombatResult.type) && (!lastCombatResult.crit && !lastCombatResult.fail)) && (<div className="text-xl font-bold">
+							{lastCombatResult.isSuccessful ? '✅ Gelungen' : '❌ Misslungen'}
+						</div>)}
+						<div className="text-lg font-semibold">{rollText}</div>
 						<div className="text-sm text-muted-foreground">
 							Wurf: {lastCombatResult.values.join(', ')}
 						</div>

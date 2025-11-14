@@ -91,6 +91,7 @@ const TalentRoll = () => {
 
     if (isKriticalSuccess) setSpecial('krit');
     if (isKriticalFail) setSpecial('patzer');
+    if (!isKriticalSuccess && !isKriticalFail) setSpecial(null);
 
     const results = [
       getCorrectPropertyValue(firstProperty - modifier - roll[0]),

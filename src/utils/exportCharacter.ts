@@ -7,11 +7,12 @@ export const exportCharacter = () => {
 		version: 1,
 		attributes: state.attributes,
 		talents: state.talents.talents.map(({ id, value }) => ({ id, value })),
-		history: state.roll.history
+		history: state.roll.history,
+		combat: state.combat
 	};
 
 	const json = JSON.stringify(exportObject, null, 2);
-	const encodedData = btoa(json);
+	const encodedData = btoa(encodeURIComponent(json));
 	const blob = new Blob([encodedData], { type: 'application/json' });
 
 	const url = URL.createObjectURL(blob);
