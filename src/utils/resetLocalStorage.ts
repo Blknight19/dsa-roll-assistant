@@ -1,4 +1,12 @@
+import { store } from '@/store';
+import { setIsLoading } from '@/store/loadingSlice';
+
 export const resetLocalStorage = () => {
-	localStorage.removeItem('dsa-app-state');
-	location.reload();
+	const dispatch = store.dispatch;
+	dispatch(setIsLoading(true));
+
+	setTimeout(() => {
+		localStorage.removeItem('dsa-app-state');
+		location.reload();
+	}, 300);
 };

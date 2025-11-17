@@ -6,8 +6,11 @@ import type { Talent } from '@/store/talentsSlice';
 import type { RollHistoryEntry } from '@/store/rollSlice';
 import { toast } from 'sonner';
 import { updateCombatStat, updateLifeStat, type CombatState } from '@/store/combatSlice';
+import { setIsLoading } from '@/store/loadingSlice';
 
 export const importCharacter = async (file: File) => {
+	const dispatch = store.dispatch;
+	dispatch(setIsLoading(true));
 	try {
 		const encodedText = await file.text();
 		const json = decodeURIComponent(atob(encodedText));
@@ -19,7 +22,6 @@ export const importCharacter = async (file: File) => {
 		} = JSON.parse(json);
 
 		const { attributes, talents, history, combat } = data;
-		const dispatch = store.dispatch;
 
 		//atrributes
 		if (attributes !== undefined) {
@@ -60,4 +62,5 @@ export const importCharacter = async (file: File) => {
 	} catch (e) {
 		toast(`❌ Fehler beim Import (keine gültige JSON)', ${e}`);
 	}
+	dispatch(setIsLoading(false));
 };

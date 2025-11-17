@@ -7,6 +7,7 @@ import SimpleRoll from './components/SimpleRoll';
 import RollHistory from './components/RollHistory';
 import ThemeToggle from './components/ThemeToggle';
 import Character from './components/Character';
+import LoadingOverlay from './components/LoadingOverlay';
 
 function App() {
   return (
@@ -46,6 +47,7 @@ function App() {
         </div>
       </div>
       <Toaster />
+      <LoadingOverlay />
     </>
   );
 }

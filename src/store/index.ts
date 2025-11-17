@@ -3,6 +3,7 @@ import { attributeReducer } from './attributesSlice';
 import { rollReducer } from './rollSlice';
 import { talentReducer } from './talentsSlice';
 import { combatReducer } from './combatSlice';
+import { loadingReducer } from './loadingSlice';
 
 const loadState = () => {
 	try {
@@ -20,6 +21,7 @@ const rootReducer = combineReducers({
 	talents: talentReducer,
 	attributes: attributeReducer,
 	combat: combatReducer,
+	loading: loadingReducer
 });
 
 export const store = configureStore({
