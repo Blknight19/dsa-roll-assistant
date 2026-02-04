@@ -159,7 +159,7 @@ const Combat = () => {
 				</CardHeader>
 				<CardContent className="space-y-6">
 					{/* Kampfwerte Grid */}
-					<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+					<div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
 						{[
 							{ label: 'AT', key: 'attack', icon: Swords },
 							{ label: 'FK', key: 'ranged', icon: Target },

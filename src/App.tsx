@@ -7,6 +7,7 @@ import RollHistory from './components/RollHistory';
 import ThemeToggle from './components/ThemeToggle';
 import Character from './components/Character';
 import LoadingOverlay from './components/LoadingOverlay';
+import { Scroll, Dices, History, User } from 'lucide-react';
 
 function App() {
   return (
@@ -39,17 +40,21 @@ function App() {
           <div className='w-full max-w-6xl'>
             <Tabs defaultValue="talentRoll" className="w-full">
               <TabsList className="grid w-full grid-cols-4 mb-6 bg-aventurian-100 dark:bg-aventurian-800">
-                <TabsTrigger value="talentRoll" className="font-heading">
-                  Talentprobe
+                <TabsTrigger value="talentRoll"  className="font-heading flex items-center gap-2">
+                  <Scroll className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">Talentprobe</span>
                 </TabsTrigger>
-                <TabsTrigger value="simpleRoll" className="font-heading">
-                  Einzelwurf
+                <TabsTrigger value="simpleRoll"  className="font-heading flex items-center gap-2">
+                  <Dices className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">Einzelwurf</span>
                 </TabsTrigger>
-                <TabsTrigger value="history" className="font-heading">
-                  Historie
+                <TabsTrigger value="history"  className="font-heading flex items-center gap-2">
+                  <History className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">Historie</span>
                 </TabsTrigger>
-                <TabsTrigger value="character" className="font-heading">
-                  Charakter
+                <TabsTrigger value="character"  className="font-heading flex items-center gap-2">
+                  <User className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">Charakter</span>
                 </TabsTrigger>
               </TabsList>
               
