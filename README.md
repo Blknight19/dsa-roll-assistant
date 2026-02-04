@@ -1,57 +1,74 @@
-# dsa-roll-assistant
-Interactive DSA hero sheet with real-time dice rolls and talent checks.
+# 🧙 Roll-Assistent
 
-# React + TypeScript + Vite
+Ein digitaler Würfelassistent und Charakterbogen.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## ✨ Features
 
-Currently, two official plugins are available:
+- **Talentproben** mit 3W20-Mechanik (DSA 5)
+- **Einfache Würfelwürfe** (W4, W6, W8, W10, W12, W20)
+- **Kampfwürfe** (Attacke, Parade, Ausweichen, Fernkampf, Initiative)
+- **Charakterverwaltung**
+  - Eigenschaften (MU, KL, IN, CH, FF, GE, KO, KK)
+  - 59 DSA-Talente
+  - Kampfwerte & Lebensenergie
+- **Würfelhistorie** mit LocalStorage-Persistenz
+- **Import/Export** von Charakterdaten (.dsa-Datei)
+- **Dark/Light Mode** mit automatischer Systemerkennung
+- **Mobile-optimiert** & Responsive
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Quick Start
+```bash
+# Installation
+npm install
 
-## Expanding the ESLint configuration
+# Development Server
+npm run dev
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+# Build für Produktion
+npm run build
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+# Deployment auf GitHub Pages
+npm run deploy:full
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Die App läuft standardmäßig auf `http://localhost:5173`
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🛠️ Tech Stack
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+- **Framework:** React 19
+- **Language:** TypeScript 5.8
+- **Build Tool:** Vite 6
+- **State Management:** Redux Toolkit
+- **Styling:** Tailwind CSS + shadcn/ui
+- **Icons:** Lucide React
+- **Würfel-Engine:** rpg-dice-roller
+- **Theme:** next-themes
+
+## 🎲 Verwendung
+
+### Talentprobe würfeln
+
+1. Wähle ein Talent aus der Liste (z.B. "Klettern")
+2. Die Eigenschaften werden automatisch gesetzt (MU/GE/KK)
+3. Optional: Erschwernis/Erleichterung einstellen
+4. Klicke auf "Würfeln"
+5. Ergebnis zeigt QS (Qualitätsstufe) oder Misserfolg
+
+### Charakterdaten sichern
+
+1. Gehe zu **Charakter → Einstellungen**
+2. Klicke auf "Charakter exportieren"
+3. .dsa-Datei wird heruntergeladen
+4. Import: "Charakter importieren" → Datei auswählen
+
+## 🤝 Contributing
+
+Contributions sind willkommen! Bitte öffne ein Issue oder Pull Request.
+
+## 🐛 Bug Reports
+
+Gefunden einen Bug? [Erstelle ein Issue](https://github.com/Blknight19/dsa-roll-assistant/issues/new)
+
+---
+
+Made with ⚔️ by [Blknight19](https://github.com/Blknight19)
