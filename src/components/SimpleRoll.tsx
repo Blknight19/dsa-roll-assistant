@@ -7,9 +7,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { roll } from '@/utils/dice';
 import { useDispatch } from 'react-redux';
 import { addRoll } from '@/store/rollSlice';
+import { Dices } from 'lucide-react';
 
 const diceOptions = [
     { label: 'W20', value: '20' },
@@ -45,7 +47,7 @@ const SimpleRoll = () => {
     };
 
     return (
-        <div className="flex flex-col items-center space-y-6 mt-6">
+        <div className="flex flex-col items-center space-y-6 mt-6 w-full max-w-md mx-auto">
             <div className="flex flex-col items-center space-y-2">
                 <label className="text-sm text-muted-foreground">Würfel auswählen</label>
                 <Select defaultValue={selectedDice} onValueChange={setSelectedDice} >
@@ -61,12 +63,19 @@ const SimpleRoll = () => {
                 <PropertyNumber label='Anzahl' value={diceCount} onChange={setDiceCount} min={1} max={20} />
                 <PropertyNumber label='Modifier' value={modifier} onChange={setModifier} min={-20} max={20} />
             </div>
-            <button onClick={handleRoll} className="w-[155px]">Würfeln</button>
+            <Button onClick={handleRoll} size="lg" className="w-full max-w-[200px]">
+                <Dices className="w-5 h-5 mr-2" />
+                Würfeln
+            </Button>
             {total !== null && (
-                <div className="text-center mt-4 space-y-2">
-                    <p className="text-lg font-semibold">Gesamtergebnis: {total}</p>
-                    <p className="text-sm text-muted-foreground">{diceCount}W{selectedDice}</p>
-                    <p className="text-sm text-muted-foreground">Einzelwürfe: {results.join(', ')}</p>
+                <div className="text-center mt-4 space-y-2 p-6 bg-card border border-border rounded-lg w-full">
+                    <p className="text-3xl font-bold">{total}</p>
+                    <p className="text-sm text-muted-foreground">
+                        {diceCount}W{selectedDice} {modifier !== 0 && `${modifier >= 0 ? '+' : ''}${modifier}`}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                        Einzelwürfe: {results.join(', ')}
+                    </p>
                 </div>
             )}
         </div>

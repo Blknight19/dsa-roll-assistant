@@ -45,8 +45,8 @@ const Combat = () => {
 			'AT': '⚔️ Attacke',
 			'PA': '🛡️ Parade',
 			'AW': '✈️ Ausweichen',
-			'FK': '🎯Fernkampf',
-			'INI': '⏱ Initiative',
+			'FK': '🎯 Fernkampf',
+			'INI': '⏱️ Initiative',
 		};
 		const currentCombatLabel = labelEnum[name];
 
@@ -55,7 +55,7 @@ const Combat = () => {
 			const initiative = w6 + value + modifier;
 			const modifierText = modifier < 0 ? modifier.toString().split('-').join('- ') : `+ ${modifier}`;
 
-			const result = `⏱ Initiative: ${value} + ${w6} ${modifierText} = ${initiative}`;
+			const result = `⏱️ Initiative: ${value} + ${w6} ${modifierText} = ${initiative}`;
 			setRollText(result);
 			addCombatResult(name, currentCombatLabel, result, [w6]);
 
@@ -173,7 +173,7 @@ const Combat = () => {
 			</Card>
 			{lastCombatResult && (
 				<Card className={`
-					animate -in fade -in slide -in -from - top - 2
+					animate-in fade-in slide-in-from-top-2
 					${lastCombatResult.crit ? 'glow-success border-green-400' : ''}
 					${lastCombatResult.fail ? 'shake-error border-red-500' : ''}
 				`}>

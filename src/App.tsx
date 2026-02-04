@@ -19,15 +19,15 @@ function App() {
         </div>
 
         {/* Mobile: Toggle unten mittig */}
-        <div className="block md:hidden fixed bottom-4 left-1/2 transform -translate-x-1/2">
+        <div className="block md:hidden fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
           <ThemeToggle />
         </div>
-        <h1 className="text-4xl font-bold mb-4">🧙 DSA Roll Assistant</h1>
+        <h1 className="text-4xl font-bold mb-4">🧙 Roll-Assistent</h1>
         <div className='flex flex-col items-center'>
           <Tabs defaultValue="talentRoll" className="min-h-[35rem]">
             <TabsList>
-              <TabsTrigger value="talentRoll">Talentroll</TabsTrigger>
-              <TabsTrigger value="simpleRoll">Einzelroll</TabsTrigger>
+              <TabsTrigger value="talentRoll">Talentprobe</TabsTrigger>
+              <TabsTrigger value="simpleRoll">Einzelwurf</TabsTrigger>
               <TabsTrigger value="history">Historie</TabsTrigger>
               <TabsTrigger value="character">Charakter</TabsTrigger>
             </TabsList>
