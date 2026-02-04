@@ -1,79 +1,81 @@
+
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
 
-  /* CSS variables and root styles */
+  /* Root Styles */
   :root {
-    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-    line-height: 1.5;
+    font-family: 'Crimson Text', serif;
+    line-height: 1.6;
     font-weight: 400;
 
     color-scheme: light dark;
-    color: rgba(255, 255, 255, 0.87);
-    background-color: #242424;
-
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
+    
+    /* Light Mode - Pergament-Theme */
+    --background: 45 20% 96%;          /* Helles Pergament */
+    --foreground: 30 15% 15%;          /* Dunkles Braun */
+    --card: 40 25% 98%;                /* Leicht gelblich */
+    --card-foreground: 30 15% 15%;
+    --popover: 40 25% 98%;
+    --popover-foreground: 30 15% 15%;
+    --primary: 30 45% 35%;             /* Bronze */
+    --primary-foreground: 45 20% 96%;
+    --secondary: 40 15% 88%;           /* Helles Beige */
+    --secondary-foreground: 30 15% 15%;
+    --muted: 40 15% 92%;
+    --muted-foreground: 30 10% 45%;
+    --accent: 30 55% 50%;              /* Gold-Akzent */
+    --accent-foreground: 45 20% 96%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
+    --border: 30 20% 82%;
+    --input: 30 20% 82%;
+    --ring: 30 45% 35%;
+    --radius: 0.75rem;
+    
+    /* Chart Colors */
+    --chart-1: 30 55% 50%;
     --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
+    --chart-3: 280 65% 60%;
+    --chart-4: 43 74% 66%;
     --chart-5: 340 75% 55%;
   }
 
-  /* Global styles */
+  .dark {
+    /* Dark Mode - Dunkles Leder/Pergament */
+    --background: 30 15% 8%;           /* Dunkles Braun */
+    --foreground: 45 20% 92%;          /* Helles Pergament */
+    --card: 30 15% 10%;
+    --card-foreground: 45 20% 92%;
+    --popover: 30 15% 10%;
+    --popover-foreground: 45 20% 92%;
+    --primary: 45 40% 70%;             /* Helles Bronze */
+    --primary-foreground: 30 15% 10%;
+    --secondary: 30 10% 18%;           /* Dunkles Grau-Braun */
+    --secondary-foreground: 45 20% 92%;
+    --muted: 30 10% 18%;
+    --muted-foreground: 40 10% 60%;
+    --accent: 45 55% 55%;              /* Gold */
+    --accent-foreground: 30 15% 10%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 30 15% 22%;
+    --input: 30 15% 22%;
+    --ring: 45 40% 70%;
+    
+    /* Chart Colors (angepasst für Dark) */
+    --chart-1: 45 55% 55%;
+    --chart-2: 160 50% 40%;
+    --chart-3: 280 60% 55%;
+    --chart-4: 43 70% 60%;
+    --chart-5: 340 70% 50%;
+  }
+
+  /* Global Element Styles */
   * {
     @apply border-border;
   }
@@ -86,27 +88,49 @@
     min-height: 100vh;
     height: 100%;
     @apply bg-background text-foreground;
-    font-family: inherit;
+    font-family: 'Crimson Text', serif;
   }
 
-  a {
-    font-weight: 500;
-    color: #646cff;
-    text-decoration: inherit;
-  }
-
-  a:hover {
-    color: #535bf2;
+  /* Headings mit Fantasy-Font */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    letter-spacing: 0.025em;
   }
 
   h1 {
-    font-size: 3.2em;
-    line-height: 1.1;
+    font-size: 2.5rem;
+    line-height: 1.2;
+    @apply text-aventurian-700 dark:text-aventurian-200;
   }
 
+  h2 {
+    font-size: 2rem;
+    line-height: 1.3;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    line-height: 1.4;
+  }
+
+  /* Links */
+  a {
+    font-weight: 500;
+    @apply text-aventurian-600 dark:text-aventurian-400;
+    text-decoration: inherit;
+    transition: color 0.2s;
+  }
+
+  a:hover {
+    @apply text-aventurian-700 dark:text-aventurian-300;
+  }
+
+  /* Buttons - Basis-Styling */
   button {
-    @apply rounded-md border border-transparent px-4 py-2 font-medium transition-colors duration-200;
-    @apply bg-primary text-primary-foreground hover:border-dsaBlue;
+    @apply rounded-md border border-transparent px-4 py-2 font-medium transition-all duration-200;
+    font-family: 'Cinzel', serif;
+    letter-spacing: 0.025em;
   }
 
   button:focus,
@@ -114,92 +138,144 @@
     @apply ring-2 ring-ring ring-offset-2 ring-offset-background outline-none;
   }
 
-  /* 🌞 Light Mode */
-  :root button {
-    @apply bg-muted text-foreground hover:bg-accent hover:text-accent-foreground;
+  /* Input Number Spinner ausblenden */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
 
-  /* 🌚 Dark Mode – alte Farben beibehalten */
-  .dark button {
-    background-color: #1a1a1a;
-    color: rgba(255, 255, 255, 0.87);
+  input[type="number"] {
+    appearance: textfield;
+  }
+}
+
+/* Custom Utility Classes */
+@layer components {
+  
+  /* Pergament-Textur als Hintergrund */
+  .bg-parchment {
+    @apply bg-aventurian-50 dark:bg-aventurian-900;
+    background-image: 
+      url('data:image/svg+xml,%3Csvg width="100" height="100" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noise"%3E%3CfeTurbulence baseFrequency="0.9" numOctaves="4" /%3E%3C/filter%3E%3Crect width="100" height="100" filter="url(%23noise)" opacity="0.05" /%3E%3C/svg%3E');
   }
 
-  .dark button:hover {
-    border-color: #646cff;
+  /* Gradient Background für Hero-Sections */
+  .bg-aventurian-gradient {
+    @apply bg-gradient-to-b from-aventurian-50 via-aventurian-100 to-aventurian-200;
+    @apply dark:from-aventurian-900 dark:via-aventurian-800 dark:to-black;
   }
 
-  /* Media query for light mode */
-  @media (prefers-color-scheme: light) {
-    :root {
-      color: #213547;
-      background-color: #ffffff;
+  /* Würfel-Container mit Glow-Effekt */
+  .dice-container {
+    @apply p-4 rounded-lg bg-card border-2 border-border;
+    @apply transition-all duration-300;
+  }
+
+  .dice-container:hover {
+    @apply border-aventurian-500 shadow-glow-sm;
+  }
+
+  /* Success State */
+  .state-success {
+    @apply border-success bg-success/10 text-success-dark;
+    @apply dark:text-success-light;
+  }
+
+  /* Failure State */
+  .state-failure {
+    @apply border-failure bg-failure/10 text-failure-dark;
+    @apply dark:text-failure-light;
+  }
+
+  /* Critical State */
+  .state-critical {
+    @apply border-critical bg-critical/10 text-critical-dark;
+    @apply dark:text-critical-light;
+  }
+}
+
+/* Animations */
+@layer utilities {
+  
+  /* Glow Animation für kritischen Erfolg */
+  .glow-success {
+    animation: glow-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% {
+      filter: drop-shadow(0 0 0px #10b981);
     }
-
-    a:hover {
-      color: #747bff;
-    }
-
-    button {
-      background-color: #f9f9f9;
+    50% {
+      filter: drop-shadow(0 0 12px #10b981);
     }
   }
 
+  /* Shake Animation für Patzer */
+  .shake-error {
+    animation: shake 0.4s ease-in-out;
+  }
+
+  @keyframes shake {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-8px);
+    }
+    50% {
+      transform: translateX(8px);
+    }
+    75% {
+      transform: translateX(-4px);
+    }
+  }
+
+  /* Float Animation für Dice Icons */
+  .float-dice {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  /* Fade-in Animation */
+  .fade-in {
+    animation: fadeIn 0.3s ease-in;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 10px;
 }
 
-/* Firefox */
-input[type="number"] {
-  appearance: textfield;
+::-webkit-scrollbar-track {
+  @apply bg-background;
 }
 
-/* 🟢 Glow Animation für kritischen Erfolg */
-@keyframes glow {
-  0% {
-    filter: drop-shadow(0 0 0px #22c55e);
-  }
-
-  50% {
-    filter: drop-shadow(0 0 5px #22c55e);
-  }
-
-  100% {
-    filter: drop-shadow(0 0 0px #22c55e);
-  }
+::-webkit-scrollbar-thumb {
+  @apply bg-aventurian-400 dark:bg-aventurian-600 rounded-full;
 }
 
-/* 🔴 Shake Animation für Patzer */
-@keyframes shake {
-  0% {
-    transform: translateX(0);
-  }
-
-  25% {
-    transform: translateX(-6px);
-  }
-
-  50% {
-    transform: translateX(6px);
-  }
-
-  75% {
-    transform: translateX(-3px);
-  }
-
-  100% {
-    transform: translateX(0);
-  }
-}
-
-.glow-success {
-  animation: glow 1s ease-in-out;
-}
-
-.shake-error {
-  animation: shake 0.4s ease-in-out;
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-aventurian-500 dark:bg-aventurian-500;
 }

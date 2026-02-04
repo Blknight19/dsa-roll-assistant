@@ -1,4 +1,3 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Toaster } from '@/components/ui/sonner';
 import './App.css';
@@ -12,40 +11,70 @@ import LoadingOverlay from './components/LoadingOverlay';
 function App() {
   return (
     <>
-      <div className='min-h-screen bg-background text-foreground p-4 flex flex-col items-center'>
-        {/* Desktop: Toggle oben rechts */}
-        <div className="hidden md:block absolute top-4 right-4">
-          <ThemeToggle />
-        </div>
+      {/* Aventurian Gradient Background */}
+      <div className='min-h-screen bg-aventurian-gradient p-4 flex flex-col'>
+        
+        {/* Header */}
+        <header className="sticky top-0 z-50 backdrop-blur-sm bg-background/80 border-b border-aventurian-400 dark:border-aventurian-600 mb-6 -mx-4 px-4 py-3">
+          <div className="container mx-auto flex items-center justify-between">
+            {/* Logo/Title */}
+            <div className="flex items-center gap-3">
+              <span className="text-4xl">⚔️</span>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-heading font-bold text-aventurian-700 dark:text-aventurian-200">
+                  Roll-Assistent
+                </h1>
+              </div>
+            </div>
+            
+            {/* Theme Toggle - Desktop */}
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
+          </div>
+        </header>
 
-        {/* Mobile: Toggle unten mittig */}
-        <div className="block md:hidden fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+        {/* Main Content */}
+        <main className="container mx-auto flex-1 flex flex-col items-center">
+          <div className='w-full max-w-6xl'>
+            <Tabs defaultValue="talentRoll" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 mb-6 bg-aventurian-100 dark:bg-aventurian-800">
+                <TabsTrigger value="talentRoll" className="font-heading">
+                  Talentprobe
+                </TabsTrigger>
+                <TabsTrigger value="simpleRoll" className="font-heading">
+                  Einzelwurf
+                </TabsTrigger>
+                <TabsTrigger value="history" className="font-heading">
+                  Historie
+                </TabsTrigger>
+                <TabsTrigger value="character" className="font-heading">
+                  Charakter
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="talentRoll" className="mt-0">
+                <TalentRoll />
+              </TabsContent>
+              <TabsContent value="simpleRoll" className="mt-0">
+                <SimpleRoll />
+              </TabsContent>
+              <TabsContent value="history" className="mt-0">
+                <RollHistory />
+              </TabsContent>
+              <TabsContent value="character" className="mt-0">
+                <Character />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </main>
+
+        {/* Mobile Theme Toggle */}
+        <div className="md:hidden fixed bottom-6 right-6 z-50">
           <ThemeToggle />
-        </div>
-        <h1 className="text-4xl font-bold mb-4">🧙 Roll-Assistent</h1>
-        <div className='flex flex-col items-center'>
-          <Tabs defaultValue="talentRoll" className="min-h-[35rem]">
-            <TabsList>
-              <TabsTrigger value="talentRoll">Talentprobe</TabsTrigger>
-              <TabsTrigger value="simpleRoll">Einzelwurf</TabsTrigger>
-              <TabsTrigger value="history">Historie</TabsTrigger>
-              <TabsTrigger value="character">Charakter</TabsTrigger>
-            </TabsList>
-            <TabsContent value="talentRoll">
-              <TalentRoll />
-            </TabsContent>
-            <TabsContent value="simpleRoll">
-              <SimpleRoll />
-            </TabsContent>
-            <TabsContent value="history">
-              <RollHistory />
-            </TabsContent>
-            <TabsContent value="character">
-              <Character />
-            </TabsContent>
-          </Tabs>
         </div>
       </div>
+
       <Toaster />
       <LoadingOverlay />
     </>

@@ -8,6 +8,7 @@ import type { RootState } from '@/store';
 import { setAttribute } from '@/store/attributesSlice';
 import type { AttributeKey } from '@/store/attributesSlice';
 import { updateTalent } from '@/store/talentsSlice';
+import { User, Sparkles, Swords, Settings } from 'lucide-react';
 
 const Character = () => {
 	const dispatch = useDispatch();
@@ -15,9 +16,9 @@ const Character = () => {
 	const talents = useSelector((state: RootState) => state.talents.talents);
 
 	return (
-		<div className="w-full mx-auto">
+		<div className="w-full max-w-6xl mx-auto">
 			<Tabs defaultValue="attributes" className="w-full">
-				<TabsList className="mb-4">
+				<TabsList className="mb-6">
 					<TabsTrigger value="attributes">Eigenschaften</TabsTrigger>
 					<TabsTrigger value="talents">Talente</TabsTrigger>
 					<TabsTrigger value="combat">Kampf</TabsTrigger>
@@ -26,20 +27,27 @@ const Character = () => {
 
 				{/* Eigenschaften */}
 				<TabsContent value="attributes">
-					<Card>
+					<Card variant="parchment">
 						<CardHeader>
-							<CardTitle>Eigenschaften</CardTitle>
+							<CardTitle className="flex items-center gap-2">
+								<User className="w-6 h-6" />
+								Eigenschaften
+							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+							<div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
 								{Object.entries(attributes).map(([key, value]) => (
-									<PropertyNumber
+									<div 
 										key={key}
-										label={key}
-										value={value}
-										onChange={(newValue) => dispatch(setAttribute({ key: key as AttributeKey, value: newValue }))}
-										size="m"
-									/>
+										className="flex flex-col items-center p-6 rounded-lg bg-aventurian-100/50 dark:bg-aventurian-800/50 hover:bg-aventurian-200/50 dark:hover:bg-aventurian-700/50 transition-colors"
+									>
+										<PropertyNumber
+											label={key}
+											value={value}
+											onChange={(newValue) => dispatch(setAttribute({ key: key as AttributeKey, value: newValue }))}
+											size="m"
+										/>
+									</div>
 								))}
 							</div>
 						</CardContent>
@@ -48,30 +56,53 @@ const Character = () => {
 
 				{/* Talente */}
 				<TabsContent value="talents">
-					<Card>
+					<Card variant="parchment">
 						<CardHeader>
-							<CardTitle>Talente</CardTitle>
+							<CardTitle className="flex items-center gap-2">
+								<Sparkles className="w-6 h-6" />
+								Talente
+							</CardTitle>
 						</CardHeader>
 						<CardContent>
 							<div className="overflow-x-auto">
-								<table className="min-w-full text-sm border-collapse">
-									<thead>
-										<tr className="border-b border-border text-left">
-											<th className="p-2">Name</th>
-											<th className="p-2 text-center">Eig. 1</th>
-											<th className="p-2 text-center">Eig. 2</th>
-											<th className="p-2 text-center">Eig. 3</th>
-											<th className="p-2 text-center">Wert</th>
+								<table className="min-w-full text-sm">
+									<thead className="sticky top-0 bg-aventurian-100 dark:bg-aventurian-800 z-10">
+										<tr className="border-b-2 border-aventurian-400 dark:border-aventurian-600">
+											<th className="p-3 text-left font-heading">Name</th>
+											<th className="p-3 text-center font-heading">Eig. 1</th>
+											<th className="p-3 text-center font-heading">Eig. 2</th>
+											<th className="p-3 text-center font-heading">Eig. 3</th>
+											<th className="p-3 text-center font-heading">Wert</th>
 										</tr>
 									</thead>
 									<tbody>
-										{talents.map(talent => (
-											<tr key={talent.id} className="border-b border-border text-left">
-												<td className="p-2 font-medium">{talent.name}</td>
-												<td className="p-2 text-center">{talent.attribute1}</td>
-												<td className="p-2 text-center">{talent.attribute2}</td>
-												<td className="p-2 text-center">{talent.attribute3}</td>
-												<td className="p-2 text-center">
+										{talents.map((talent, index) => (
+											<tr 
+												key={talent.id} 
+												className={`
+													border-b border-aventurian-200 dark:border-aventurian-700 
+													hover:bg-aventurian-100/50 dark:hover:bg-aventurian-800/50 
+													transition-colors
+													${index % 2 === 0 ? 'bg-aventurian-50/30 dark:bg-aventurian-900/30' : ''}
+												`}
+											>
+												<td className="p-3 text-2xl">{talent.name}</td>
+												<td className="p-3 text-center">
+													<span className="px-2 py-1 rounded bg-aventurian-200 dark:bg-aventurian-700 font-heading text-xs">
+														{talent.attribute1}
+													</span>
+												</td>
+												<td className="p-3 text-center">
+													<span className="px-2 py-1 rounded bg-aventurian-200 dark:bg-aventurian-700 font-heading text-xs">
+														{talent.attribute2}
+													</span>
+												</td>
+												<td className="p-3 text-center">
+													<span className="px-2 py-1 rounded bg-aventurian-200 dark:bg-aventurian-700 font-heading text-xs">
+														{talent.attribute3}
+													</span>
+												</td>
+												<td className="p-3 text-center">
 													<PropertyNumber
 														value={talent.value}
 														size="s"
@@ -86,9 +117,13 @@ const Character = () => {
 						</CardContent>
 					</Card>
 				</TabsContent>
+
+				{/* Kampf */}
 				<TabsContent value='combat'>
 					<Combat />
 				</TabsContent>
+
+				{/* Einstellungen */}
 				<TabsContent value='settings'>
 					<ImportExportSettings />
 				</TabsContent>

@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { exportCharacter } from '@/utils/exportCharacter';
 import { importCharacter } from '@/utils/importCharacter';
 import { resetLocalStorage } from '@/utils/resetLocalStorage';
+import { Download, Upload, Trash2, AlertTriangle } from 'lucide-react';
 
 const ImportExportSettings = () => {
 	const [fileName, setFileName] = useState<string | null>(null);
@@ -17,42 +19,101 @@ const ImportExportSettings = () => {
 	};
 
 	const handleReset = () => {
-		resetLocalStorage();
+		if (confirm('⚠️ ACHTUNG: Alle Daten werden unwiderruflich gelöscht!\n\nWirklich fortfahren?')) {
+			resetLocalStorage();
+		}
 	};
 
 	return (
-		<div className="space-y-6">
-			<div className="flex flex-col gap-2">
-				<h3 className="font-semibold text-lg">Charakter Daten</h3>
-				<Button onClick={exportCharacter}>⬇️ Charakter exportieren</Button>
-			</div>
+		<div className="space-y-6 max-w-2xl mx-auto">
+			{/* Export */}
+			<Card variant="parchment">
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Download className="w-5 h-5" />
+						Charakter Exportieren
+					</CardTitle>
+					<CardDescription>
+						Sichere deinen Charakter als .dsa-Datei
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<Button 
+						onClick={exportCharacter}
+						variant="aventurian"
+						size="lg"
+						className="w-full"
+					>
+						<Download className="w-5 h-5 mr-2" />
+						Charakter exportieren
+					</Button>
+				</CardContent>
+			</Card>
 
-			<div className="flex flex-col gap-2">
-				<input
-					id="characterImportInput"
-					type="file"
-					accept=".dsa"
-					className="hidden"
-					onChange={(e) => {
-						if (e.target.files?.length) handleFileSelected(e.target.files[0]);
-					}}
-				/>
+			{/* Import */}
+			<Card variant="parchment">
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<Upload className="w-5 h-5" />
+						Charakter Importieren
+					</CardTitle>
+					<CardDescription>
+						Lade einen gespeicherten Charakter
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="space-y-3">
+					<input
+						id="characterImportInput"
+						type="file"
+						accept=".dsa"
+						className="hidden"
+						onChange={(e) => {
+							if (e.target.files?.length) handleFileSelected(e.target.files[0]);
+						}}
+					/>
 
-				<Button variant="secondary" onClick={handleImportClick}>
-					⬆️ Charakter importieren
-				</Button>
+					<Button 
+						variant="secondary" 
+						size="lg"
+						onClick={handleImportClick}
+						className="w-full"
+					>
+						<Upload className="w-5 h-5 mr-2" />
+						Charakter importieren
+					</Button>
 
-				{fileName && (
-					<p className="text-sm text-muted-foreground">Ausgewählt: {fileName}</p>
-				)}
-			</div>
+					{fileName && (
+						<div className="p-3 rounded-lg bg-success/10 border border-success text-sm">
+							<p className="font-semibold text-success">✅ Import erfolgreich!</p>
+							<p className="text-muted-foreground mt-1">Datei: {fileName}</p>
+						</div>
+					)}
+				</CardContent>
+			</Card>
 
-			<div className="pt-4 border-t border-red-600">
-				<h3 className="font-semibold text-lg text-red-600">Danger Zone</h3>
-				<Button variant="destructive" onClick={handleReset}>
-					🧨 Alle Daten zurücksetzen
-				</Button>
-			</div>
+			{/* Danger Zone */}
+			<Card variant="failure" className="border-2">
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2 text-failure">
+						<AlertTriangle className="w-5 h-5" />
+						Danger Zone
+					</CardTitle>
+					<CardDescription className="text-failure-dark dark:text-failure-light">
+						Diese Aktion kann nicht rückgängig gemacht werden!
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<Button 
+						variant="destructive" 
+						size="lg"
+						onClick={handleReset}
+						className="w-full"
+					>
+						<Trash2 className="w-5 h-5 mr-2" />
+						Alle Daten zurücksetzen
+					</Button>
+				</CardContent>
+			</Card>
 		</div>
 	);
 };

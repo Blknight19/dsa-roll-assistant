@@ -1,5 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import PropertyNumber from './PropertyNumber';
+import DiceIcon from './DiceIcon';
 import { Button } from './ui/button';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateCombatStat, updateLifeStat } from '@/store/combatSlice';
@@ -8,6 +9,7 @@ import { useState } from 'react';
 import { roll } from '@/utils/dice';
 import { nanoid } from '@reduxjs/toolkit';
 import { addRoll } from '@/store/rollSlice';
+import { Swords, Shield, Footprints, Target, Clock, Heart, Sparkles, Skull } from 'lucide-react';
 
 const Combat = () => {
 	const dispatch = useDispatch();
@@ -65,33 +67,32 @@ const Combat = () => {
 		const [d20] = roll('1d20');
 
 		if (d20 === 1) {
-			const failText = '⭐ Kritischer Erfolg!';
-			setRollText(failText);
-			addCombatResult(name, currentCombatLabel, failText, [d20], false, true, false);
+			const critText = '⭐ Kritischer Erfolg!';
+			setRollText(critText);
+			addCombatResult(name, currentCombatLabel, critText, [d20], false, true, false);
 			return;
 		}
 
 		if (d20 === 20) {
-			const critText = '⚠️ Patzer!';
-			setRollText(critText);
-			addCombatResult(name, currentCombatLabel, critText, [d20], true, false, true);
+			const failText = '⚠️ Patzer!';
+			setRollText(failText);
+			addCombatResult(name, currentCombatLabel, failText, [d20], true, false, true);
 			return;
 		}
 
 		const currentRoll = d20;
 		const finalValue = value + modifier;
 		const isSuccessful = currentRoll <= finalValue;
-		let valueText = `(Wurf: ${d20}, Basiswert: ${finalValue})`;
+		let valueText = `Wurf: ${d20}, Zielwert: ${finalValue}`;
 
 		if (modifier !== 0) {
-			valueText = `(Wurf: ${d20}, Basiswert: ${value}${modifier !== 0 ? `, Mod: ${modifier > 0 ? '+' : ''}${modifier}` : ''} → Endwert: ${finalValue})`;
+			valueText = `Wurf: ${d20}, Basis: ${value}, Mod: ${modifier > 0 ? '+' : ''}${modifier} → ${finalValue}`;
 		}
 		setRollText(valueText);
-		const resultText = `${currentCombatLabel} ${isSuccessful ? '✅ gelungen' : '❌ nicht gelungen'} (Wurf: ${d20}, ${valueText}`;
+		const resultText = `${currentCombatLabel} ${isSuccessful ? '✅ gelungen' : '❌ nicht gelungen'} (${valueText})`;
 
 		addCombatResult(name, currentCombatLabel, resultText, [d20], isSuccessful);
 	};
-
 
 	let modifierText = null;
 	let modifierColor = '';
@@ -104,15 +105,35 @@ const Combat = () => {
 		modifierColor = 'text-sky-400';
 	}
 
-	return (
-		<div className="space-y-6">
-			<Card>
-				<CardHeader>
-					<CardTitle>Kampf</CardTitle>
-				</CardHeader>
+	// Health Bar Percentage
+	const healthPercentage = (combat.life.current / combat.life.max) * 100;
+	const healthColor = 
+		healthPercentage > 66 ? 'bg-success' :
+		healthPercentage > 33 ? 'bg-amber-500' :
+		'bg-failure';
 
-				<CardContent className="grid gap-6">
-					{/* Lebensenergie */}
+	return (
+		<div className="space-y-6 w-full max-w-5xl mx-auto">
+			{/* Lebensenergie Card */}
+			<Card variant="parchment">
+				<CardHeader>
+					<CardTitle className="flex items-center justify-center gap-2">
+						<Heart className="w-6 h-6 text-red-500" />
+						Lebensenergie
+					</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					{/* Health Bar */}
+					<div className="w-full bg-muted rounded-full h-8 overflow-hidden border-2 border-aventurian-400 dark:border-aventurian-600">
+						<div 
+							className={`h-full ${healthColor} transition-all duration-500 flex items-center justify-center text-white font-heading font-bold text-sm`}
+							style={{ width: `${Math.max(0, healthPercentage)}%` }}
+						>
+							{combat.life.current > 0 && `${combat.life.current} / ${combat.life.max}`}
+						</div>
+					</div>
+
+					{/* LeP Controls */}
 					<div className="flex items-center justify-center gap-3">
 						<PropertyNumber
 							label="Aktuell"
@@ -120,43 +141,67 @@ const Combat = () => {
 							size="m"
 							onChange={(value) => dispatch(updateLifeStat({ current: value }))}
 						/>
-						<span>/</span>
+						<span className="text-2xl font-heading">/</span>
 						<PropertyNumber
-							label="LeP Max."
+							label="Maximum"
 							value={combat.life.max}
 							size="m"
 							onChange={(value) => dispatch(updateLifeStat({ max: value }))}
 						/>
 					</div>
-					<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+				</CardContent>
+			</Card>
+
+			{/* Kampfwerte */}
+			<Card variant="parchment">
+				<CardHeader>
+					<CardTitle className="text-center">Kampfwerte</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-6">
+					{/* Kampfwerte Grid */}
+					<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
 						{[
-							{ label: 'AT', key: 'attack' },
-							{ label: 'FK', key: 'ranged' },
-							{ label: 'PA', key: 'save' },
-							{ label: 'AW', key: 'dodge' },
-							{ label: 'INI', key: 'initiative' },
-						].map((item) => (
-							<div key={item.key} className="flex flex-col items-center gap-2">
-								<PropertyNumber
-									label={item.label}
-									value={combat[item.key as keyof typeof combat] as number}
-									size="m"
-									onChange={(value) =>
-										dispatch(
-											updateCombatStat({
-												key: item.key as keyof typeof combat,
-												value,
-											})
-										)
-									}
-								/>
-								<Button size="sm" variant="outline" onClick={() => rollCombatValue(item.label as CombatType, combat[item.key as keyof typeof combat] as number)}>
-									🎲 Würfeln
-								</Button>
-							</div>
-						))}
+							{ label: 'AT', key: 'attack', icon: Swords },
+							{ label: 'FK', key: 'ranged', icon: Target },
+							{ label: 'PA', key: 'save', icon: Shield },
+							{ label: 'AW', key: 'dodge', icon: Footprints },
+							{ label: 'INI', key: 'initiative', icon: Clock },
+						].map((item) => {
+							const Icon = item.icon;
+							return (
+								<div 
+									key={item.key} 
+									className="flex flex-col items-center gap-3 p-4 rounded-lg bg-aventurian-100/50 dark:bg-aventurian-800/50 hover:bg-aventurian-200/50 dark:hover:bg-aventurian-700/50 transition-colors"
+								>
+									<Icon className="w-6 h-6 text-aventurian-600 dark:text-aventurian-400" />
+									<PropertyNumber
+										label={item.label}
+										value={combat[item.key as keyof typeof combat] as number}
+										size="m"
+										onChange={(value) =>
+											dispatch(
+												updateCombatStat({
+													key: item.key as keyof typeof combat,
+													value,
+												})
+											)
+										}
+									/>
+									<Button 
+										size="sm" 
+										variant="aventurian"
+										onClick={() => rollCombatValue(item.label as CombatType, combat[item.key as keyof typeof combat] as number)}
+										className="w-full"
+									>
+										Würfeln
+									</Button>
+								</div>
+							);
+						})}
 					</div>
-					<div className="flex flex-col items-center justify-center">
+
+					{/* Modifikator */}
+					<div className="flex flex-col items-center justify-center pt-4 border-t border-aventurian-300 dark:border-aventurian-700">
 						<PropertyNumber
 							label="Modifikator"
 							value={modifier}
@@ -166,27 +211,57 @@ const Combat = () => {
 							onChange={setModifier}
 						/>
 						{modifierText && (
-							<span className={`text-xs mt-1 ${modifierColor}`}>{modifierText}</span>
+							<span className={`text-sm font-semibold mt-2 ${modifierColor}`}>
+								{modifierText}
+							</span>
 						)}
 					</div>
 				</CardContent>
 			</Card>
+
+			{/* Letzter Wurf */}
 			{lastCombatResult && (
-				<Card className={`
-					animate-in fade-in slide-in-from-top-2
-					${lastCombatResult.crit ? 'glow-success border-green-400' : ''}
-					${lastCombatResult.fail ? 'shake-error border-red-500' : ''}
-				`}>
+				<Card 
+					variant={
+						lastCombatResult.crit ? 'critical' : 
+						lastCombatResult.fail ? 'failure' : 
+						lastCombatResult.isSuccessful ? 'success' : 'failure'
+					}
+					className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+				>
 					<CardHeader>
-						<CardTitle className='text-xl'>Letzter Kampfwurf: {lastCombatResult.label}</CardTitle>
+						<CardTitle className='text-center flex items-center justify-center gap-3'>
+							{lastCombatResult.crit && <Sparkles className="w-6 h-6 animate-glow" />}
+							{lastCombatResult.fail && <Skull className="w-6 h-6 shake-error" />}
+							{lastCombatResult.label}
+						</CardTitle>
 					</CardHeader>
-					<CardContent className="flex flex-col items-center gap-3">
-						{(isAttackType(lastCombatResult.type) && (!lastCombatResult.crit && !lastCombatResult.fail)) && (<div className="text-xl font-bold">
-							{lastCombatResult.isSuccessful ? '✅ Gelungen' : '❌ Misslungen'}
-						</div>)}
-						<div className="text-lg font-semibold">{rollText}</div>
-						<div className="text-sm text-muted-foreground">
-							Wurf: {lastCombatResult.values.join(', ')}
+					<CardContent className="space-y-4">
+						{/* Status */}
+						{(isAttackType(lastCombatResult.type) && (!lastCombatResult.crit && !lastCombatResult.fail)) && (
+							<div className="text-center">
+								<p className="text-2xl font-heading font-bold">
+									{lastCombatResult.isSuccessful ? '✅ Gelungen' : '❌ Misslungen'}
+								</p>
+							</div>
+						)}
+
+						{/* Würfel */}
+						<div className="flex justify-center">
+							<DiceIcon
+								value={lastCombatResult.values[0]}
+								size="lg"
+								variant={
+									lastCombatResult.crit ? 'critical' : 
+									lastCombatResult.fail ? 'failure' : 
+									'default'
+								}
+							/>
+						</div>
+
+						{/* Details */}
+						<div className="bg-background/50 rounded-lg p-4 text-center">
+							<p className="text-sm">{rollText}</p>
 						</div>
 					</CardContent>
 				</Card>
