@@ -118,13 +118,6 @@ const TalentRoll = () => {
     return Math.max(1, Math.ceil(getTalentEvaluation() / 3));
   };
 
-  const getResult = () => {
-    const talentEvaluation = getTalentEvaluation();
-    let output = `Ergebnis: ${getTalentEvaluation()} `;
-    output += talentEvaluation >= 0 ? `(QS: ${getQualityLevel()})` : '(Misslungen)';
-    return output;
-  };
-
   let modifierText = null;
   let modifierColor = '';
 
@@ -137,7 +130,7 @@ const TalentRoll = () => {
   }
 
   // Würfel-Varianten basierend auf Wert
-  const getDiceVariant = (value: number, index: number): 'default' | 'critical' | 'failure' => {
+  const getDiceVariant = (value: number): 'default' | 'critical' | 'failure' => {
     if (special === 'krit') return 'critical';
     if (special === 'patzer') return 'failure';
     if (value === 1) return 'critical';
@@ -362,7 +355,7 @@ const TalentRoll = () => {
                   key={index}
                   value={value}
                   size="lg"
-                  variant={getDiceVariant(value, index)}
+                  variant={getDiceVariant(value)}
                 />
               ))}
             </div>

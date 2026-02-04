@@ -19,10 +19,22 @@ const Character = () => {
 		<div className="w-full max-w-6xl mx-auto">
 			<Tabs defaultValue="attributes" className="w-full">
 				<TabsList className="mb-6">
-					<TabsTrigger value="attributes">Eigenschaften</TabsTrigger>
-					<TabsTrigger value="talents">Talente</TabsTrigger>
-					<TabsTrigger value="combat">Kampf</TabsTrigger>
-					<TabsTrigger value="settings">Einstellungen</TabsTrigger>
+					<TabsTrigger value="attributes" className="font-heading flex items-center gap-2">
+						<User className="w-4 h-4" />
+						<span className="hidden sm:inline">Eigenschaften</span>
+					</TabsTrigger>
+					<TabsTrigger value="talents" className="font-heading flex items-center gap-2">
+						<Sparkles className="w-4 h-4" />
+						<span className="hidden sm:inline">Talente</span>
+					</TabsTrigger>
+					<TabsTrigger value="combat" className="font-heading flex items-center gap-2">
+						<Swords className="w-4 h-4" />
+						<span className="hidden sm:inline">Kampf</span>
+					</TabsTrigger>
+					<TabsTrigger value="settings" className="font-heading flex items-center gap-2">
+						<Settings className="w-4 h-4" />
+						<span className="hidden sm:inline">Einstellungen</span>
+					</TabsTrigger>
 				</TabsList>
 
 				{/* Eigenschaften */}
