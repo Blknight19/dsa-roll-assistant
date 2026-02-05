@@ -37,7 +37,8 @@ const saveState = (state: RootState) => {
 		const serializedState = JSON.stringify({
 			roll: state.roll,
 			talents: state.talents,
-			attributes: state.attributes
+			attributes: state.attributes,
+			combat: state.combat
 			// ➕ später z. B.:
 			// talents: state.talents,
 			// settings: state.settings,
