@@ -4,24 +4,22 @@ import { useEffect, useState } from 'react';
 import { Button } from './ui/button';
 
 const ThemeToggle = () => {
-	const { theme, setTheme } = useTheme();
+	const { resolvedTheme, setTheme } = useTheme();
 	const [mounted, setMounted] = useState<boolean>(false);
-	
+
 	useEffect(() => setMounted(true), []);
-	
+
 	if (!mounted) return null;
-	
-	if (!theme || !['light', 'dark'].includes(theme)) setTheme('dark');
 
 	return (
 		<Button
-			onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+			onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
 			variant="ghost"
 			size="icon"
 			className="rounded-full hover:bg-aventurian-200 dark:hover:bg-aventurian-700"
-			aria-label='Toggle Theme'
+			aria-label='Theme wechseln'
 		>
-			{theme === 'dark' ? (
+			{resolvedTheme === 'dark' ? (
 				<Moon className="w-5 h-5 text-aventurian-400" />
 			) : (
 				<Sun className="w-5 h-5 text-aventurian-600" />

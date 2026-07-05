@@ -82,11 +82,6 @@
 
   body {
     margin: 0;
-    display: flex;
-    place-items: center;
-    min-width: 320px;
-    min-height: 100vh;
-    height: 100%;
     @apply bg-background text-foreground;
     font-family: 'Crimson Text', serif;
   }
@@ -126,14 +121,6 @@
     @apply text-aventurian-700 dark:text-aventurian-300;
   }
 
-  /* Buttons - Basis-Styling */
-  button {
-    @apply rounded-md border border-transparent px-4 py-2 font-medium transition-all duration-200;
-    font-family: 'Cinzel', serif;
-    letter-spacing: 0.025em;
-  }
-
-  button:focus,
   button:focus-visible {
     @apply ring-2 ring-ring ring-offset-2 ring-offset-background outline-none;
   }
@@ -260,6 +247,17 @@
       opacity: 1;
       transform: translateY(0);
     }
+  }
+}
+
+/* Reduced Motion: alle Animationen/Transitions global stilllegen */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

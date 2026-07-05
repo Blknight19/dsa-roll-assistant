@@ -26,8 +26,8 @@ const RollHistory = () => {
 
 	const getTypeColor = (type: string) => {
 		switch (type) {
-			case 'Talent': return 'text-magic';
-			case 'Kampf': return 'text-failure';
+			case 'Talent': return 'text-magic-dark dark:text-magic-light';
+			case 'Kampf': return 'text-failure-dark dark:text-failure-light';
 			case 'Einzel': return 'text-aventurian-600 dark:text-aventurian-400';
 			default: return 'text-foreground';
 		}
@@ -133,13 +133,13 @@ const RollHistory = () => {
 								<p>Gesamt</p>
 							</div>
 							<div className="text-center">
-								<p className="font-heading font-semibold text-magic text-lg">
+								<p className="font-heading font-semibold text-magic-dark dark:text-magic-light text-lg">
 									{rollHistory.filter(r => r.type === 'Talent').length}
 								</p>
 								<p>Talente</p>
 							</div>
 							<div className="text-center">
-								<p className="font-heading font-semibold text-failure text-lg">
+								<p className="font-heading font-semibold text-failure-dark dark:text-failure-light text-lg">
 									{rollHistory.filter(r => r.type === 'Kampf').length}
 								</p>
 								<p>Kämpfe</p>

@@ -99,10 +99,10 @@ const Combat = () => {
 
 	if (modifier < 0) {
 		modifierText = 'Erschwernis';
-		modifierColor = 'text-amber-400';
+		modifierColor = 'text-amber-700 dark:text-amber-400';
 	} else if (modifier > 0) {
 		modifierText = 'Erleichterung';
-		modifierColor = 'text-sky-400';
+		modifierColor = 'text-sky-700 dark:text-sky-400';
 	}
 
 	// Health Bar Percentage

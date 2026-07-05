@@ -124,10 +124,10 @@ const TalentRoll = () => {
 
   if (modifier > 0) {
     modifierText = 'Erschwernis';
-    modifierColor = 'text-amber-400';
+    modifierColor = 'text-amber-700 dark:text-amber-400';
   } else if (modifier < 0) {
     modifierText = 'Erleichterung';
-    modifierColor = 'text-sky-400';
+    modifierColor = 'text-sky-700 dark:text-sky-400';
   }
 
   // Würfel-Varianten basierend auf Wert
@@ -319,30 +319,30 @@ const TalentRoll = () => {
           <CardHeader>
             {special === 'krit' && (
               <div className="flex items-center justify-center gap-3">
-                <Sparkles className="w-8 h-8 text-critical animate-glow" />
-                <CardTitle className="text-3xl text-critical">
+                <Sparkles className="w-8 h-8 text-critical-dark dark:text-critical-light animate-glow" />
+                <CardTitle className="text-3xl text-critical-dark dark:text-critical-light">
                   Kritischer Erfolg!
                 </CardTitle>
-                <Sparkles className="w-8 h-8 text-critical animate-glow" />
+                <Sparkles className="w-8 h-8 text-critical-dark dark:text-critical-light animate-glow" />
               </div>
             )}
             {special === 'patzer' && (
               <div className="flex items-center justify-center gap-3">
-                <Skull className="w-8 h-8 text-failure shake-error" />
-                <CardTitle className="text-3xl text-failure">
+                <Skull className="w-8 h-8 text-failure-dark dark:text-failure-light shake-error" />
+                <CardTitle className="text-3xl text-failure-dark dark:text-failure-light">
                   Patzer!
                 </CardTitle>
-                <Skull className="w-8 h-8 text-failure shake-error" />
+                <Skull className="w-8 h-8 text-failure-dark dark:text-failure-light shake-error" />
               </div>
             )}
             {special === null && (
               <CardTitle className="text-center text-2xl">
                 {getTalentEvaluation() >= 0 ? (
-                  <span className="text-success">
+                  <span className="text-success-dark dark:text-success-light">
                     Erfolg! (QS {getQualityLevel()})
                   </span>
                 ) : (
-                  <span className="text-failure">Misslungen</span>
+                  <span className="text-failure-dark dark:text-failure-light">Misslungen</span>
                 )}
               </CardTitle>
             )}

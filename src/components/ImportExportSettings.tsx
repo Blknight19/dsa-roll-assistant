@@ -84,7 +84,7 @@ const ImportExportSettings = () => {
 
 					{fileName && (
 						<div className="p-3 rounded-lg bg-success/10 border border-success text-sm">
-							<p className="font-semibold text-success">✅ Import erfolgreich!</p>
+							<p className="font-semibold text-success-dark dark:text-success-light">✅ Import erfolgreich!</p>
 							<p className="text-muted-foreground mt-1">Datei: {fileName}</p>
 						</div>
 					)}
@@ -94,7 +94,7 @@ const ImportExportSettings = () => {
 			{/* Danger Zone */}
 			<Card variant="failure" className="border-2">
 				<CardHeader>
-					<CardTitle className="flex items-center gap-2 text-failure">
+					<CardTitle className="flex items-center gap-2 text-failure-dark dark:text-failure-light">
 						<AlertTriangle className="w-5 h-5" />
 						Danger Zone
 					</CardTitle>

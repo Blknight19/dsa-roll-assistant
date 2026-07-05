@@ -119,7 +119,7 @@ const SimpleRoll = () => {
                     className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500"
                 >
                     <CardHeader>
-                        <CardTitle className="text-center text-3xl text-success">
+                        <CardTitle className="text-center text-3xl text-success-dark dark:text-success-light">
                             {total}
                         </CardTitle>
                     </CardHeader>
