@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { updateCombatStat, updateLifeStat } from '@/store/combatSlice';
 import type { RootState } from '@/store';
 import { useState } from 'react';
-import { roll } from '@/utils/dice';
+import { rollDie } from '@/utils/dice';
 import { nanoid } from '@reduxjs/toolkit';
 import { addRoll } from '@/store/rollSlice';
 import { Swords, Shield, Footprints, Target, Clock, Heart, Sparkles, Skull } from 'lucide-react';
@@ -53,7 +53,7 @@ const Combat = () => {
 		const currentCombatLabel = labelEnum[name];
 
 		if (name === 'INI') {
-			const [w6] = roll('1d6');
+			const w6 = rollDie(6);
 			const initiative = w6 + value + modifier;
 			const modifierText = modifier < 0 ? modifier.toString().split('-').join('- ') : `+ ${modifier}`;
 
@@ -64,7 +64,7 @@ const Combat = () => {
 			return;
 		}
 
-		const [d20] = roll('1d20');
+		const d20 = rollDie(20);
 
 		if (d20 === 1) {
 			const critText = '⭐ Kritischer Erfolg!';

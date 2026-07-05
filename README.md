@@ -41,8 +41,8 @@ Die App läuft standardmäßig auf `http://localhost:5173`
 - **State Management:** Redux Toolkit
 - **Styling:** Tailwind CSS + shadcn/ui
 - **Icons:** Lucide React
-- **Würfel-Engine:** rpg-dice-roller
 - **Theme:** next-themes
+- **Tests:** Vitest
 
 ## 🎲 Verwendung
 

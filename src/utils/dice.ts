@@ -1,43 +1,6 @@
-import { DiceRoll } from 'rpg-dice-roller';
-/**
- roll.rolls sieht so aus
- [
-  {
-    "rolls": [
-      {
-        "calculationValue": 4,
-        "initialValue": 4,
-        "modifierFlags": "",
-        "modifiers": [],
-        "type": "result",
-        "useInTotal": true,
-        "value": 4
-      },
-      {
-        "calculationValue": 2,
-        "initialValue": 2,
-        "modifierFlags": "",
-        "modifiers": [],
-        "type": "result",
-        "useInTotal": true,
-        "value": 2
-      },
-      {
-        "calculationValue": 16,
-        "initialValue": 16,
-        "modifierFlags": "",
-        "modifiers": [],
-        "type": "result",
-        "useInTotal": true,
-        "value": 16
-      }
-    ],
-    "type": "roll-results",
-    "value": 22
-  }
- ]
- */
+export const rollDie = (sides: number): number => Math.floor(Math.random() * sides) + 1;
 
-export const roll3D20 = () => new DiceRoll('3d20').rolls.flatMap(group => group.rolls.map(die => die.value));
+export const rollDice = (count: number, sides: number): number[] =>
+  Array.from({ length: count }, () => rollDie(sides));
 
-export const roll = (dices:string) => new DiceRoll(dices).rolls.flatMap(group => group.rolls.map(die => die.value));
+export const roll3D20 = (): [number, number, number] => [rollDie(20), rollDie(20), rollDie(20)];

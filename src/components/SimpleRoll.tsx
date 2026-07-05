@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { roll } from '@/utils/dice';
+import { rollDice } from '@/utils/dice';
 import { useDispatch } from 'react-redux';
 import { addRoll } from '@/store/rollSlice';
 import { Dices } from 'lucide-react';
@@ -33,8 +33,7 @@ const SimpleRoll = () => {
     const [total, setTotal] = useState<number | null>(null);
 
     const handleRoll = () => {
-        const dices = `${diceCount}d${selectedDice}`;
-        const rolls = roll(dices);
+        const rolls = rollDice(diceCount, Number(selectedDice));
         setResults(rolls);
         const total = rolls.reduce((sum, currentValue) => sum + currentValue, 0) + modifier;
         setTotal(total);
