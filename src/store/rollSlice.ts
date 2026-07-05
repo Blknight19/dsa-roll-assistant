@@ -1,26 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
-// const generateMockHistory = (count = 20): RollHistoryEntry[] =>
-// 	Array.from({ length: count }, (_, i) => {
-// 		const isTalent = Math.random() > 0.5;
-
-// 		const values = isTalent
-// 			? [Math.ceil(Math.random() * 20), Math.ceil(Math.random() * 20), Math.ceil(Math.random() * 20)]
-// 			: [Math.ceil(Math.random() * 20)];
-
-// 		const result = isTalent
-// 			? `Ergebnis: ${Math.ceil(Math.random() * 10)} (QS ${Math.ceil(Math.random() * 6)})`
-// 			: `Wurf: ${values[0]}`;
-
-// 		return {
-// 			id: String(i),
-// 			type: isTalent ? "Talent" : "Einzel",
-// 			values,
-// 			result,
-// 			date: new Date(Date.now() - i * 1000 * 60 * 15).toISOString(),
-// 		};
-// 	});
+export const HISTORY_LIMIT = 100;
 
 export type RollHistoryEntry = {
 	id: string,
@@ -42,6 +23,9 @@ const rollSlice = createSlice({
 	reducers: {
 		addRoll: (state, action: PayloadAction<RollHistoryEntry>) => {
 			state.history.unshift(action.payload);
+			if (state.history.length > HISTORY_LIMIT) {
+				state.history.length = HISTORY_LIMIT;
+			}
 		},
 		clearHistory: (state) => {
 			state.history = [];

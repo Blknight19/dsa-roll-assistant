@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { nanoid } from '@reduxjs/toolkit';
 import { roll3D20 } from '../utils/dice';
 import PropertyNumber from './PropertyNumber';
 import DiceIcon from './DiceIcon';
@@ -104,7 +105,7 @@ const TalentRoll = () => {
     if (isKriticalFail) result = '⚠️ Patzer!';
 
     dispatch(addRoll({
-      id: crypto.randomUUID(),
+      id: nanoid(),
       type: 'Talent',
       values: roll,
       result,

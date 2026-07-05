@@ -3,25 +3,17 @@ import { attributeReducer } from './attributesSlice';
 import { rollReducer } from './rollSlice';
 import { talentReducer } from './talentsSlice';
 import { combatReducer } from './combatSlice';
-import { loadingReducer } from './loadingSlice';
-
-const loadState = () => {
-	try {
-		const serializedState = localStorage.getItem('dsa-app-state');
-		if (!serializedState) return undefined;
-		return JSON.parse(serializedState);
-	} catch (error) {
-		console.warn('⚠️ Failed to load state from localStorage:', error);
-		return undefined;
-	}
-};
+import { settingsReducer } from './settingsSlice';
+import { probeReducer } from './probeSlice';
+import { loadState, saveState } from './persistence';
 
 const rootReducer = combineReducers({
 	roll: rollReducer,
 	talents: talentReducer,
 	attributes: attributeReducer,
 	combat: combatReducer,
-	loading: loadingReducer
+	settings: settingsReducer,
+	probe: probeReducer
 });
 
 export const store = configureStore({
@@ -32,23 +24,10 @@ export const store = configureStore({
 export type RootState = ReturnType<typeof store.getState>
 export type AppDispatch = typeof store.dispatch
 
-const saveState = (state: RootState) => {
-	try {
-		const serializedState = JSON.stringify({
-			roll: state.roll,
-			talents: state.talents,
-			attributes: state.attributes,
-			combat: state.combat
-			// ➕ später z. B.:
-			// talents: state.talents,
-			// settings: state.settings,
-		});
-		localStorage.setItem('dsa-app-state', serializedState);
-	} catch (error) {
-		console.warn('⚠️ Failed to save state to localStorage:', error);
-	}
-};
+const SAVE_DEBOUNCE_MS = 500;
+let saveTimer: ReturnType<typeof setTimeout> | undefined;
 
 store.subscribe(() => {
-	saveState(store.getState());
+	clearTimeout(saveTimer);
+	saveTimer = setTimeout(() => saveState(store.getState()), SAVE_DEBOUNCE_MS);
 });

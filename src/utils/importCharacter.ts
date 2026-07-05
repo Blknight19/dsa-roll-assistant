@@ -1,66 +1,67 @@
 import { store } from '@/store';
-import { setAttribute, type AttributeKey } from '@/store/attributesSlice';
+import { setAttribute, ATTRIBUTE_KEYS } from '@/store/attributesSlice';
 import { addRoll, clearHistory } from '@/store/rollSlice';
 import { updateTalent } from '@/store/talentsSlice';
-import type { Talent } from '@/store/talentsSlice';
-import type { RollHistoryEntry } from '@/store/rollSlice';
 import { toast } from 'sonner';
-import { updateCombatStat, updateLifeStat, type CombatState } from '@/store/combatSlice';
-import { setIsLoading } from '@/store/loadingSlice';
+import { updateCombatStat, type CombatStatKey, updateLifeStat } from '@/store/combatSlice';
+import { sanitizeHistory } from '@/store/persistence';
+
+const COMBAT_STAT_KEYS: CombatStatKey[] = ['attack', 'save', 'dodge', 'initiative', 'ranged'];
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+	typeof value === 'object' && value !== null;
 
 export const importCharacter = async (file: File) => {
 	const dispatch = store.dispatch;
-	dispatch(setIsLoading(true));
 	try {
 		const encodedText = await file.text();
 		const json = decodeURIComponent(atob(encodedText));
-		const data: {
-			attributes: Record<AttributeKey, number>;
-			talents: Pick<Talent, 'id' | 'value'>[];
-			history: RollHistoryEntry[],
-			combat: CombatState
-		} = JSON.parse(json);
+		const data: unknown = JSON.parse(json);
+
+		if (!isRecord(data)) throw new Error('Unerwartetes Dateiformat');
+
+		if (typeof data.version === 'number' && data.version > 1) {
+			toast.error(`Datei-Version ${data.version} wird von dieser App-Version nicht unterstützt`);
+			return;
+		}
 
 		const { attributes, talents, history, combat } = data;
 
-		//atrributes
-		if (attributes !== undefined) {
-			Object.entries(attributes).forEach(([key, value]) => {
-				dispatch(setAttribute({ key: key as AttributeKey, value }));
-			});
+		if (isRecord(attributes)) {
+			for (const key of ATTRIBUTE_KEYS) {
+				const value = attributes[key];
+				if (typeof value === 'number') dispatch(setAttribute({ key, value }));
+			}
 		}
 
-		//talents
-		if (talents !== undefined) {
-			talents.forEach(({ id, value }) => dispatch(updateTalent({ id, value })));
-
+		if (Array.isArray(talents)) {
+			for (const entry of talents) {
+				if (isRecord(entry) && typeof entry.id === 'string' && typeof entry.value === 'number') {
+					dispatch(updateTalent({ id: entry.id, value: entry.value }));
+				}
+			}
 		}
-		//history
+
 		if (history !== undefined) {
 			dispatch(clearHistory());
-			history.forEach((entry: RollHistoryEntry) => dispatch(addRoll(entry)));
+			sanitizeHistory(history).forEach(entry => dispatch(addRoll(entry)));
 		}
-		//combat
-		if (combat !== undefined) {
-			if (combat.life) {
+
+		if (isRecord(combat)) {
+			if (isRecord(combat.life)) {
 				const { current, max } = combat.life;
 				if (typeof current === 'number') dispatch(updateLifeStat({ current }));
-				if (typeof current === 'number') dispatch(updateLifeStat({ max }));
-
+				if (typeof max === 'number') dispatch(updateLifeStat({ max }));
 			}
 
-			const combatKeys: (keyof CombatState)[] = ['attack', 'save', 'dodge', 'initiative', 'ranged'];
-			combatKeys.forEach(combatKey => {
-				const currentValue = combat[combatKey];
-				if (typeof currentValue === 'number') {
-					dispatch(updateCombatStat({ key: combatKey, value: currentValue }));
-				}
-			});
+			for (const key of COMBAT_STAT_KEYS) {
+				const value = combat[key];
+				if (typeof value === 'number') dispatch(updateCombatStat({ key, value }));
+			}
 		}
 
-		toast('Import erfolgreich ✅');
+		toast.success('Import erfolgreich');
 	} catch (e) {
-		toast(`❌ Fehler beim Import (keine gültige JSON)', ${e}`);
+		toast.error(`Fehler beim Import (keine gültige Charakterdatei): ${e}`);
 	}
-	dispatch(setIsLoading(false));
 };

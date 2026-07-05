@@ -6,7 +6,6 @@ import SimpleRoll from './components/SimpleRoll';
 import RollHistory from './components/RollHistory';
 import ThemeToggle from './components/ThemeToggle';
 import Character from './components/Character';
-import LoadingOverlay from './components/LoadingOverlay';
 import { Scroll, Dices, History, User } from 'lucide-react';
 
 function App() {
@@ -81,7 +80,6 @@ function App() {
       </div>
 
       <Toaster />
-      <LoadingOverlay />
     </>
   );
 }

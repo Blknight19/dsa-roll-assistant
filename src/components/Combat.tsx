@@ -3,7 +3,7 @@ import PropertyNumber from './PropertyNumber';
 import DiceIcon from './DiceIcon';
 import { Button } from './ui/button';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateCombatStat, updateLifeStat } from '@/store/combatSlice';
+import { updateCombatStat, updateLifeStat, type CombatStatKey } from '@/store/combatSlice';
 import type { RootState } from '@/store';
 import { useState } from 'react';
 import { rollDie } from '@/utils/dice';
@@ -160,37 +160,37 @@ const Combat = () => {
 				<CardContent className="space-y-6">
 					{/* Kampfwerte Grid */}
 					<div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-						{[
+						{([
 							{ label: 'AT', key: 'attack', icon: Swords },
 							{ label: 'FK', key: 'ranged', icon: Target },
 							{ label: 'PA', key: 'save', icon: Shield },
 							{ label: 'AW', key: 'dodge', icon: Footprints },
 							{ label: 'INI', key: 'initiative', icon: Clock },
-						].map((item) => {
+						] as { label: CombatType; key: CombatStatKey; icon: typeof Swords }[]).map((item) => {
 							const Icon = item.icon;
 							return (
-								<div 
-									key={item.key} 
+								<div
+									key={item.key}
 									className="flex flex-col items-center gap-3 p-4 rounded-lg bg-aventurian-100/50 dark:bg-aventurian-800/50 hover:bg-aventurian-200/50 dark:hover:bg-aventurian-700/50 transition-colors"
 								>
 									<Icon className="w-6 h-6 text-aventurian-600 dark:text-aventurian-400" />
 									<PropertyNumber
 										label={item.label}
-										value={combat[item.key as keyof typeof combat] as number}
+										value={combat[item.key]}
 										size="m"
 										onChange={(value) =>
 											dispatch(
 												updateCombatStat({
-													key: item.key as keyof typeof combat,
+													key: item.key,
 													value,
 												})
 											)
 										}
 									/>
-									<Button 
-										size="sm" 
+									<Button
+										size="sm"
 										variant="aventurian"
-										onClick={() => rollCombatValue(item.label as CombatType, combat[item.key as keyof typeof combat] as number)}
+										onClick={() => rollCombatValue(item.label, combat[item.key])}
 										className="w-full"
 									>
 										Würfeln

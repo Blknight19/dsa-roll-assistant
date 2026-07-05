@@ -1,20 +1,13 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
-export type AttributeKey = 'MU' | 'KL' | 'IN' | 'CH' | 'FF' | 'GE' | 'KO' | 'KK';
+export const ATTRIBUTE_KEYS = ['MU', 'KL', 'IN', 'CH', 'FF', 'GE', 'KO', 'KK'] as const;
 
-type AttributeState = {
-	'MU': number;
-	'KL': number;
-	'IN': number;
-	'CH': number;
-	'FF': number;
-	'GE': number;
-	'KO': number;
-	'KK': number;
-}
+export type AttributeKey = (typeof ATTRIBUTE_KEYS)[number];
 
-const initialState: AttributeState = {
+export type AttributeState = Record<AttributeKey, number>;
+
+export const initialAttributeState: AttributeState = {
 	'MU': 8,
 	'KL': 8,
 	'IN': 8,
@@ -27,12 +20,12 @@ const initialState: AttributeState = {
 
 const attributesSlice = createSlice({
 	name: 'attributes',
-	initialState,
+	initialState: initialAttributeState,
 	reducers: {
 		setAttribute: (state, action: PayloadAction<{ key: AttributeKey, value: number }>) => {
 			state[action.payload.key] = action.payload.value;
 		},
-		resetAttributes: () => initialState
+		resetAttributes: () => initialAttributeState
 	}
 });
 

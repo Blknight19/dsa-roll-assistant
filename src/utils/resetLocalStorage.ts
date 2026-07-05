@@ -1,12 +1,6 @@
-import { store } from '@/store';
-import { setIsLoading } from '@/store/loadingSlice';
+import { clearPersistedState } from '@/store/persistence';
 
 export const resetLocalStorage = () => {
-	const dispatch = store.dispatch;
-	dispatch(setIsLoading(true));
-
-	setTimeout(() => {
-		localStorage.removeItem('dsa-app-state');
-		location.reload();
-	}, 300);
+	clearPersistedState();
+	location.reload();
 };

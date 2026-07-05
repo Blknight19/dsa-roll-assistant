@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { nanoid } from '@reduxjs/toolkit';
 import PropertyNumber from './PropertyNumber';
 import DiceIcon from './DiceIcon';
 import {
@@ -39,7 +40,7 @@ const SimpleRoll = () => {
         setTotal(total);
 
         dispatch(addRoll({
-            id: crypto.randomUUID(),
+            id: nanoid(),
             type: 'Einzel',
             values: rolls,
             result: `Gesamt: ${total} (${diceCount}W${selectedDice} ${modifier >= 0 ? `+${modifier}` : modifier})`,

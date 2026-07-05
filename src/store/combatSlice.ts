@@ -16,7 +16,7 @@ export type CombatState = {
 }
 
 
-const initialState: CombatState = {
+export const initialCombatState: CombatState = {
 	attack: 8,
 	save: 8,
 	dodge: 8,
@@ -28,12 +28,14 @@ const initialState: CombatState = {
 	}
 };
 
+export type CombatStatKey = Exclude<keyof CombatState, 'life'>;
+
 const combatSlice = createSlice({
 	name: 'combat',
-	initialState,
+	initialState: initialCombatState,
 	reducers: {
-		updateCombatStat: (state, action: PayloadAction<{ key: keyof CombatState, value: number }>) => {
-			(state[action.payload.key] as number) = action.payload.value;
+		updateCombatStat: (state, action: PayloadAction<{ key: CombatStatKey, value: number }>) => {
+			state[action.payload.key] = action.payload.value;
 		},
 		updateLifeStat: (state, action: PayloadAction<{ current?: number, max?: number }>) => {
 			if (action.payload.current !== undefined) {
