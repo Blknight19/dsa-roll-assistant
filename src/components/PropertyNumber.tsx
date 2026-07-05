@@ -39,10 +39,10 @@ const PropertyNumber: React.FC<PropertyNumberProps> = ({
   };
 
   return (
-    <div className={cn("flex flex-col items-center", className)}>
+    <div className={cn('flex flex-col items-center', className)}>
       {label && (
         <label className={cn(
-          "text-sm font-heading font-semibold uppercase tracking-wide text-aventurian-700 dark:text-aventurian-300",
+          'text-sm font-heading font-semibold uppercase tracking-wide text-aventurian-700 dark:text-aventurian-300',
           labelMargin
         )}>
           {label}
@@ -68,9 +68,9 @@ const PropertyNumber: React.FC<PropertyNumberProps> = ({
           min={min}
           max={max}
           className={cn(
-            "text-center font-heading font-bold border-2 border-aventurian-400 dark:border-aventurian-600",
-            "focus:border-aventurian-600 dark:focus:border-aventurian-400",
-            "bg-card",
+            'text-center font-heading font-bold border-2 border-aventurian-400 dark:border-aventurian-600',
+            'focus:border-aventurian-600 dark:focus:border-aventurian-400',
+            'bg-card',
             inputSizes[size]
           )}
         />
