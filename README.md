@@ -15,6 +15,7 @@ Ein digitaler Würfelassistent und Charakterbogen.
 - **Import/Export** von Charakterdaten (.dsa-Datei)
 - **Dark/Light Mode** mit automatischer Systemerkennung
 - **Mobile-optimiert** & Responsive
+- **Offline-fähig & installierbar** (PWA) — funktioniert auch ohne Netz am Spieltisch
 
 ## 🚀 Quick Start
 ```bash
@@ -42,6 +43,8 @@ Die App läuft standardmäßig auf `http://localhost:5173`
 - **Styling:** Tailwind CSS + shadcn/ui
 - **Icons:** Lucide React
 - **Theme:** next-themes
+- **Fonts:** @fontsource (selbst gehostet, DSGVO-konform)
+- **Offline:** vite-plugin-pwa
 - **Tests:** Vitest
 
 ## 🎲 Verwendung

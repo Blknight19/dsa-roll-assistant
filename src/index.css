@@ -1,6 +1,4 @@
-
-/* Google Fonts Import */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+/* Fonts werden selbst gehostet via @fontsource (Import in main.tsx) */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
