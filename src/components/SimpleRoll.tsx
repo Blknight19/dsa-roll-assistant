@@ -112,14 +112,19 @@ const SimpleRoll = () => {
                 </CardContent>
             </Card>
 
+            {/* Screenreader-Ansage des Ergebnisses */}
+            <div aria-live="polite" className="sr-only">
+                {total !== null ? `Gesamt: ${total}` : ''}
+            </div>
+
             {/* Ergebnis */}
             {total !== null && (
-                <Card 
-                    variant="success"
+                <Card
+                    variant="parchment"
                     className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500"
                 >
                     <CardHeader>
-                        <CardTitle className="text-center text-3xl text-success-dark dark:text-success-light">
+                        <CardTitle className="text-center text-3xl">
                             {total}
                         </CardTitle>
                     </CardHeader>

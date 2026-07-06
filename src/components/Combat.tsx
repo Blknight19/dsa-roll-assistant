@@ -7,93 +7,117 @@ import { updateCombatStat, updateLifeStat, type CombatStatKey } from '@/store/co
 import type { RootState } from '@/store';
 import { useState } from 'react';
 import { rollDie } from '@/utils/dice';
+import { evaluateCombatRoll } from '@/utils/rules';
 import { nanoid } from '@reduxjs/toolkit';
 import { addRoll } from '@/store/rollSlice';
-import { Swords, Shield, Footprints, Target, Clock, Heart, Sparkles, Skull } from 'lucide-react';
+import { Swords, Shield, Footprints, Target, Clock, Heart, Sparkles, Skull, Check, X } from 'lucide-react';
+
+type CombatType = 'AT' | 'PA' | 'AW' | 'FK' | 'INI'
+
+type LastCombatResult = {
+	type: CombatType;
+	label: string;
+	values: number[];
+	isSuccessful: boolean;
+	status: string;
+	crit?: boolean;
+	fail?: boolean;
+	confirmation?: { roll: number; confirmed: boolean };
+}
+
+const combatLabels: Record<CombatType, string> = {
+	AT: 'Attacke',
+	PA: 'Parade',
+	AW: 'Ausweichen',
+	FK: 'Fernkampf',
+	INI: 'Initiative',
+};
+
+const combatIcons: Record<CombatType, typeof Swords> = {
+	AT: Swords,
+	PA: Shield,
+	AW: Footprints,
+	FK: Target,
+	INI: Clock,
+};
+
+/** Modifikator als lesbarer Rechenterm, z. B. " − 2" oder " + 3". */
+const modifierTerm = (modifier: number): string => {
+	if (modifier === 0) return '';
+	return modifier < 0 ? ` − ${Math.abs(modifier)}` : ` + ${modifier}`;
+};
 
 const Combat = () => {
 	const dispatch = useDispatch();
 	const combat = useSelector((state: RootState) => state.combat);
+	const confirmCriticals = useSelector((state: RootState) => state.settings.confirmCriticals);
 	const [modifier, setModifier] = useState<number>(0);
 	const [rollText, setRollText] = useState<string>('');
-
-	type CombatType = 'AT' | 'PA' | 'AW' | 'FK' | 'INI'
-	type LastCombatResult = {
-		type: CombatType;
-		label: string;
-		values: number[];
-		isSuccessful: boolean;
-		crit?: boolean;
-		fail?: boolean;
-	}
 
 	const [lastCombatResult, setLastCombatResult] = useState<LastCombatResult | null>(null);
 
 	const isAttackType = (type: CombatType) => ['AT', 'PA', 'AW', 'FK'].includes(type);
 
-	const addCombatResult = (type: CombatType, label: string, result: string, values: number[], isSuccessful = false, crit = false, fail = false) => {
-		setLastCombatResult({ type, label, values, isSuccessful, crit, fail });
+	const addCombatResult = (result: LastCombatResult, historyText: string) => {
+		setLastCombatResult(result);
 		dispatch(addRoll({
 			id: nanoid(),
 			type: 'Kampf',
-			values,
-			result,
+			values: result.values,
+			result: historyText,
 			date: new Date().toISOString()
 		}));
 	};
 
 	const rollCombatValue = (name: CombatType, value: number) => {
-		const labelEnum: Record<string, string> = {
-			'AT': '⚔️ Attacke',
-			'PA': '🛡️ Parade',
-			'AW': '✈️ Ausweichen',
-			'FK': '🎯 Fernkampf',
-			'INI': '⏱️ Initiative',
-		};
-		const currentCombatLabel = labelEnum[name];
+		const label = combatLabels[name];
 
 		if (name === 'INI') {
 			const w6 = rollDie(6);
-			const initiative = w6 + value + modifier;
-			const modifierText = modifier < 0 ? modifier.toString().split('-').join('- ') : `+ ${modifier}`;
+			const initiative = value + w6 + modifier;
 
-			const result = `⏱️ Initiative: ${value} + ${w6} ${modifierText} = ${initiative}`;
-			setRollText(result);
-			addCombatResult(name, currentCombatLabel, result, [w6]);
+			const text = `Initiative: ${value} + ${w6}${modifierTerm(modifier)} = ${initiative}`;
+			setRollText(text);
+			addCombatResult({ type: name, label, values: [w6], isSuccessful: true, status: `${initiative}` }, text);
 
 			return;
 		}
 
 		const d20 = rollDie(20);
+		const needsConfirmation = confirmCriticals && (d20 === 1 || d20 === 20);
+		const evaluation = evaluateCombatRoll(value, modifier, d20, needsConfirmation ? rollDie(20) : undefined);
+		const { target, success, special, confirmation } = evaluation;
 
-		if (d20 === 1) {
-			const critText = '⭐ Kritischer Erfolg!';
-			setRollText(critText);
-			addCombatResult(name, currentCombatLabel, critText, [d20], false, true, false);
-			return;
-		}
+		let status: string;
+		if (special === 'krit') status = 'Kritischer Erfolg!';
+		else if (special === 'patzer') status = 'Patzer!';
+		else if (d20 === 1) status = 'Gelungen (Krit nicht bestätigt)';
+		else if (d20 === 20) status = 'Misslungen (Patzer nicht bestätigt)';
+		else status = success ? 'Gelungen' : 'Misslungen';
 
-		if (d20 === 20) {
-			const failText = '⚠️ Patzer!';
-			setRollText(failText);
-			addCombatResult(name, currentCombatLabel, failText, [d20], true, false, true);
-			return;
-		}
-
-		const currentRoll = d20;
-		const finalValue = value + modifier;
-		const isSuccessful = currentRoll <= finalValue;
-		let valueText = `Wurf: ${d20}, Zielwert: ${finalValue}`;
-
+		let valueText = `Wurf: ${d20}, Zielwert: ${target}`;
 		if (modifier !== 0) {
-			valueText = `Wurf: ${d20}, Basis: ${value}, Mod: ${modifier > 0 ? '+' : ''}${modifier} → ${finalValue}`;
+			valueText = `Wurf: ${d20}, Basis: ${value}${modifierTerm(modifier)} → ${target}`;
 		}
-		setRollText(valueText);
-		const resultText = `${currentCombatLabel} ${isSuccessful ? '✅ gelungen' : '❌ nicht gelungen'} (${valueText})`;
+		if (confirmation) {
+			valueText += ` | Bestätigung: ${confirmation.roll}`;
+		}
 
-		addCombatResult(name, currentCombatLabel, resultText, [d20], isSuccessful);
+		setRollText(valueText);
+
+		addCombatResult({
+			type: name,
+			label,
+			values: confirmation ? [d20, confirmation.roll] : [d20],
+			isSuccessful: success,
+			status,
+			crit: special === 'krit',
+			fail: special === 'patzer',
+			confirmation
+		}, `${label}: ${status} (${valueText})`);
 	};
 
+	// Buch-Konvention: negativer Modifikator = Erschwernis
 	let modifierText = null;
 	let modifierColor = '';
 
@@ -107,13 +131,20 @@ const Combat = () => {
 
 	// Health Bar Percentage
 	const healthPercentage = (combat.life.current / combat.life.max) * 100;
-	const healthColor = 
+	const healthColor =
 		healthPercentage > 66 ? 'bg-success' :
 		healthPercentage > 33 ? 'bg-amber-500' :
 		'bg-failure';
 
+	const ResultIcon = lastCombatResult ? combatIcons[lastCombatResult.type] : null;
+
 	return (
 		<div className="space-y-6 w-full max-w-5xl mx-auto">
+			{/* Screenreader-Ansage des Ergebnisses */}
+			<div aria-live="polite" className="sr-only">
+				{lastCombatResult ? `${lastCombatResult.label}: ${lastCombatResult.status}` : ''}
+			</div>
+
 			{/* Lebensenergie Card */}
 			<Card variant="parchment">
 				<CardHeader>
@@ -125,7 +156,7 @@ const Combat = () => {
 				<CardContent className="space-y-4">
 					{/* Health Bar */}
 					<div className="w-full bg-muted rounded-full h-8 overflow-hidden border-2 border-aventurian-400 dark:border-aventurian-600">
-						<div 
+						<div
 							className={`h-full ${healthColor} transition-all duration-500 flex items-center justify-center text-white font-heading font-bold text-sm`}
 							style={{ width: `${Math.max(0, healthPercentage)}%` }}
 						>
@@ -192,6 +223,7 @@ const Combat = () => {
 										variant="aventurian"
 										onClick={() => rollCombatValue(item.label, combat[item.key])}
 										className="w-full"
+										aria-label={`${combatLabels[item.label]} würfeln`}
 									>
 										Würfeln
 									</Button>
@@ -221,10 +253,10 @@ const Combat = () => {
 
 			{/* Letzter Wurf */}
 			{lastCombatResult && (
-				<Card 
+				<Card
 					variant={
-						lastCombatResult.crit ? 'critical' : 
-						lastCombatResult.fail ? 'failure' : 
+						lastCombatResult.crit ? 'critical' :
+						lastCombatResult.fail ? 'failure' :
 						lastCombatResult.isSuccessful ? 'success' : 'failure'
 					}
 					className="animate-in fade-in slide-in-from-bottom-4 duration-500"
@@ -233,31 +265,45 @@ const Combat = () => {
 						<CardTitle className='text-center flex items-center justify-center gap-3'>
 							{lastCombatResult.crit && <Sparkles className="w-6 h-6 animate-glow" />}
 							{lastCombatResult.fail && <Skull className="w-6 h-6 shake-error" />}
+							{!lastCombatResult.crit && !lastCombatResult.fail && ResultIcon && <ResultIcon className="w-6 h-6" />}
 							{lastCombatResult.label}
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						{/* Status */}
-						{(isAttackType(lastCombatResult.type) && (!lastCombatResult.crit && !lastCombatResult.fail)) && (
+						{isAttackType(lastCombatResult.type) && !lastCombatResult.crit && !lastCombatResult.fail && (
 							<div className="text-center">
-								<p className="text-2xl font-heading font-bold">
-									{lastCombatResult.isSuccessful ? '✅ Gelungen' : '❌ Misslungen'}
+								<p className="text-2xl font-heading font-bold flex items-center justify-center gap-2">
+									{lastCombatResult.isSuccessful
+										? <Check className="w-6 h-6 text-success-dark dark:text-success-light" />
+										: <X className="w-6 h-6 text-failure-dark dark:text-failure-light" />}
+									{lastCombatResult.status}
 								</p>
 							</div>
 						)}
 
 						{/* Würfel */}
-						<div className="flex justify-center">
+						<div className="flex justify-center gap-3">
 							<DiceIcon
 								value={lastCombatResult.values[0]}
 								size="lg"
 								variant={
-									lastCombatResult.crit ? 'critical' : 
-									lastCombatResult.fail ? 'failure' : 
+									lastCombatResult.crit ? 'critical' :
+									lastCombatResult.fail ? 'failure' :
 									'default'
 								}
 							/>
 						</div>
+
+						{/* Bestätigungswurf */}
+						{lastCombatResult.confirmation && (
+							<div className="flex items-center justify-center gap-2 text-sm font-semibold">
+								<span>Bestätigung: {lastCombatResult.confirmation.roll}</span>
+								{lastCombatResult.confirmation.confirmed
+									? <Check className="w-4 h-4 text-success-dark dark:text-success-light" aria-label="bestätigt" />
+									: <X className="w-4 h-4 text-failure-dark dark:text-failure-light" aria-label="nicht bestätigt" />}
+							</div>
+						)}
 
 						{/* Details */}
 						<div className="bg-background/50 rounded-lg p-4 text-center">

@@ -90,7 +90,7 @@ const RollHistory = () => {
 							key={roll.id}
 							variant="parchment"
 							className="hover:shadow-md transition-all duration-200 animate-in fade-in slide-in-from-top-2"
-							style={{ animationDelay: `${index * 50}ms` }}
+							style={{ animationDelay: `${Math.min(index, 10) * 50}ms` }}
 						>
 							<CardContent className="p-4">
 								<div className="flex items-start justify-between gap-4">
