@@ -233,12 +233,17 @@ const Combat = () => {
 					</CardHeader>
 					<CardContent className="space-y-4">
 						{/* Status */}
-						{isAttackType(lastCombatResult.type) && !lastCombatResult.crit && !lastCombatResult.fail && (
+						{isAttackType(lastCombatResult.type) && (
 							<div className="text-center">
-								<p className="text-2xl font-heading font-bold flex items-center justify-center gap-2">
-									{lastCombatResult.isSuccessful
-										? <Check className="w-6 h-6 text-success-dark dark:text-success-light" />
-										: <X className="w-6 h-6 text-failure-dark dark:text-failure-light" />}
+								<p className={`text-2xl font-heading font-bold flex items-center justify-center gap-2 ${
+									lastCombatResult.crit ? 'text-critical-dark dark:text-critical-light' :
+									lastCombatResult.fail ? 'text-failure-dark dark:text-failure-light' : ''
+								}`}>
+									{!lastCombatResult.crit && !lastCombatResult.fail && (
+										lastCombatResult.isSuccessful
+											? <Check className="w-6 h-6 text-success-dark dark:text-success-light" />
+											: <X className="w-6 h-6 text-failure-dark dark:text-failure-light" />
+									)}
 									{lastCombatResult.status}
 								</p>
 							</div>
