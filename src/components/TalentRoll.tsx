@@ -394,7 +394,7 @@ const TalentRoll = () => {
             />
             {tawDiffersFromSheet && (
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 className="text-xs text-muted-foreground"
                 onClick={() => dispatch(updateTalent({ id: sheetTalent.id, value: probe.taw }))}
