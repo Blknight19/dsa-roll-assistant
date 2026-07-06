@@ -2,7 +2,6 @@ import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import Combat from './Combat';
 import PropertyNumber from './PropertyNumber';
 import ImportExportSettings from './ImportExportSettings';
 import RulesSettings from './RulesSettings';
@@ -11,7 +10,7 @@ import type { RootState } from '@/store';
 import { setAttribute } from '@/store/attributesSlice';
 import type { AttributeKey } from '@/store/attributesSlice';
 import { updateTalent } from '@/store/talentsSlice';
-import { User, Sparkles, Swords, Settings } from 'lucide-react';
+import { User, Sparkles, Settings } from 'lucide-react';
 
 const Character = () => {
 	const dispatch = useDispatch();
@@ -26,22 +25,18 @@ const Character = () => {
 	return (
 		<div className="w-full max-w-6xl mx-auto">
 			<Tabs defaultValue="attributes" className="w-full">
-				<TabsList className="mb-6">
-					<TabsTrigger value="attributes" className="font-heading flex items-center gap-2">
+				<TabsList className="grid w-full grid-cols-3 h-auto mb-6">
+					<TabsTrigger value="attributes" className="font-heading flex flex-col items-center gap-1 py-2" aria-label="Eigenschaften">
 						<User className="w-4 h-4" />
-						<span className="hidden sm:inline">Eigenschaften</span>
+						<span className="text-[10px] sm:text-xs leading-none">Eigenschaften</span>
 					</TabsTrigger>
-					<TabsTrigger value="talents" className="font-heading flex items-center gap-2">
+					<TabsTrigger value="talents" className="font-heading flex flex-col items-center gap-1 py-2" aria-label="Talente">
 						<Sparkles className="w-4 h-4" />
-						<span className="hidden sm:inline">Talente</span>
+						<span className="text-[10px] sm:text-xs leading-none">Talente</span>
 					</TabsTrigger>
-					<TabsTrigger value="combat" className="font-heading flex items-center gap-2">
-						<Swords className="w-4 h-4" />
-						<span className="hidden sm:inline">Kampf</span>
-					</TabsTrigger>
-					<TabsTrigger value="settings" className="font-heading flex items-center gap-2">
+					<TabsTrigger value="settings" className="font-heading flex flex-col items-center gap-1 py-2" aria-label="Einstellungen">
 						<Settings className="w-4 h-4" />
-						<span className="hidden sm:inline">Einstellungen</span>
+						<span className="text-[10px] sm:text-xs leading-none">Einstellungen</span>
 					</TabsTrigger>
 				</TabsList>
 
@@ -109,11 +104,6 @@ const Character = () => {
 							</div>
 						</CardContent>
 					</Card>
-				</TabsContent>
-
-				{/* Kampf */}
-				<TabsContent value='combat'>
-					<Combat />
 				</TabsContent>
 
 				{/* Einstellungen */}

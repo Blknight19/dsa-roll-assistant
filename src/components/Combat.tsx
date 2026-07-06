@@ -145,44 +145,6 @@ const Combat = () => {
 				{lastCombatResult ? `${lastCombatResult.label}: ${lastCombatResult.status}` : ''}
 			</div>
 
-			{/* Lebensenergie Card */}
-			<Card variant="parchment">
-				<CardHeader>
-					<CardTitle className="flex items-center justify-center gap-2">
-						<Heart className="w-6 h-6 text-red-500" />
-						Lebensenergie
-					</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-4">
-					{/* Health Bar */}
-					<div className="w-full bg-muted rounded-full h-8 overflow-hidden border-2 border-aventurian-400 dark:border-aventurian-600">
-						<div
-							className={`h-full ${healthColor} transition-all duration-500 flex items-center justify-center text-white font-heading font-bold text-sm`}
-							style={{ width: `${Math.max(0, healthPercentage)}%` }}
-						>
-							{combat.life.current > 0 && `${combat.life.current} / ${combat.life.max}`}
-						</div>
-					</div>
-
-					{/* LeP Controls */}
-					<div className="flex items-center justify-center gap-3">
-						<PropertyNumber
-							label="Aktuell"
-							value={combat.life.current}
-							size="m"
-							onChange={(value) => dispatch(updateLifeStat({ current: value }))}
-						/>
-						<span className="text-2xl font-heading">/</span>
-						<PropertyNumber
-							label="Maximum"
-							value={combat.life.max}
-							size="m"
-							onChange={(value) => dispatch(updateLifeStat({ max: value }))}
-						/>
-					</div>
-				</CardContent>
-			</Card>
-
 			{/* Kampfwerte */}
 			<Card variant="parchment">
 				<CardHeader>
@@ -251,7 +213,7 @@ const Combat = () => {
 				</CardContent>
 			</Card>
 
-			{/* Letzter Wurf */}
+			{/* Letzter Wurf — direkt unter den Würfel-Buttons, ohne Scrollen sichtbar */}
 			{lastCombatResult && (
 				<Card
 					variant={
@@ -312,6 +274,81 @@ const Combat = () => {
 					</CardContent>
 				</Card>
 			)}
+
+			{/* Lebensenergie Card */}
+			<Card variant="parchment">
+				<CardHeader>
+					<CardTitle className="flex items-center justify-center gap-2">
+						<Heart className="w-6 h-6 text-red-500" />
+						Lebensenergie
+					</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					{/* Health Bar mit Schmerzstufen-Markern bei ¼, ½ und ¾ */}
+					<div className="relative w-full bg-muted rounded-full h-8 overflow-hidden border-2 border-aventurian-400 dark:border-aventurian-600">
+						<div
+							className={`h-full ${healthColor} transition-all duration-500 flex items-center justify-center text-white font-heading font-bold text-sm`}
+							style={{ width: `${Math.max(0, healthPercentage)}%` }}
+						>
+							{combat.life.current > 0 && `${combat.life.current} / ${combat.life.max}`}
+						</div>
+						{[25, 50, 75].map((percent) => (
+							<div
+								key={percent}
+								className="absolute top-0 h-full w-px bg-foreground/30"
+								style={{ left: `${percent}%` }}
+								title={`Schmerzstufe bei ${Math.ceil(combat.life.max * percent / 100)} LeP`}
+							/>
+						))}
+					</div>
+
+					{/* Schnell-Schaden */}
+					<div className="flex items-center justify-center gap-2">
+						<span className="text-sm font-heading uppercase tracking-wide text-aventurian-700 dark:text-aventurian-300 mr-1">
+							Schaden
+						</span>
+						{[1, 3, 5].map((damage) => (
+							<Button
+								key={damage}
+								variant="outline"
+								size="sm"
+								className="h-11 min-w-11 font-heading"
+								onClick={() => dispatch(updateLifeStat({ current: combat.life.current - damage }))}
+								aria-label={`${damage} Schaden nehmen`}
+							>
+								−{damage}
+							</Button>
+						))}
+						<Button
+							variant="outline"
+							size="sm"
+							className="h-11 min-w-11 font-heading"
+							onClick={() => dispatch(updateLifeStat({ current: Math.min(combat.life.max, combat.life.current + 1) }))}
+							aria-label="1 Lebenspunkt heilen"
+						>
+							+1
+						</Button>
+					</div>
+
+					{/* LeP Controls */}
+					<div className="flex items-center justify-center gap-3">
+						<PropertyNumber
+							label="Aktuell"
+							value={combat.life.current}
+							size="m"
+							onChange={(value) => dispatch(updateLifeStat({ current: value }))}
+						/>
+						<span className="text-2xl font-heading">/</span>
+						<PropertyNumber
+							label="Maximum"
+							value={combat.life.max}
+							size="m"
+							onChange={(value) => dispatch(updateLifeStat({ max: value }))}
+						/>
+					</div>
+				</CardContent>
+			</Card>
+
 		</div>
 	);
 };

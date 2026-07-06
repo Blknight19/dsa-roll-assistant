@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { nanoid } from '@reduxjs/toolkit';
 import { roll3D20 } from '../utils/dice';
 import { evaluateTalentCheck } from '../utils/rules';
@@ -6,6 +6,7 @@ import PropertyNumber from './PropertyNumber';
 import DiceIcon from './DiceIcon';
 import { useDispatch, useSelector } from 'react-redux';
 import { addRoll } from '@/store/rollSlice';
+import { updateTalent } from '@/store/talentsSlice';
 import {
   selectProbeTalent,
   setProbeEntry,
@@ -37,7 +38,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { RootState } from '@/store';
 import { ATTRIBUTE_KEYS, type AttributeKey } from '@/store/attributesSlice';
-import { ChevronDown, Dices, Sparkles, Skull } from 'lucide-react';
+import { ChevronDown, Dices, Sparkles, Skull, Pencil, Check } from 'lucide-react';
 
 /** Modifikator als lesbarer Rechenterm, z. B. " − 2" oder " + 3". */
 const modifierTerm = (modifier: number): string => {
@@ -53,8 +54,23 @@ const TalentRoll = () => {
   const probe = useSelector((state: RootState) => state.probe);
 
   const [open, setOpen] = useState<boolean>(false);
+  const [editAttributes, setEditAttributes] = useState<boolean>(false);
 
   const lastRoll = probe.lastRoll;
+
+  // Nach einem neuen Wurf das Ergebnis in den Blick scrollen —
+  // nicht aber beim bloßen Zurückwechseln auf den Tab.
+  const resultRef = useRef<HTMLDivElement>(null);
+  const prevRollRef = useRef(lastRoll);
+  useEffect(() => {
+    if (lastRoll && lastRoll !== prevRollRef.current) {
+      resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    prevRollRef.current = lastRoll;
+  }, [lastRoll]);
+
+  const sheetTalent = probe.talentId ? talents.find(talent => talent.id === probe.talentId) : undefined;
+  const tawDiffersFromSheet = sheetTalent !== undefined && sheetTalent.value !== probe.taw;
 
   const handleSelectTalent = (talentId: string) => {
     const currentTalent = talents.find(talent => talent.id === talentId);
@@ -129,11 +145,118 @@ const TalentRoll = () => {
     : '';
 
   return (
-    <div className='flex flex-col items-center space-y-8 w-full max-w-5xl mx-auto'>
+    <div className='flex flex-col items-center space-y-6 w-full max-w-5xl mx-auto'>
       {/* Screenreader-Ansage des Ergebnisses */}
       <div aria-live="polite" className="sr-only">{resultSummary}</div>
 
-      {/* Talent-Auswahl - Hero Section */}
+      {/* Ergebnis-Anzeige — oben, rendert ausschließlich aus dem Wurf-Schnappschuss */}
+      {lastRoll && (
+        <Card
+          ref={resultRef}
+          variant={
+            lastRoll.result.special === 'krit' ? 'critical' :
+            lastRoll.result.special === 'patzer' ? 'failure' :
+            lastRoll.result.success ? 'success' : 'failure'
+          }
+          className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500 scroll-mt-20"
+        >
+          <CardHeader>
+            {lastRoll.result.special === 'krit' && (
+              <div className="flex items-center justify-center gap-3">
+                <Sparkles className="w-8 h-8 text-critical-dark dark:text-critical-light animate-glow" />
+                <CardTitle className="text-3xl text-critical-dark dark:text-critical-light">
+                  Kritischer Erfolg!
+                </CardTitle>
+                <Sparkles className="w-8 h-8 text-critical-dark dark:text-critical-light animate-glow" />
+              </div>
+            )}
+            {lastRoll.result.special === 'patzer' && (
+              <div className="flex items-center justify-center gap-3">
+                <Skull className="w-8 h-8 text-failure-dark dark:text-failure-light shake-error" />
+                <CardTitle className="text-3xl text-failure-dark dark:text-failure-light">
+                  Patzer!
+                </CardTitle>
+                <Skull className="w-8 h-8 text-failure-dark dark:text-failure-light shake-error" />
+              </div>
+            )}
+            {lastRoll.result.special === null && (
+              <CardTitle className="text-center text-2xl">
+                {lastRoll.result.success ? (
+                  <span className="text-success-dark dark:text-success-light">
+                    {lastRoll.talentName ? `${lastRoll.talentName}: ` : ''}Erfolg!
+                  </span>
+                ) : (
+                  <span className="text-failure-dark dark:text-failure-light">
+                    {lastRoll.talentName ? `${lastRoll.talentName}: ` : ''}Misslungen
+                  </span>
+                )}
+              </CardTitle>
+            )}
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            {/* QS als Hero-Zahl */}
+            {lastRoll.result.special === null && lastRoll.result.success && (
+              <div className="text-center">
+                <p className="text-7xl font-heading font-bold text-success-dark dark:text-success-light">
+                  {lastRoll.result.qs}
+                </p>
+                <p className="text-sm uppercase tracking-wide text-muted-foreground mt-1">
+                  Qualitätsstufe
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {lastRoll.result.fp} FP übrig
+                </p>
+              </div>
+            )}
+            {lastRoll.result.special === null && !lastRoll.result.success && (
+              <div className="text-center">
+                <p className="text-4xl font-heading font-bold">
+                  {lastRoll.result.fp}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Fertigkeitspunkte (unter 0)
+                </p>
+              </div>
+            )}
+
+            {/* Würfel-Anzeige */}
+            <div className="flex justify-center gap-4">
+              {lastRoll.result.dice.map((value, index) => (
+                <DiceIcon
+                  key={index}
+                  value={value}
+                  size="lg"
+                  variant={getDiceVariant(value)}
+                />
+              ))}
+            </div>
+
+            {/* Detaillierte Berechnung */}
+            <div className="bg-background/50 rounded-lg p-4 space-y-2">
+              <h4 className="font-heading font-semibold text-center mb-3">Berechnung</h4>
+              <div className="grid gap-2 text-sm">
+                {lastRoll.entries.map((entry, index) => (
+                  <div className="flex justify-between" key={index}>
+                    <span>
+                      {entry.attribute}: {entry.value}{modifierTerm(lastRoll.modifier)} − {lastRoll.result.dice[index]}
+                    </span>
+                    <span className="font-semibold">{lastRoll.result.perDieShortfall[index]}</span>
+                  </div>
+                ))}
+                <div className="border-t border-border pt-2 mt-2 flex justify-between font-semibold">
+                  <span>
+                    Talentwert: {lastRoll.taw} + Summe: {lastRoll.result.perDieShortfall.reduce((a, b) => a + b, 0)}
+                  </span>
+                  <span>= {lastRoll.result.fp}</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Talent-Auswahl */}
       <Card variant="parchment" className="w-full">
         <CardHeader>
           <CardTitle className="text-center">Talentprobe</CardTitle>
@@ -172,43 +295,65 @@ const TalentRoll = () => {
               </Command>
             </PopoverContent>
           </Popover>
-        </CardContent>
-      </Card>
 
-      {/* Eigenschaften Grid */}
-      <Card variant="parchment" className="w-full">
-        <CardHeader>
-          <CardTitle className="text-center text-xl">Eigenschaftswerte</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-            {probe.entries.map((entry, index) => (
-              <div key={index} className='flex flex-col items-center gap-3 p-4 rounded-lg bg-aventurian-100/50 dark:bg-aventurian-800/50'>
-                <Select
-                  value={entry.attribute}
-                  onValueChange={(val) => {
-                    const attribute = val as AttributeKey;
-                    dispatch(setProbeEntry({ index, attribute, value: attributes[attribute] }));
-                  }}
+          {/* Eigenschaften: kompakte Chips, auf Wunsch editierbar */}
+          {!editAttributes ? (
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              {probe.entries.map((entry, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-2 rounded-lg bg-aventurian-100/50 dark:bg-aventurian-800/50 font-heading text-sm"
                 >
-                  <SelectTrigger className="w-24 text-center font-heading" aria-label={`Eigenschaft ${index + 1}`}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ATTRIBUTE_KEYS.map((key) => (
-                      <SelectItem key={key} value={key} className="font-heading">
-                        {key}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <PropertyNumber
-                  value={entry.value}
-                  onChange={(value) => dispatch(setProbeEntry({ index, value }))}
-                />
+                  {entry.attribute} <span className="font-bold">{entry.value}</span>
+                </span>
+              ))}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setEditAttributes(true)}
+                aria-label="Eigenschaften bearbeiten"
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="w-full space-y-4">
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                {probe.entries.map((entry, index) => (
+                  <div key={index} className='flex flex-col items-center gap-3 p-4 rounded-lg bg-aventurian-100/50 dark:bg-aventurian-800/50'>
+                    <Select
+                      value={entry.attribute}
+                      onValueChange={(val) => {
+                        const attribute = val as AttributeKey;
+                        dispatch(setProbeEntry({ index, attribute, value: attributes[attribute] }));
+                      }}
+                    >
+                      <SelectTrigger className="w-24 text-center font-heading" aria-label={`Eigenschaft ${index + 1}`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ATTRIBUTE_KEYS.map((key) => (
+                          <SelectItem key={key} value={key} className="font-heading">
+                            {key}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <PropertyNumber
+                      value={entry.value}
+                      onChange={(value) => dispatch(setProbeEntry({ index, value }))}
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+              <div className="flex justify-center">
+                <Button variant="outline" size="sm" onClick={() => setEditAttributes(false)}>
+                  <Check className="w-4 h-4 mr-1" />
+                  Fertig
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -236,120 +381,44 @@ const TalentRoll = () => {
 
         <Card variant="parchment">
           <CardHeader>
-            <CardTitle className="text-center text-lg">Talentwert</CardTitle>
+            <CardTitle className="text-center text-lg">
+              Talentwert{' '}
+              <span className="text-xs font-normal text-muted-foreground">(nur für diese Probe)</span>
+            </CardTitle>
           </CardHeader>
-          <CardContent className="flex justify-center">
+          <CardContent className="flex flex-col items-center gap-2">
             <PropertyNumber
               value={probe.taw}
               onChange={(value) => dispatch(setProbeTaw(value))}
               size="s"
             />
+            {tawDiffersFromSheet && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-muted-foreground"
+                onClick={() => dispatch(updateTalent({ id: sheetTalent.id, value: probe.taw }))}
+              >
+                In Charakterbogen übernehmen
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Würfel-Button */}
-      <Button
-        onClick={handleRoll}
-        size="xl"
-        variant="aventurian"
-        className="w-full max-w-xs shadow-lg hover:shadow-xl"
-        disabled={!probe.talentName}
-      >
-        <Dices className="w-6 h-6 mr-2" />
-        Würfeln
-      </Button>
-
-      {/* Ergebnis-Anzeige — rendert ausschließlich aus dem Wurf-Schnappschuss */}
-      {lastRoll && (
-        <Card
-          variant={
-            lastRoll.result.special === 'krit' ? 'critical' :
-            lastRoll.result.special === 'patzer' ? 'failure' :
-            lastRoll.result.success ? 'success' : 'failure'
-          }
-          className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500"
+      {/* Würfel-Button — sticky in der Daumenzone */}
+      <div className="sticky bottom-4 z-40 w-full flex justify-center pointer-events-none pb-[env(safe-area-inset-bottom)]">
+        <Button
+          onClick={handleRoll}
+          size="xl"
+          variant="aventurian"
+          className="pointer-events-auto w-full max-w-xs shadow-lg hover:shadow-xl"
+          disabled={!probe.talentName}
         >
-          <CardHeader>
-            {lastRoll.result.special === 'krit' && (
-              <div className="flex items-center justify-center gap-3">
-                <Sparkles className="w-8 h-8 text-critical-dark dark:text-critical-light animate-glow" />
-                <CardTitle className="text-3xl text-critical-dark dark:text-critical-light">
-                  Kritischer Erfolg!
-                </CardTitle>
-                <Sparkles className="w-8 h-8 text-critical-dark dark:text-critical-light animate-glow" />
-              </div>
-            )}
-            {lastRoll.result.special === 'patzer' && (
-              <div className="flex items-center justify-center gap-3">
-                <Skull className="w-8 h-8 text-failure-dark dark:text-failure-light shake-error" />
-                <CardTitle className="text-3xl text-failure-dark dark:text-failure-light">
-                  Patzer!
-                </CardTitle>
-                <Skull className="w-8 h-8 text-failure-dark dark:text-failure-light shake-error" />
-              </div>
-            )}
-            {lastRoll.result.special === null && (
-              <CardTitle className="text-center text-2xl">
-                {lastRoll.result.success ? (
-                  <span className="text-success-dark dark:text-success-light">
-                    Erfolg! (QS {lastRoll.result.qs})
-                  </span>
-                ) : (
-                  <span className="text-failure-dark dark:text-failure-light">Misslungen</span>
-                )}
-              </CardTitle>
-            )}
-          </CardHeader>
-
-          <CardContent className="space-y-6">
-            {/* Würfel-Anzeige */}
-            <div className="flex justify-center gap-4">
-              {lastRoll.result.dice.map((value, index) => (
-                <DiceIcon
-                  key={index}
-                  value={value}
-                  size="lg"
-                  variant={getDiceVariant(value)}
-                />
-              ))}
-            </div>
-
-            {/* Ergebnis-Text */}
-            {lastRoll.result.special === null && (
-              <div className="text-center">
-                <p className="text-3xl font-heading font-bold">
-                  {lastRoll.result.fp}
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Gesamt-Talentpunkte übrig
-                </p>
-              </div>
-            )}
-
-            {/* Detaillierte Berechnung */}
-            <div className="bg-background/50 rounded-lg p-4 space-y-2">
-              <h4 className="font-heading font-semibold text-center mb-3">Berechnung</h4>
-              <div className="grid gap-2 text-sm">
-                {lastRoll.entries.map((entry, index) => (
-                  <div className="flex justify-between" key={index}>
-                    <span>
-                      {entry.attribute}: {entry.value}{modifierTerm(lastRoll.modifier)} − {lastRoll.result.dice[index]}
-                    </span>
-                    <span className="font-semibold">{lastRoll.result.perDieShortfall[index]}</span>
-                  </div>
-                ))}
-                <div className="border-t border-border pt-2 mt-2 flex justify-between font-semibold">
-                  <span>
-                    Talentwert: {lastRoll.taw} + Summe: {lastRoll.result.perDieShortfall.reduce((a, b) => a + b, 0)}
-                  </span>
-                  <span>= {lastRoll.result.fp}</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          <Dices className="w-6 h-6 mr-2" />
+          Würfeln
+        </Button>
+      </div>
     </div>
   );
 };
