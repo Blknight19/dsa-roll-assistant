@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import ConfirmDialog from './ConfirmDialog';
 import { exportCharacter } from '@/utils/exportCharacter';
 import { importCharacter } from '@/utils/importCharacter';
 import { resetLocalStorage } from '@/utils/resetLocalStorage';
@@ -8,6 +9,7 @@ import { Download, Upload, Trash2, AlertTriangle } from 'lucide-react';
 
 const ImportExportSettings = () => {
 	const [fileName, setFileName] = useState<string | null>(null);
+	const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
 	const handleImportClick = () => {
 		document.getElementById('characterImportInput')?.click();
@@ -16,12 +18,6 @@ const ImportExportSettings = () => {
 	const handleFileSelected = async (file: File) => {
 		await importCharacter(file);
 		setFileName(file.name);
-	};
-
-	const handleReset = () => {
-		if (confirm('⚠️ ACHTUNG: Alle Daten werden unwiderruflich gelöscht!\n\nWirklich fortfahren?')) {
-			resetLocalStorage();
-		}
 	};
 
 	return (
@@ -103,15 +99,23 @@ const ImportExportSettings = () => {
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<Button 
-						variant="destructive" 
+					<Button
+						variant="destructive"
 						size="lg"
-						onClick={handleReset}
+						onClick={() => setResetConfirmOpen(true)}
 						className="w-full"
 					>
 						<Trash2 className="w-5 h-5 mr-2" />
 						Alle Daten zurücksetzen
 					</Button>
+					<ConfirmDialog
+						open={resetConfirmOpen}
+						onOpenChange={setResetConfirmOpen}
+						title="Alle Daten zurücksetzen?"
+						description="Charakter, Talente, Kampfwerte und Historie werden unwiderruflich gelöscht."
+						confirmLabel="Alles löschen"
+						onConfirm={resetLocalStorage}
+					/>
 				</CardContent>
 			</Card>
 		</div>

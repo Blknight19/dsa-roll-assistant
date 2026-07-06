@@ -1,19 +1,16 @@
+import { useState } from 'react';
 import type { RootState } from '@/store';
 import { clearHistory, type RollHistoryEntry } from '@/store/rollSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import ConfirmDialog from './ConfirmDialog';
 import { Trash2, Dices, Swords, Scroll } from 'lucide-react';
 
 const RollHistory = () => {
 	const dispatch = useDispatch();
 	const rollHistory: RollHistoryEntry[] = useSelector((state: RootState) => state.roll.history);
-
-	const handleClear = () => {
-		if (confirm('Wirklich die gesamte Historie löschen?')) {
-			dispatch(clearHistory());
-		}
-	};
+	const [confirmOpen, setConfirmOpen] = useState(false);
 
 	const getTypeIcon = (type: string) => {
 		switch (type) {
@@ -46,12 +43,20 @@ const RollHistory = () => {
 						<Button
 							variant="destructive"
 							size="sm"
-							onClick={handleClear}
+							onClick={() => setConfirmOpen(true)}
 							disabled={rollHistory.length === 0}
 						>
 							<Trash2 className="w-4 h-4 mr-2" />
 							Löschen
 						</Button>
+						<ConfirmDialog
+							open={confirmOpen}
+							onOpenChange={setConfirmOpen}
+							title="Historie löschen?"
+							description="Alle gespeicherten Würfe werden entfernt. Das kann nicht rückgängig gemacht werden."
+							confirmLabel="Historie löschen"
+							onConfirm={() => dispatch(clearHistory())}
+						/>
 					</div>
 				</CardHeader>
 			</Card>
