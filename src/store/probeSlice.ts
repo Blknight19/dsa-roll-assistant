@@ -48,6 +48,8 @@ const probeSlice = createSlice({
 			state.talentName = action.payload.name;
 			state.entries = action.payload.entries;
 			state.taw = action.payload.taw;
+			// Sonst steht das Ergebnis des vorigen Talents über der neuen Auswahl.
+			state.lastRoll = null;
 		},
 		setProbeEntry: (state, action: PayloadAction<{ index: number; attribute?: AttributeKey; value?: number }>) => {
 			const entry = state.entries[action.payload.index];

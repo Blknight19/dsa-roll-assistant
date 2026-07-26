@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Agent skills installed via `npx skills` (project-scoped, machine-local).
+# Do not ignore .claude/skills/ wholesale — .claude/skills/verify is tracked.
+.agents/
+skills-lock.json
+.claude/skills/minimalist-ui
+.claude/skills/industrial-brutalist-ui

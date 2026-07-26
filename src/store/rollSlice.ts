@@ -27,11 +27,15 @@ const rollSlice = createSlice({
 				state.history.length = HISTORY_LIMIT;
 			}
 		},
+		/** Ersetzt die Historie am Stück — `addRoll` in einer Schleife würde sie umkehren. */
+		setHistory: (state, action: PayloadAction<RollHistoryEntry[]>) => {
+			state.history = action.payload.slice(0, HISTORY_LIMIT);
+		},
 		clearHistory: (state) => {
 			state.history = [];
 		}
 	}
 });
 
-export const { addRoll, clearHistory } = rollSlice.actions;
+export const { addRoll, setHistory, clearHistory } = rollSlice.actions;
 export const rollReducer = rollSlice.reducer;

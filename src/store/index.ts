@@ -5,15 +5,23 @@ import { talentReducer } from './talentsSlice';
 import { combatReducer } from './combatSlice';
 import { settingsReducer } from './settingsSlice';
 import { probeReducer } from './probeSlice';
+import { profileReducer } from './profileSlice';
+import { combatRollReducer } from './combatRollSlice';
+import { simpleRollReducer } from './simpleRollSlice';
 import { loadState, saveState } from './persistence';
 
 const rootReducer = combineReducers({
+	profile: profileReducer,
 	roll: rollReducer,
 	talents: talentReducer,
 	attributes: attributeReducer,
 	combat: combatReducer,
 	settings: settingsReducer,
-	probe: probeReducer
+	// Laufende Wurf-Eingaben: bewusst nicht persistiert, aber im Store, damit sie
+	// den Unmount der Radix-Tab-Panels überleben.
+	probe: probeReducer,
+	combatRoll: combatRollReducer,
+	simpleRoll: simpleRollReducer
 });
 
 export const store = configureStore({
@@ -26,8 +34,30 @@ export type AppDispatch = typeof store.dispatch
 
 const SAVE_DEBOUNCE_MS = 500;
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
+let hasUnsavedChanges = false;
+
+/** Verwirft einen ausstehenden Save — sonst schreibt er nach einem Reset alles zurück. */
+export const cancelPendingSave = () => {
+	clearTimeout(saveTimer);
+	saveTimer = undefined;
+	hasUnsavedChanges = false;
+};
+
+const flushSave = () => {
+	if (!hasUnsavedChanges) return;
+	cancelPendingSave();
+	saveState(store.getState());
+};
 
 store.subscribe(() => {
+	hasUnsavedChanges = true;
 	clearTimeout(saveTimer);
-	saveTimer = setTimeout(() => saveState(store.getState()), SAVE_DEBOUNCE_MS);
+	saveTimer = setTimeout(flushSave, SAVE_DEBOUNCE_MS);
+});
+
+// Der Debounce darf den letzten Wurf nicht verschlucken, wenn die App weggewischt
+// oder in den Hintergrund geschoben wird — auf dem Handy ist das der Normalfall.
+window.addEventListener('pagehide', flushSave);
+document.addEventListener('visibilitychange', () => {
+	if (document.visibilityState === 'hidden') flushSave();
 });

@@ -7,8 +7,7 @@ import ImportExportSettings from './ImportExportSettings';
 import RulesSettings from './RulesSettings';
 import TalentRow from './TalentRow';
 import type { RootState } from '@/store';
-import { setAttribute } from '@/store/attributesSlice';
-import type { AttributeKey } from '@/store/attributesSlice';
+import { ATTRIBUTE_KEYS, ATTRIBUTE_MAX, ATTRIBUTE_MIN, setAttribute } from '@/store/attributesSlice';
 import { updateTalent } from '@/store/talentsSlice';
 import { User, Sparkles, Settings } from 'lucide-react';
 
@@ -51,15 +50,17 @@ const Character = () => {
 						</CardHeader>
 						<CardContent>
 							<div className="grid grid-cols-1 md:grid-cols-4 sm:grid-cols-2 gap-6">
-								{Object.entries(attributes).map(([key, value]) => (
-									<div 
+								{ATTRIBUTE_KEYS.map((key) => (
+									<div
 										key={key}
 										className="flex flex-col items-center p-6 rounded-lg bg-aventurian-100/50 dark:bg-aventurian-800/50 hover:bg-aventurian-200/50 dark:hover:bg-aventurian-700/50 transition-colors"
 									>
 										<PropertyNumber
 											label={key}
-											value={value}
-											onChange={(newValue) => dispatch(setAttribute({ key: key as AttributeKey, value: newValue }))}
+											value={attributes[key]}
+											min={ATTRIBUTE_MIN}
+											max={ATTRIBUTE_MAX}
+											onChange={(value) => dispatch(setAttribute({ key, value }))}
 											size="m"
 										/>
 									</div>

@@ -1,67 +1,73 @@
-import { store } from '@/store';
-import { setAttribute, ATTRIBUTE_KEYS } from '@/store/attributesSlice';
-import { addRoll, clearHistory } from '@/store/rollSlice';
-import { updateTalent } from '@/store/talentsSlice';
 import { toast } from 'sonner';
-import { updateCombatStat, type CombatStatKey, updateLifeStat } from '@/store/combatSlice';
-import { sanitizeHistory } from '@/store/persistence';
+import { store } from '@/store';
+import { ATTRIBUTE_KEYS, setAttribute } from '@/store/attributesSlice';
+import { COMBAT_STAT_KEYS, updateCombatStat, updateLifeStat } from '@/store/combatSlice';
+import {
+	PERSISTED_VERSION,
+	isFiniteNumber,
+	isRecord,
+	migratePersisted
+} from '@/store/persistence';
+import { setCharacterName } from '@/store/profileSlice';
+import { setHistory } from '@/store/rollSlice';
+import { setConfirmCriticals } from '@/store/settingsSlice';
+import { updateTalent } from '@/store/talentsSlice';
 
-const COMBAT_STAT_KEYS: CombatStatKey[] = ['attack', 'save', 'dodge', 'initiative', 'ranged'];
+/** Eine Charakterdatei ist ein paar Kilobyte groß; alles darüber ist keine. */
+const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-	typeof value === 'object' && value !== null;
-
-export const importCharacter = async (file: File) => {
-	const dispatch = store.dispatch;
-	try {
-		const encodedText = await file.text();
-		const json = decodeURIComponent(atob(encodedText));
-		const data: unknown = JSON.parse(json);
-
-		if (!isRecord(data)) throw new Error('Unerwartetes Dateiformat');
-
-		if (typeof data.version === 'number' && data.version > 1) {
-			toast.error(`Datei-Version ${data.version} wird von dieser App-Version nicht unterstützt`);
-			return;
-		}
-
-		const { attributes, talents, history, combat } = data;
-
-		if (isRecord(attributes)) {
-			for (const key of ATTRIBUTE_KEYS) {
-				const value = attributes[key];
-				if (typeof value === 'number') dispatch(setAttribute({ key, value }));
-			}
-		}
-
-		if (Array.isArray(talents)) {
-			for (const entry of talents) {
-				if (isRecord(entry) && typeof entry.id === 'string' && typeof entry.value === 'number') {
-					dispatch(updateTalent({ id: entry.id, value: entry.value }));
-				}
-			}
-		}
-
-		if (history !== undefined) {
-			dispatch(clearHistory());
-			sanitizeHistory(history).forEach(entry => dispatch(addRoll(entry)));
-		}
-
-		if (isRecord(combat)) {
-			if (isRecord(combat.life)) {
-				const { current, max } = combat.life;
-				if (typeof current === 'number') dispatch(updateLifeStat({ current }));
-				if (typeof max === 'number') dispatch(updateLifeStat({ max }));
-			}
-
-			for (const key of COMBAT_STAT_KEYS) {
-				const value = combat[key];
-				if (typeof value === 'number') dispatch(updateCombatStat({ key, value }));
-			}
-		}
-
-		toast.success('Import erfolgreich');
-	} catch (e) {
-		toast.error(`Fehler beim Import (keine gültige Charakterdatei): ${e}`);
+/** @returns ob der Import angewendet wurde — die UI meldet nur dann Erfolg. */
+export const importCharacter = async (file: File): Promise<boolean> => {
+	if (file.size > MAX_IMPORT_BYTES) {
+		toast.error('Datei ist zu groß für eine Charakterdatei');
+		return false;
 	}
+
+	let data: unknown;
+	try {
+		data = JSON.parse(decodeURIComponent(atob(await file.text())));
+	} catch (error) {
+		// Details bewusst nur in die Konsole: die rohe Exception im Toast half
+		// niemandem und legte Interna offen.
+		// eslint-disable-next-line no-console
+		console.warn('Charakterdatei konnte nicht gelesen werden:', error);
+		toast.error('Datei konnte nicht gelesen werden (keine gültige Charakterdatei)');
+		return false;
+	}
+
+	if (!isRecord(data)) {
+		toast.error('Unerwartetes Dateiformat');
+		return false;
+	}
+
+	if (isFiniteNumber(data.version) && data.version > PERSISTED_VERSION) {
+		toast.error(`Datei-Version ${data.version} wird von dieser App-Version nicht unterstützt`);
+		return false;
+	}
+
+	// Dieselben Sanitizer wie beim Laden aus dem localStorage: eine Validierung
+	// für ein Format, statt zweier, die auseinanderdriften.
+	const imported = migratePersisted(data);
+	if (!imported) {
+		toast.error('Unerwartetes Dateiformat');
+		return false;
+	}
+
+	const dispatch = store.dispatch;
+	dispatch(setCharacterName(imported.profile.name));
+	for (const key of ATTRIBUTE_KEYS) {
+		dispatch(setAttribute({ key, value: imported.attributes[key] }));
+	}
+	for (const talent of imported.talents.talents) {
+		dispatch(updateTalent({ id: talent.id, value: talent.value }));
+	}
+	for (const key of COMBAT_STAT_KEYS) {
+		dispatch(updateCombatStat({ key, value: imported.combat[key] }));
+	}
+	dispatch(updateLifeStat(imported.combat.life));
+	dispatch(setHistory(imported.roll.history));
+	dispatch(setConfirmCriticals(imported.settings.confirmCriticals));
+
+	toast.success('Import erfolgreich');
+	return true;
 };

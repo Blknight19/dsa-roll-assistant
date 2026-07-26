@@ -83,6 +83,53 @@ describe('migratePersisted', () => {
 	});
 });
 
+describe('Wertgrenzen beim Laden', () => {
+	// Die Persistenz setzt preloadedState und umgeht damit die Reducer — sie muss
+	// dieselben Grenzen selbst durchsetzen.
+	it('repariert ein LeP-Maximum von 0, statt den Balken durch null teilen zu lassen', () => {
+		const state = migratePersisted({ version: 2, combat: { life: { current: 5, max: 0 } } });
+		expect(state!.combat.life.max).toBeGreaterThanOrEqual(1);
+		expect(Number.isFinite(state!.combat.life.current / state!.combat.life.max)).toBe(true);
+	});
+
+	it('zieht einen aktuellen LeP-Wert über dem Maximum herunter', () => {
+		const state = migratePersisted({ version: 2, combat: { life: { current: 99, max: 30 } } });
+		expect(state!.combat.life).toEqual({ current: 30, max: 30 });
+	});
+
+	it('übernimmt LeP über 20 unverändert', () => {
+		const state = migratePersisted({ version: 2, combat: { life: { current: 27, max: 34 } } });
+		expect(state!.combat.life).toEqual({ current: 27, max: 34 });
+	});
+
+	it('verwirft NaN und Infinity, die typeof-Prüfungen allein passieren', () => {
+		const state = migratePersisted({
+			version: 2,
+			attributes: { MU: NaN, KL: Infinity },
+			combat: { attack: NaN, life: { current: Infinity, max: NaN } },
+			talents: [{ id: '1', value: NaN }]
+		});
+		expect(state!.attributes.MU).toBe(8);
+		expect(state!.attributes.KL).toBe(8);
+		expect(state!.combat.attack).toBe(8);
+		expect(state!.talents.talents.find(t => t.id === '1')!.value).toBe(0);
+		expect(Number.isFinite(state!.combat.life.current)).toBe(true);
+		expect(Number.isFinite(state!.combat.life.max)).toBe(true);
+	});
+
+	it('begrenzt Eigenschaften und Talentwerte auf gültige Bereiche', () => {
+		const state = migratePersisted({
+			version: 2,
+			attributes: { MU: 999, KL: -5 },
+			talents: [{ id: '1', value: 999 }, { id: '2', value: -4 }]
+		});
+		expect(state!.attributes.MU).toBe(20);
+		expect(state!.attributes.KL).toBe(1);
+		expect(state!.talents.talents.find(t => t.id === '1')!.value).toBe(25);
+		expect(state!.talents.talents.find(t => t.id === '2')!.value).toBe(0);
+	});
+});
+
 describe('sanitizeHistory', () => {
 	it('deckelt die History bei HISTORY_LIMIT', () => {
 		const entries = Array.from({ length: HISTORY_LIMIT + 50 }, (_, i) => historyEntry(String(i)));
@@ -98,13 +145,50 @@ describe('sanitizeHistory', () => {
 });
 
 describe('toPersisted / Roundtrip', () => {
-	it('schreibt v2 und liest identisch zurück', () => {
+	it('schreibt die aktuelle Version und liest sie identisch zurück', () => {
 		const slices = migratePersisted({ version: 2, attributes: { MU: 14 }, talents: [{ id: '5', value: 6 }] })!;
+		slices.profile.name = 'Thorwal Grimm';
+
 		const blob = toPersisted(slices);
 		expect(blob.version).toBe(PERSISTED_VERSION);
-		expect(blob.talents).toContainEqual({ id: '5', value: 6 });
+		expect(blob.characters).toHaveLength(1);
+		expect(blob.activeCharacterId).toBe(blob.characters[0].id);
+		expect(blob.characters[0].talents).toContainEqual({ id: '5', value: 6 });
 
 		const reloaded = migratePersisted(JSON.parse(JSON.stringify(blob)))!;
 		expect(reloaded).toEqual(slices);
+	});
+
+	it('hebt einen v2-Blob in einen benannten Charakter-Eintrag', () => {
+		const slices = migratePersisted({
+			version: 2,
+			attributes: { MU: 14 },
+			combat: { life: { current: 20, max: 30 } }
+		})!;
+		expect(slices.profile.name).toBe('');
+		expect(slices.attributes.MU).toBe(14);
+		expect(slices.combat.life).toEqual({ current: 20, max: 30 });
+	});
+
+	it('wählt bei mehreren Charakteren den aktiven aus', () => {
+		const state = migratePersisted({
+			version: 3,
+			activeCharacterId: 'b',
+			characters: [
+				{ id: 'a', name: 'Alrik', attributes: { MU: 9 }, talents: [], combat: {} },
+				{ id: 'b', name: 'Boron', attributes: { MU: 17 }, talents: [], combat: {} }
+			]
+		})!;
+		expect(state.profile).toEqual({ id: 'b', name: 'Boron' });
+		expect(state.attributes.MU).toBe(17);
+	});
+
+	it('fällt auf den ersten Charakter zurück, wenn die aktive id unbekannt ist', () => {
+		const state = migratePersisted({
+			version: 3,
+			activeCharacterId: 'weg',
+			characters: [{ id: 'a', name: 'Alrik', attributes: { MU: 9 }, talents: [], combat: {} }]
+		})!;
+		expect(state.profile.name).toBe('Alrik');
 	});
 });

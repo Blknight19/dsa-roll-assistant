@@ -6,14 +6,17 @@ import RollHistory from './components/RollHistory';
 import ThemeToggle from './components/ThemeToggle';
 import Character from './components/Character';
 import Combat from './components/Combat';
+import HeroBar from './components/HeroBar';
 import { Scroll, Dices, History, User, Swords } from 'lucide-react';
 
+// Talent und Kampf stehen bewusst nebeneinander — dazwischen wird am Tisch am
+// häufigsten gewechselt.
 const tabs = [
-  { value: 'talentRoll', label: 'Talentprobe', icon: Scroll },
+  { value: 'talentRoll', label: 'Talent', icon: Scroll },
   { value: 'combat', label: 'Kampf', icon: Swords },
-  { value: 'simpleRoll', label: 'Einzelwurf', icon: Dices },
+  { value: 'simpleRoll', label: 'Einzel', icon: Dices },
   { value: 'history', label: 'Historie', icon: History },
-  { value: 'character', label: 'Charakter', icon: User },
+  { value: 'character', label: 'Held', icon: User },
 ];
 
 function App() {
@@ -35,10 +38,7 @@ function App() {
               </div>
             </div>
 
-            {/* Theme Toggle - Desktop */}
-            <div className="hidden md:block">
-              <ThemeToggle />
-            </div>
+            <ThemeToggle />
           </div>
         </header>
 
@@ -46,7 +46,7 @@ function App() {
         <main className="container mx-auto flex-1 flex flex-col items-center">
           <div className='w-full max-w-6xl'>
             <Tabs defaultValue="talentRoll" className="w-full">
-              <TabsList className="grid w-full grid-cols-5 h-auto mb-6 bg-aventurian-100 dark:bg-aventurian-800">
+              <TabsList className="grid w-full grid-cols-5 h-auto mb-4 bg-aventurian-100 dark:bg-aventurian-800">
                 {tabs.map(({ value, label, icon: Icon }) => (
                   <TabsTrigger
                     key={value}
@@ -59,6 +59,8 @@ function App() {
                   </TabsTrigger>
                 ))}
               </TabsList>
+
+              <HeroBar />
 
               <TabsContent value="talentRoll" className="mt-0">
                 <TalentRoll />
@@ -79,10 +81,6 @@ function App() {
           </div>
         </main>
 
-        {/* Mobile Theme Toggle */}
-        <div className="md:hidden fixed bottom-6 right-6 z-50">
-          <ThemeToggle />
-        </div>
       </div>
 
       <Toaster />

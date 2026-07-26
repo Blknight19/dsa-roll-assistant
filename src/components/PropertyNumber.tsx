@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useRef } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Minus, Plus } from 'lucide-react';
@@ -8,8 +8,9 @@ interface PropertyNumberProps {
   label?: string;
   onChange: (newValue: number) => void;
   value: number;
+  /** Bewusst ohne Default: eine fehlende Obergrenze soll auffallen, statt still zu kappen. */
+  max: number;
   min?: number;
-  max?: number;
   size?: 'm' | 's';
   className?: string;
 }
@@ -21,12 +22,16 @@ const PropertyNumber: React.FC<PropertyNumberProps> = ({
   label = '',
   onChange,
   value,
+  max,
   min = 0,
-  max = 20,
   size = 'm',
   className
 }) => {
   const inputId = useId();
+
+  // Während des Tippens darf das Feld leer sein — sonst lässt sich 8 nicht zu 15
+  // ändern, ohne vorher alles zu markieren. Beim Verlassen wird normalisiert.
+  const [draft, setDraft] = useState<string | null>(null);
 
   // Aktuellen Wert für die Auto-Repeat-Callbacks frisch halten
   const valueRef = useRef(value);
@@ -35,9 +40,10 @@ const PropertyNumber: React.FC<PropertyNumberProps> = ({
   const repeatTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
   const repeatInterval = useRef<ReturnType<typeof setInterval>>(undefined);
 
+  // Breit genug für dreistellige Werte (LeP) — das schmale Feld schnitt die 10 ab.
   const inputSizes = {
-    m: 'w-16 h-16 text-3xl',
-    s: 'w-12 h-12 text-2xl',
+    m: 'w-[4.5rem] h-16 text-3xl px-1',
+    s: 'w-16 h-12 text-xl px-1',
   };
 
   const labelMargin = size === 'm' ? 'mb-2' : 'mb-1';
@@ -65,10 +71,22 @@ const PropertyNumber: React.FC<PropertyNumberProps> = ({
 
   useEffect(() => stopRepeat, []);
 
+  const clamp = (candidate: number) => Math.min(max, Math.max(min, candidate));
+
   const handleInputChange = (raw: string) => {
+    setDraft(raw);
+    if (raw === '' || raw === '-') return;
     const parsed = Number(raw);
-    if (raw === '' || Number.isNaN(parsed)) return;
-    onChange(Math.min(max, Math.max(min, parsed)));
+    if (!Number.isFinite(parsed)) return;
+    onChange(clamp(parsed));
+  };
+
+  const handleBlur = () => {
+    if (draft !== null && draft !== String(value)) {
+      const parsed = Number(draft);
+      onChange(Number.isFinite(parsed) && draft !== '' ? clamp(parsed) : value);
+    }
+    setDraft(null);
   };
 
   const stepperProps = (delta: number) => ({
@@ -110,8 +128,10 @@ const PropertyNumber: React.FC<PropertyNumberProps> = ({
         <Input
           id={inputId}
           type="number"
-          value={value}
+          inputMode="numeric"
+          value={draft ?? value}
           onChange={(e) => handleInputChange(e.target.value)}
+          onBlur={handleBlur}
           min={min}
           max={max}
           aria-label={label || undefined}

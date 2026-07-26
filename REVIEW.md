@@ -1,241 +1,371 @@
 # Review: DSA Roll Assistant
 
-Scope: full source read (2026-07-05, branch `redesign`). Built bundle measured from `dist/`. No RULES.md exists in the repo, so DSA findings are checked against DSA 5 core rules with uncertainty flagged.
+Stand 2026-07-26, Branch `redesign`. Vollständige Quelldurchsicht; DSA-Regeln gegen das offizielle
+[Ulisses-Regel-Wiki](https://dsa.ulisses-regelwiki.de/) geprüft. Ausgangsbasis war grün
+(36 Tests, `tsc` sauber), Endstand ebenfalls: **55 Unit-Tests + 23 UI-Checks**.
 
-## 1. UX for the real use case (phone, one hand, mid-session)
+Die vorige Fassung (2026-07-05) ist weitgehend abgearbeitet — Regel-Engine als reine Funktionen mit
+Tests, versionierte Persistenz, PWA, selbst gehostete Fonts, `ConfirmDialog`, Kampf als eigener Tab,
+QS als Hero-Zahl. Dieses Dokument ersetzt sie und hält den neuen Stand fest.
 
-### 1.1 HIGH — Combat rolls are the deepest-buried action in the app
-**Files:** `src/App.tsx`, `src/components/Character.tsx:30-33`, `src/components/Combat.tsx`
-Attack/Parade/Ausweichen — the rolls made under the most time pressure — require: tap **Charakter** → tap **Kampf** sub-tab → scroll past the Lebensenergie card → tap Würfeln. That's 3 taps + a scroll, vs 1 tap for a talent check. LeP tracking (the thing you update after every hit) is buried the same way.
-**Fix:** Promote Kampf to a top-level tab (5 icon tabs fit fine on mobile) and move the Kampfwerte grid above the LeP card, or make the roll buttons a sticky row.
+**Kurzfassung:** Die DSA-Mathematik war korrekt. Kaputt war die Peripherie — überall dort, wo Werte
+das System betreten oder verlassen. Der teuerste Fehler war ein Default-Parameter.
 
-### 1.2 HIGH — Switching tabs wipes in-progress roll state
-**Files:** `src/App.tsx:41-73`, `src/components/TalentRoll.tsx` (all `useState`)
-Radix Tabs unmounts inactive content by default, and TalentRoll keeps everything (selected talent, attributes, modifier, last result) in local `useState`. Check the Historie tab and come back → your selected talent, modifier and last result are gone, reset to MU/KL/IN defaults. Mid-session this is a repeated small betrayal.
-**Fix:** Either `forceMount` + hide inactive tab panels, or lift "current probe" state into a small Redux slice / parent state that survives unmounting.
+---
 
-### 1.3 HIGH — The roll button and result are below the fold on the main screen
-**File:** `src/components/TalentRoll.tsx:142-306`
-Talentprobe is a stack of four full-width `p-6` cards (talent picker, 3 attribute boxes, modifier, TaW) before the Würfeln button, and the result card renders *below* the button. On a phone you: pick talent (top), scroll ~2 screens, tap Würfeln, then the result appears even further down. The most common loop in the app (roll → read result) always involves scrolling.
-**Fix:** Compact the pre-roll form (the 3 attributes rarely need editing once a talent is chosen — collapse them into one row of read-only chips with an "edit" affordance), make Würfeln a sticky bottom bar (thumb zone), and show the result at the top or auto-scroll it into view.
+## 1. Korrektheit
 
-### 1.4 MEDIUM — QS is buried in a sentence; the biggest number on screen is the least-quoted one
-**File:** `src/components/TalentRoll.tsx:337-372`
-At the table the GM asks "QS?". The app renders "Erfolg! (QS 3)" as a title, then the *remaining FP* as the huge `text-3xl` number. FP is an intermediate value; QS is the currency of DSA 5.
-**Fix:** Make QS the hero number (large, centered), FP and the per-die breakdown secondary.
+### 1.1 KRITISCH — Die Lebensenergie ließ sich nicht eintragen · behoben
 
-### 1.5 MEDIUM — Icon-only tabs on mobile are ambiguous
-**Files:** `src/App.tsx:45-57`, `src/components/Character.tsx:24-36`
-Labels are `hidden sm:inline`, so on phones you get four unlabeled icons (Scroll vs Dices vs History reads as three variations of "rolling something"). Doubly so for the nested Charakter sub-tabs.
-**Fix:** Show tiny text labels under the icons (`text-[10px]`) — bottom-nav style — instead of hiding them.
+**`PropertyNumber.tsx:25`, `Combat.tsx` (LeP-Felder)**
 
-### 1.6 MEDIUM — Stepper-only number entry is slow for setup and mid-fight LeP changes
-**Files:** `src/components/PropertyNumber.tsx`, `src/components/Combat.tsx:137-151`
-Setting KK 8→14 is six taps on a 32 px button. Taking 7 damage is seven taps on "−". No long-press repeat, and typing means focusing a small input one-handed.
-**Fix:** For LeP specifically, add quick "−1 / −3 / −5"-style damage buttons or a "damage taken" input; for attributes add press-and-hold auto-repeat.
-
-### 1.7 NICE-TO-HAVE — Native `confirm()` dialogs for destructive actions
-**Files:** `src/components/RollHistory.tsx:13`, `src/components/ImportExportSettings.tsx:22`
-Works, but jarring against the themed UI, and the browser dialog is easy to fat-finger.
-**Fix:** Use the already-installed Radix dialog (`ui/dialog.tsx` exists but is only used internally by cmdk).
-
-### 1.8 NICE-TO-HAVE — TaW edits during a probe don't persist to the character
-**File:** `src/components/TalentRoll.tsx:47,291`
-Changing Talentwert on the roll screen is local-only; users may expect it to update the sheet (or at least be told it won't). Intentional: the GM often dictates a one-off TaW for a probe, so silently overwriting the sheet would surprise users.
-**Fix (decided):** Keep the field local and label it "(nur für diese Probe)". When the entered value differs from the character sheet, show a small, unobtrusive "In Charakterbogen übernehmen" action next to the field for the rare permanent change (e.g. after a Steigerung). Explicitly **not** wanted: auto-dispatching `updateTalent` on change, or a confirmation dialog.
-
-## 2. Visual design & consistency
-
-### 2.1 HIGH — Vite-template layout hacks are doing your layout
-**Files:** `src/index.css:83-92` (`body { display:flex; place-items:center }`), `src/App.css:1-5` (`#root { text-align:center }`)
-Everything in the app is centered because `text-align: center` is inherited from `#root` — a leftover from the Vite starter, not a design decision. It's why body copy, descriptions, and history entries all sit centered, which reads templated. The flex-centered `body` is also a classic source of top-clipping bugs on small viewports.
-**Fix:** Delete both hacks; opt into centering per-component where intended.
-
-### 2.2 HIGH — Global `button` base styles fight the design system
-**File:** `src/index.css:129-139`
-Element-level `button { @apply px-4 py-2 border ... }` leaks padding/borders into every unstyled button (Radix internals, cmdk items), and `button:focus` (not just `:focus-visible`) draws the focus ring on every tap/click — permanent ring noise on mobile.
-**Fix:** Delete the global button rule; shadcn's `buttonVariants` already covers it. Keep only `:focus-visible` styling.
-
-### 2.3 MEDIUM — Talent table names render at `text-2xl`
-**File:** `src/components/Character.tsx:101`
-A `text-sm` table with `text-2xl` name cells looks broken — rows are twice as tall as needed, so 59 talents means a lot of scrolling.
-**Fix:** `text-base` (Crimson Text needs a touch more than `sm`), keep rows compact.
-
-### 2.4 MEDIUM — Emoji and Lucide icons mixed as iconography
-**Files:** `src/components/Combat.tsx:46-52`, `src/components/TalentRoll.tsx:103-104`, `src/App.tsx:23`
-Result strings and combat labels use ✅❌⭐⚠️⏱️ and — notably — **✈️ an airplane for Ausweichen** in a medieval fantasy app. Emoji render differently per platform and clash with the otherwise consistent Lucide set (Combat.tsx even imports `Footprints` for the same concept).
-**Fix:** Lucide-only in UI; keep history `result` strings plain text.
-
-### 2.5 MEDIUM — `bg-parchment` is defined twice with different meanings
-**Files:** `src/index.css:157-161` (component class: color + noise), `tailwind.config.js:102` (backgroundImage utility: noise only)
-Same class name generated in two layers; which properties win depends on layer order. Currently it happens to work, but it's a trap — anyone touching either definition changes cards app-wide in non-obvious ways.
-**Fix:** Delete the `backgroundImage.parchment` entry from the Tailwind config; keep the single component class.
-
-### 2.6 MEDIUM — Hardcoded `class="dark"` on `<html>` vs. next-themes `defaultTheme="system"`
-**Files:** `index.html:2`, `src/main.tsx:12`
-Light-system users get a dark first paint that flips after hydration. (See also 4.8 — ThemeToggle then force-overrides "system" to "dark", so the README's advertised system detection never actually works.)
-**Fix:** Remove the hardcoded class and let next-themes' inline script own it.
-
-### 2.7 NICE-TO-HAVE — SimpleRoll result card is always green
-**File:** `src/components/SimpleRoll.tsx:117-118`
-`variant="success"` for any plain dice roll. A rolled 2 on a W20 shows in "success" green; green should be reserved for actual success semantics (as TalentRoll/Combat do).
-**Fix:** Use `parchment`/default variant for Einzelwurf results.
-
-### 2.8 NICE-TO-HAVE — Default Vite favicon and `title` mismatch
-**Files:** `index.html:5`, `public/vite.svg`
-The Vite logo as favicon/home-screen icon undercuts the otherwise committed theme.
-**Fix:** A d20 or ⚔️-style SVG favicon + proper `apple-touch-icon`.
-
-## 3. Accessibility
-
-### 3.1 HIGH — Key status colors fail contrast in light mode
-**Files:** `tailwind.config.js:43-57`, `src/components/TalentRoll.tsx:126-129,322,340`, `src/components/Combat.tsx:102-105`
-On the light parchment background: `text-critical` (#fbbf24) ≈ 1.7:1 — "Kritischer Erfolg!", the most celebratory message in the app, is nearly invisible in light mode. `text-success` (#10b981) ≈ 2.5:1 for the "Erfolg! (QS x)" headline; `text-amber-400`/`text-sky-400` (Erschwernis/Erleichterung) ≈ 2:1. All fail WCAG AA — and phones at a gaming table are often in bright rooms.
-**Fix:** Use the existing `-dark` shades in light mode (`text-critical-dark dark:text-critical-light` pattern, as DiceIcon already does correctly) and pick darker amber/sky tokens.
-
-### 3.2 HIGH — Unlabeled controls: tabs and steppers invisible to screen readers
-**Files:** `src/App.tsx:43-58`, `src/components/PropertyNumber.tsx:52-88`
-On mobile the tab labels are `display:none`, so tabs have no accessible name at all. PropertyNumber's +/− buttons have no `aria-label`, and the visible label isn't associated with the input (`<label>` without `htmlFor`).
-**Fix:** `aria-label` on each TabsTrigger and on the +/− buttons (`aria-label="MU verringern"`), `htmlFor`/`id` pairing on the input.
-
-### 3.3 HIGH — Stepper tap targets are 32 px, the app's primary control
-**File:** `src/components/PropertyNumber.tsx:59,84` (`h-8 w-8`)
-Below both Apple's 44 pt and Android's 48 dp guidance, for the control you hit most (LeP, attributes, modifier), one-handed.
-**Fix:** `h-11 w-11` minimum, or keep visual size and extend the hit area with padding/`before:` overlay.
-
-### 3.4 MEDIUM — `lang="en"` on a German app
-**File:** `index.html:2`
-Screen readers pronounce German text with English phonetics; browser translate prompts misfire.
-**Fix:** `lang="de"`. One character, real impact.
-
-### 3.5 MEDIUM — Roll results are never announced
-**Files:** `src/components/TalentRoll.tsx:309`, `src/components/Combat.tsx:223`, `src/components/SimpleRoll.tsx:116`
-Result cards appear visually with no `aria-live`, so a screen-reader user taps Würfeln and hears nothing.
-**Fix:** Wrap the result summary (e.g. "Erfolg, QS 3") in an `aria-live="polite"` region.
-
-### 3.6 NICE-TO-HAVE — Animations ignore `prefers-reduced-motion`
-**Files:** `src/index.css:199-264`, `tailwind.config.js:113-133`
-Shake/glow/float/bounce all run unconditionally.
-**Fix:** Wrap in `@media (prefers-reduced-motion: no-preference)` or use Tailwind's `motion-safe:` prefix.
-
-## 4. Code quality & architecture
-
-### 4.1 HIGH — `importCharacter` validates `max` LeP against the wrong field
-**File:** `src/utils/importCharacter.ts:47-48`
 ```ts
-if (typeof current === 'number') dispatch(updateLifeStat({ current }));
-if (typeof current === 'number') dispatch(updateLifeStat({ max }));   // checks current, not max
+const PropertyNumber = ({ min = 0, max = 20, ... })   // vorher
 ```
-A file without `current` never restores `max`; a corrupt `max` (string) is dispatched unchecked. Copy-paste bug, silent data corruption on import.
-**Fix:** Check `typeof max === 'number'`.
 
-### 4.2 HIGH — localStorage state is loaded with no validation or migration
-**File:** `src/store/index.ts:8-30`
-`preloadedState: loadState()` replaces entire slices with whatever was persisted. Consequences: (a) users who ever used the app will **never see talents you add to `initialState`** — their persisted `talents` slice wins forever; (b) any shape change in a slice crashes or misbehaves with stale data; (c) a hand-edited/corrupt value flows straight into reducers.
-**Fix:** Version the persisted blob, and merge per-slice (e.g. merge persisted talent values into the code's talent list by id — the same shape the export file already uses).
+`Combat.tsx` reichte für „Aktuell" und „Maximum" kein `max` durch, also griff der Default von 20.
+LeP liegt in DSA 5 bei KO×2 + Rassenbonus, real also 25–40. Wer 32 eintippte, bekam 20 — **ohne
+jede Rückmeldung**, weil `handleInputChange` still klemmte. Dieselbe Ursache deckelte Talentwerte
+bei 20, obwohl DSA 5 bis 25 steigert.
 
-### 4.3 HIGH — Zero tests on the rules engine
-**Files:** `src/components/TalentRoll.tsx:78-119`, `src/components/Combat.tsx:45-95`
-The QS math, crit/botch detection, and modifier handling live inline in components with no tests. Rule regressions (several exist today — see §6) are invisible.
-**Fix:** Extract `evaluateTalentCheck(attrs, taw, mod, dice)` and `evaluateCombatRoll(...)` into pure functions in `src/utils/` and unit-test them (Vitest is a natural fit with Vite). This also fixes 4.4/4.5 as a side effect.
+Das ist kein Schönheitsfehler: Die App konnte den Charakter, für den sie gebaut ist, nicht abbilden.
 
-### 4.4 MEDIUM — Result panel recomputes from live state, not the rolled snapshot
-**File:** `src/components/TalentRoll.tsx:376-395`
-The "Berechnung" breakdown renders `{firstProperty} - {modifier} - {rollResult[0]}` from *current* component state, while `talentResults` was computed at roll time. Change the modifier or an attribute after rolling and the displayed math contradicts the stored per-die results and the (already-dispatched) history entry.
-**Fix:** Snapshot `{attrs, modifier, taw, dice, results}` into one state object at roll time and render only from it.
+**Fix:** `max` ist jetzt Pflichtparameter. Damit hat der Compiler jede Aufrufstelle aufgedeckt statt
+sie stillschweigend auf 20 zu setzen — genau das, was ein Default hier verhindert hat. Grenzen
+liegen bei den Daten, nicht in der UI: `LIFE_MAX`, `COMBAT_STAT_MAX` (`combatSlice.ts`),
+`TALENT_VALUE_MAX` (`talentsSlice.ts`), `ATTRIBUTE_MIN/MAX` (`attributesSlice.ts`).
 
-### 4.5 MEDIUM — TalentRoll is a triplicated component
-**File:** `src/components/TalentRoll.tsx:39-44,192-259`
-first/second/third attribute → 6 useState hooks + 3 copy-pasted 25-line Select blocks. This is where the `min={-100}` typo (line 258: the third attribute allows −100 while the others floor at 0) crept in — copy-paste variance is already producing bugs.
-**Fix:** `useState<{attr: AttributeKey; value: number}[]>` + one mapped block; remove the stray `min={-100}`.
+> **Merksatz:** Ein Default-Wert an einer Pflichtangabe verwandelt einen Compile-Fehler in einen
+> stillen Datenfehler.
 
-### 4.6 MEDIUM — `updateCombatStat` can assign a number over the `life` object
-**File:** `src/store/combatSlice.ts:35-37`
-`key: keyof CombatState` includes `'life'`, and the `as number` cast silences the type error. One bad call site turns `state.combat.life` into a number and the health bar into NaN.
-**Fix:** `key: Exclude<keyof CombatState, 'life'>` — removes the cast too.
+### 1.2 HOCH — Ein fehlgeschlagener Import meldete Erfolg · behoben
 
-### 4.7 MEDIUM — Unbounded history + full-state serialization on every action
-**Files:** `src/store/rollSlice.ts:43-45`, `src/store/index.ts:52-54`
-History grows forever, and `store.subscribe` JSON-stringifies the entire state (including all history) on every keystroke in any PropertyNumber input.
-**Fix:** Cap history (e.g. keep last 100 in the reducer) and debounce `saveState` (~500 ms).
+**`importCharacter.ts`, `ImportExportSettings.tsx`**
 
-### 4.8 MEDIUM — ThemeToggle calls `setTheme` during render and kills system theme
-**File:** `src/components/ThemeToggle.tsx:14`
-`if (!theme || !['light','dark'].includes(theme)) setTheme('dark')` runs in the render body (a side effect, doubled under StrictMode) and — because the initial theme is `'system'` — permanently overrides system detection to dark on first render. The README advertises "automatische Systemerkennung"; this line defeats it.
-**Fix:** Delete the line; toggle with `resolvedTheme` instead of `theme`.
+`importCharacter` gab in *allen* Pfaden `undefined` zurück — bei Erfolg, bei gefangener Exception
+und beim frühen Ausstieg wegen nicht unterstützter Dateiversion. Der Aufrufer setzte den Dateinamen
+danach bedingungslos:
 
-### 4.9 NICE-TO-HAVE — Dead code and dead dependencies
-**Files:** `src/components/ui/tooltip.tsx`, `ui/label.tsx` (unused → `@radix-ui/react-tooltip`, `@radix-ui/react-label` removable), commented-out mock generator in `rollSlice.ts:4-23`, commented reducers in `talentsSlice.ts:87-98`, `roll3D20` duplicating `roll('3d20')` in `dice.ts`, `App.css` (only a leftover comment + hack), and `src/types/rpg-dice-roller.d.ts` shadowing the library's own richer types. Also: `crypto.randomUUID()` in two components vs `nanoid()` in Combat — pick one.
-**Fix:** Delete the lot; moot once 5.1 lands.
-
-### 4.10 NICE-TO-HAVE — `loadingSlice` + full-screen overlay for instant operations
-**Files:** `src/store/loadingSlice.ts`, `src/components/LoadingOverlay.tsx`, `src/utils/resetLocalStorage.ts:8` (artificial 300 ms `setTimeout`)
-A global Redux loading state and dramatic overlay guard a synchronous JSON parse and a localStorage delete. Over-engineering that adds latency by design.
-**Fix:** Drop the slice/overlay; sonner toasts already cover feedback.
-
-## 5. Performance & bundle size
-
-### 5.1 HIGH — 1.07 MB JS (308 KB gzip) to roll a d20; mathjs is in your bundle
-**Files:** `package.json` (`rpg-dice-roller`), `src/utils/dice.ts`, `dist/assets/index-*.js`
-`rpg-dice-roller` exists to parse arbitrary dice expressions and drags in **mathjs**. The app calls it with exactly two static patterns (`3d20`, `NdX`). This is by far the biggest lever in the codebase — likely >60 % of the bundle for functionality replaceable by:
 ```ts
-const d = (sides: number) => Math.floor(Math.random() * sides) + 1;
+await importCharacter(file);
+setFileName(file.name);        // rendert „✅ Import erfolgreich!"
 ```
-On a mid-range phone with table Wi-Fi, that's seconds of load time.
-**Fix:** Remove the dependency (and the custom `.d.ts` and README mention); 5 lines of code replace it.
 
-### 5.2 MEDIUM — Render-blocking Google Fonts via CSS `@import` (+ GDPR)
-**File:** `src/index.css:3`
-`@import` inside the stylesheet serializes: CSS → fonts.googleapis.com CSS → fonts.gstatic.com files, blocking first render on bad connections — and offline at the table, the theme fonts silently vanish. Separately: German courts (LG München, 2022) have treated embedding Google Fonts as a GDPR violation, which matters for a German-audience app.
-**Fix:** Self-host both fonts (`@fontsource/cinzel`, `@fontsource/crimson-text`) — faster, offline-safe, compliant.
+Ergebnis: rote Fehlermeldung und grüne Erfolgsmeldung gleichzeitig. Wer eine kaputte Datei lud,
+durfte raten, ob sein Charakter noch da war.
 
-### 5.3 MEDIUM — No offline support for an at-the-table app
-**Files:** `vite.config.ts`, `index.html`
-The core promise is "works mid-session"; game venues have terrible connectivity. All state is already local — the app is one `vite-plugin-pwa` away from being installable and fully offline.
-**Fix:** Add `vite-plugin-pwa` with a manifest + precache (pairs with 5.2 and the favicon fix in 2.8).
+**Fix:** Rückgabetyp `Promise<boolean>`; die Erfolgsanzeige hängt am Rückgabewert.
 
-### 5.4 MEDIUM — History animation delay scales with list length
-**File:** `src/components/RollHistory.tsx:93`
-`animationDelay: index * 50ms` on every entry: with 100+ rolls (unbounded — see 4.7), the bottom of the list stays invisible for 5+ seconds on every visit to the tab.
-**Fix:** Cap the stagger (`Math.min(index, 10) * 50`) or animate only the newest entry.
+### 1.3 HOCH — `life.max: 0` teilte durch null · behoben
 
-### 5.5 NICE-TO-HAVE — 59-row talent table re-renders wholesale per keystroke
-**File:** `src/components/Character.tsx:91-125`
-Every `updateTalent` dispatch produces a new array, re-rendering all 59 rows. Fine on desktop, sluggish on cheap phones.
-**Fix:** Extract a memoized `TalentRow` (or ignore until it's actually felt — measure first).
+**`persistence.ts` (`sanitizeCombat`), `combatSlice.ts`**
 
-## 6. DSA rule correctness
+Der Reducer klemmte `max` auf ≥ 1 — aber die Persistenz setzt `preloadedState` und **umgeht die
+Reducer vollständig**. Ein gespeichertes oder von Hand editiertes `max: 0` erreichte damit
+ungeprüft die Anzeige:
 
-No RULES.md in the repo; checked against DSA 5 core rules (README says "3W20-Mechanik (DSA 5)"). The talent list itself is in good shape — all 59 talents match the DSA 5 core list, and every attribute triple I spot-checked (all 59) is correct. The core probe math (Erschwernis on each attribute, FP loss = shortfall per die, FP ≥ 0 with 0 FP = success at QS 1) is right. The issues are at the edges:
+```ts
+const healthPercentage = (combat.life.current / combat.life.max) * 100;  // Infinity / NaN
+style={{ width: `${healthPercentage}%` }}                               // width: NaN%
+```
 
-### 6.2 HIGH — Combat crits/botches skip the confirmation roll
-**File:** `src/components/Combat.tsx:69-81`
-A single 1 is treated as an auto-crit and a single 20 as an auto-botch. In DSA 5 core, both require a **Bestätigungswurf** (a second d20 against the same value) to confirm; unconfirmed, a 1 is just a hit and a 20 just a miss. As written, the app materially changes combat odds (5 % botch chance per parry adds up fast). Confident about the core rule — but some tables house-rule this away, so:
-**Fix:** Roll and display the confirmation d20 automatically ("Krit? Bestätigung: 14 ✅"), ideally behind a settings toggle.
+**Fix:** Die Klemmlogik liegt jetzt in `clampLife`/`clampCombatStat` in `combatSlice.ts`; Reducer
+und Sanitizer benutzen dieselbe Funktion. Zwei Wege in den Zustand, eine Regel.
 
-### 6.4 MEDIUM — Opposite modifier sign conventions between Talent and Combat screens
-**Files:** `src/components/TalentRoll.tsx:124-130` (positive = Erschwernis), `src/components/Combat.tsx:100-106` (negative = Erschwernis)
-Not a rules error per se — each screen is internally consistent — but the same word means opposite signs in two places, so a player who uses both will inevitably roll with an inverted modifier. DSA 5 writes maluses as negative numbers; the Combat convention matches the book.
-**Fix:** Standardize on the book's convention (negative = Erschwernis) everywhere, and flip the TalentRoll math/labels accordingly. Arguably belongs in §1 as a blocker for trust in results.
+### 1.4 HOCH — `current` konnte `max` überschreiten · behoben
 
-Explicitly, so nothing gets lost in the flip (Combat.tsx stays untouched — it already matches the book):
-- **Math:** Change `property - modifier - roll` to `property + modifier - roll` in the three result lines (`TalentRoll.tsx:90-92`). An Erschwernis of −2 then has exactly the same numeric effect as +2 today — FP shortfall, QS, crit/botch handling all stay identical.
-- **Same flip in the displays:** The "Berechnung" breakdown (`TalentRoll.tsx:380-388`) and the modifier text in the history entry (`TalentRoll.tsx:100`) render the old formula/sign and must be updated together with the math, or the shown calculation contradicts the result.
-- **Labels:** Keep the Erschwernis/Erleichterung indicator on **both** screens. Only TalentRoll's condition inverts (`modifier < 0` → "Erschwernis" amber, `modifier > 0` → "Erleichterung" sky, `TalentRoll.tsx:124-130`), making it identical to `Combat.tsx:100-106`.
-- **Formatting:** Render negative modifiers readably in the breakdown — `MU: 13 − 2 − 8`, not `13 + -2 - 8`.
+**`combatSlice.ts`**
 
+`updateLifeStat` klemmte `current` nur nach unten. Wer das Maximum unter den aktuellen Wert senkte,
+bekam „35 / 20" und einen überlaufenden Balken. Der Heil-Knopf klemmte an der Aufrufstelle, das
+Eingabefeld daneben nicht — die Regel stand an der falschen Stelle.
 
-### 6.6 NICE-TO-HAVE — Missing table-assist opportunities (not errors)
-Schmerzstufen markers at ¼-LeP thresholds on the health bar;
+**Fix:** `clampLife` klemmt `current` gegen `max` und zieht es beim Senken von `max` nach.
 
-Also confirmed correct: double-20 botch / double-1 crit detection for talent checks; INI = stored base + 1W6; FP 0 = success.
+### 1.5 MITTEL — `NaN` und `Infinity` kamen durch den Import · behoben
 
-## If you only fix five things
+**`importCharacter.ts`**
 
-1. **Unify the modifier sign convention** (6.4) — the app currently teaches users two opposite meanings of Erschwernis; wrong rolls at the table are worse than no app.
-2. **Drop `rpg-dice-roller`** (5.1) — ~5 lines of `Math.random` remove mathjs and most of a 308 KB-gzip bundle; biggest single win for phone load time.
-3. **Restructure for the mid-fight path** (1.1 + 1.3) — Kampf as a top-level tab, sticky Würfeln button, result visible without scrolling, QS as the hero number.
-4. **Correct the rules edges** (6.2) — cap QS at 6, add combat confirmation rolls (toggleable) — and pin it all down with the pure-function extraction + tests from 4.3.
-5. **Light-mode contrast + labels pass** (3.1, 3.2, 3.3, 3.4) — darker status colors on parchment, `aria-label`s for icon tabs and steppers, 44 px tap targets, `lang="de"`.
+Geprüft wurde nur `typeof value === 'number'`. Das ist für `NaN` **wahr**. Ein `NaN` im Attribut
+vergiftete danach jede Probe: `attrs[i] + modifier - die` → `NaN` → `Math.min(0, NaN)` → `NaN` →
+QS `NaN`. Die Persistenz machte es mit `Number.isFinite` bereits richtig; der Import hatte seine
+eigene, schwächere Validierung.
 
-*(Honorable mention: the import `max`-LeP bug (4.1) and localStorage migration (4.2) — silent data loss beats everything above the moment it happens to someone.)*
+**Fix:** Der Import benutzt jetzt `migratePersisted` aus `persistence.ts` — dieselbe Validierung
+wie beim Laden. Ein Format, ein Validierer.
+
+### 1.6 MITTEL — Dieselbe Datei ließ sich kein zweites Mal importieren · behoben
+
+**`ImportExportSettings.tsx`**
+
+Das File-Input wurde nie zurückgesetzt, also feuerte `change` bei gleicher Datei nicht erneut.
+Betroffen war ausgerechnet der Ablauf „Alle Daten zurücksetzen → Backup zurückspielen".
+
+**Fix:** `input.value = ''` nach der Verarbeitung.
+
+### 1.7 MITTEL — Der letzte Wurf konnte verloren gehen · behoben
+
+**`store/index.ts`**
+
+Speichern war 500 ms entprellt, ohne Flush. Wer die App direkt nach einem Wurf wegwischte, verlor
+ihn — auf dem Handy ist das der normale Weg, eine App zu verlassen.
+
+**Fix:** Flush auf `pagehide` und `visibilitychange`.
+
+### 1.8 MITTEL — Reset konnte vom eigenen Save überholt werden · behoben
+
+**`resetLocalStorage.ts`**
+
+`clearPersistedState()` gefolgt von `location.reload()` — ein bis zu 500 ms alter Save-Timer konnte
+zwischen Löschen und Entladen feuern und den gerade gelöschten Zustand zurückschreiben.
+
+**Fix:** `cancelPendingSave()` vor dem Löschen.
+
+### 1.9 MITTEL — Kampf- und Einzelwurf-Zustand starb beim Tab-Wechsel · behoben
+
+**`Combat.tsx`, `SimpleRoll.tsx`**
+
+Radix Tabs hängt inaktive Panels aus. `TalentRoll` war dafür in `probeSlice` gehoben worden —
+`Combat` und `SimpleRoll` blieben bei lokalem `useState`. Ein halb fertiges Refactoring: Modifikator
+und letztes Ergebnis waren nach einem Blick in die Historie weg.
+
+**Fix:** `combatRollSlice` und `simpleRollSlice` nach dem Vorbild von `probeSlice`. Beide sind
+bewusst **nicht** persistiert — sie sollen nur den Unmount überleben, nicht den Neustart.
+
+### 1.10 Kleinere Funde · behoben
+
+| Ort | Problem |
+|---|---|
+| `TalentRoll.tsx` | Bei einem Krit färbte `getDiceVariant` **alle drei** Würfel golden — auch die 20 in einem Doppel-1-Krit. Jetzt färbt jeder Würfel nach eigenem Wert. |
+| `probeSlice.ts` | `selectProbeTalent` löschte `lastRoll` nicht — nach dem Talentwechsel stand das Ergebnis des vorigen Talents oben. |
+| `PropertyNumber.tsx` | Leereingabe wurde verworfen, das Feld ließ sich nicht leeren; 8 → 15 erforderte Alles-Markieren. Jetzt Entwurfszustand beim Tippen, Normalisierung beim Verlassen. |
+| `PropertyNumber.tsx` | `w-12` schnitt zweistellige Werte ab („10" erschien als „1C"). Erst im Screenshot sichtbar geworden, nicht im Test. |
+| `importCharacter.ts` | `addRoll` in der Schleife kehrte die importierte Historie um (`unshift` je Eintrag). Jetzt `setHistory` am Stück. |
+| `exportCharacter.ts` | `URL.revokeObjectURL` lief synchron direkt nach `click()` — in manchen Browsern bricht das den Download ab. |
+| `App.tsx` | Der schwebende Theme-Umschalter unten rechts überlappte den neuen Würfeln-Knopf; er sitzt jetzt im Kopf. |
+
+### 1.11 HOCH — Die LeP-Zahl verschwand bei wenig Lebensenergie · behoben
+
+**`Combat.tsx`, `HeroBar.tsx`, `combatSlice.ts`**
+
+Die Zahl stand **im Füllbalken**: `<div style={{ width: '5%' }}>3 / 40</div>`. Sobald die Füllung
+schmaler war als der Text, schnitt das `overflow-hidden` des Rahmens sie ab — und bei
+`current === 0` blendete eine Bedingung sie ganz aus. Ausgerechnet bei niedriger und bei null
+Lebensenergie zeigte die Anzeige also nichts. Dazu `text-white` auf `bg-amber-500`, rund 2:1.
+
+Eine bloße Mindestbreite hätte nur die halbe Ursache getroffen und den Balken zusätzlich
+beschönigen lassen. Stattdessen:
+
+- Die Zahl liegt jetzt auf einer eigenen Ebene mittig über der **ganzen** Leiste und wird
+  **zweimal gezeichnet**: einmal in Vordergrundfarbe für die leere Spur, darüber dieselbe Zahl in
+  dunkler Tinte, per `clip-path` exakt an der Füllkante beschnitten. Dadurch stimmt der Kontrast
+  auf beiden Seiten der Kante, ohne Kasten oder Pille hinter dem Text — ein einfarbiger Text
+  scheitert im Dunkelmodus über der grünen Füllung (rund 1,8:1), eine Pille sah wie ein
+  aufgeklebter Fleck aus.
+- `lifeFillPercent` (`combatSlice.ts`, neben `clampLife`) gibt der Füllung einen Mindest-Streifen
+  von 4 %, solange mehr als 0 LeP übrig sind — sonst sähen 1 LeP und 0 LeP gleich aus. Die
+  **Farbschwellen** rechnen weiter mit dem exakten Verhältnis, damit der Streifen die Farbe nicht
+  verfälscht.
+- Der große Balken hatte gar keinen zugänglichen Namen; er trägt jetzt `role="img"` mit
+  `aria-label`, wie die Held-Leiste schon vorher.
+
+---
+
+## 2. DSA-5-Regeln
+
+### 2.1 Geprüft und korrekt — bitte nicht „reparieren"
+
+Gegen das offizielle Regel-Wiki verifiziert:
+
+| Regel | Umsetzung |
+|---|---|
+| QS-Tabelle 0–3→1, 4–6→2, 7–9→3, 10–12→4, 13–15→5, 16+→6, Deckel 6 | `Math.min(6, Math.max(1, Math.ceil(fp / 3)))` trifft das exakt |
+| 0 übrige FP = bestanden mit QS 1 | ✓ |
+| Modifikator wirkt auf die **Eigenschaften**, nicht auf die FP; negativ = Erschwernis | ✓ |
+| Zwei oder drei Einsen = kritischer Erfolg, zwei oder drei Zwanzigen = Patzer, jeweils automatisch | ✓ |
+| Bestätigungswurf im Kampf gegen den **modifizierten** Wert | `target = value + modifier` ✓ |
+| INI = Basiswert + 1W6 | ✓ |
+| 59 Talente mit ihren Eigenschaftstripeln | alle geprüft, alle korrekt |
+
+Besonders erwähnenswert: Der Schalter `confirmCriticals` bildet exakt die offizielle optionale Regel
+[*Kein Bestätigungswurf*](https://dsa.ulisses-regelwiki.de/OR_kein_bestaetigungswurf.html) ab —
+eingeschaltet gilt die Grundregel mit Bestätigungswurf, ausgeschaltet zählen 1 und 20 direkt. Der
+Beschreibungstext in `RulesSettings.tsx` stimmt wörtlich mit der Regellage überein. Das ist selten
+genau getroffen.
+
+### 2.2 Ergänzt — Regelfolgen werden jetzt genannt
+
+Laut [Kritischer Erfolg (Attacke)](https://dsa.ulisses-regelwiki.de/Nahkampf/kritischer-erfolg-attacke.html)
+halbiert eine **unbestätigte** 1 immer noch die Verteidigung des Ziels; erst der bestätigte Krit
+verdoppelt zusätzlich den Schaden. Die App sagte dazu nichts. Jetzt trägt die Ergebniskarte für
+Attacke und Fernkampf einen Konsequenzsatz. Für Parade und Ausweichen bewusst nicht — dort behandelt
+das Regelwerk kritische Erfolge gesondert, teils als optionale Regel.
+
+Ebenfalls ergänzt: Ein **kritischer Erfolg zeigt jetzt seine QS**. Vorher war die Anzeige an
+`special === null` gekoppelt, der beste Ausgang der Probe blieb also ohne die eine Zahl, nach der
+am Tisch gefragt wird. (Die QS-Verdopplung ist eine *Sammelproben*-Regel und gilt hier nicht.)
+
+### 2.3 OFFEN — Bestätigungswurf ab Zielwert 20
+
+**`rules.ts`**
+
+```ts
+const confirmed = confirmationRoll <= target;   // Krit
+const confirmed = confirmationRoll > target;    // Patzer
+```
+
+Ab einem modifizierten Zielwert von 20 bestätigt sich damit **jeder** Krit und **kein** Patzer je —
+die Bestätigung wird zur Formalie. Ob eine gewürfelte 20 trotzdem nie bestätigt, ließ sich am
+Regel-Wiki nicht belegen: Forenquellen sagen ja, die offizielle Seite schweigt.
+
+**Bewusst nicht geändert.** Würfelchancen auf Verdacht zu verschieben wäre schlechter, als den
+Status quo zu lassen. Stattdessen ist das Verhalten jetzt mit zwei Tests festgenagelt und im Code
+kommentiert, damit es nicht unbemerkt kippt. **Wenn du im Regelwerk nachsiehst, ist die Änderung
+zwei Zeilen groß.**
+
+### 2.4 Fehlende Mechaniken (kein Fehler, Roadmap)
+
+Schicksalspunkte (Wiederholungswürfe), Routineproben und die Patzertabellen sind nicht abgebildet.
+
+---
+
+## 3. Sicherheit
+
+Die realistische Bedrohung ist **korrupte Eingabe, nicht ein Angreifer**: eine statische, rein
+lokale PWA ohne Anmeldung, ohne Server, ohne Netzwerkaufrufe. Kein XSS-Vektor (React escaped die
+Historien-Strings), keine Injection-Fläche, keine Geheimnisse. Entsprechend ehrlich die Liste:
+
+| Fund | Status |
+|---|---|
+| Rohe Exception im Toast (`${e}`) legte Interna offen | behoben — eigene Meldung, Details nur in die Konsole |
+| Keine Größenprüfung vor `file.text()`; eine riesige Datei fror den Tab ein | behoben — 5-MB-Grenze vor dem Lesen |
+| `NaN`/`Infinity` durch den Import | behoben, siehe 1.5 |
+| Base64 ist **keine** Verschlüsselung — die `.dsa`-Datei sieht nur undurchsichtig aus | benannt: die UI sagt es jetzt ausdrücklich, damit niemand die Datei für geschützt hält |
+
+---
+
+## 4. Performance
+
+Der große Hebel ist bereits gezogen: `rpg-dice-roller` samt mathjs ist raus, `dice.ts` sind drei
+Zeilen `Math.random`. Der Build liegt bei **456 KB / 142 KB gzip** — für eine offline-fähige PWA mit
+selbst gehosteten Fonts unauffällig.
+
+Nicht geändert, weil es sich nicht lohnt: Das Speichern serialisiert den Gesamtzustand inklusive
+100 Historieneinträgen, ist aber entprellt und läuft auf einem Datensatz dieser Größe unter einer
+Millisekunde. Der Talent-Popover rendert alle 59 Einträge — cmdk filtert im DOM, bei 59 Zeilen ist
+das kein Thema. **Hier zu optimieren wäre Arbeit ohne Wirkung.**
+
+Eine Anmerkung ohne Handlungsbedarf: `Math.random()` ist nicht kryptografisch zufällig. Für einen
+Würfelassistenten am Spieltisch ist das irrelevant — nennenswerten Modulo-Bias gibt es bei
+`Math.floor(Math.random() * sides)` nicht.
+
+---
+
+## 5. Wartbarkeit
+
+| Fund | Fix |
+|---|---|
+| Zwei Zustandsmuster für dieselbe Aufgabe (`probeSlice` vs. lokaler `useState`) | vereinheitlicht, siehe 1.9 |
+| `modifierTerm` wortgleich in zwei Dateien, `isRecord` und `COMBAT_STAT_KEYS` doppelt | `utils/format.ts`; Guards und Schlüssel kommen aus ihren Slices |
+| Import baute die Validierung der Persistenz nach | zusammengeführt, siehe 1.5 |
+| Gemischte Einrückung (Tabs vs. Spaces) ohne `.editorconfig` | `.editorconfig` ergänzt |
+| Emoji als Icons (🎲, ✅) trotz „nur Lucide"-Entscheidung | ersetzt |
+| Identischer Wrapper zweimal ineinander (`Character.tsx` / `ImportExportSettings.tsx`) | entdoppelt |
+| `ConfirmDialog` als drittes Flex-Kind in einer `justify-between`-Zeile | aus der Zeile geholt |
+| `document.getElementById` statt `useRef` | `useRef` |
+| Zwei `console.warn` (die Lint-Warnungen) | aufgelöst; die eine verbliebene ist bewusst und kommentiert |
+| Nur `toLocaleTimeString` in der Historie — 100 Einträge umfassen mehrere Abende | Datum, sobald der Eintrag nicht von heute ist |
+| `Object.entries(attributes)` verließ sich auf Schlüsselreihenfolge | `ATTRIBUTE_KEYS` |
+
+**Entschlackt:** dekorative Banner-Kommentare, die nur wiederholten was der Code sagt
+(`// Health Bar Percentage`, `// Würfel-Anzeige`), Karte-in-Karte-Verschachtelung, `text-3xl` als
+Ersatz für Hierarchie, generische Namen. Deutsche Kommentare sind geblieben — sie sind projektüblich
+und erklären Regelwerksbezüge.
+
+Verbleibende Lint-Warnung: `ui/button.tsx` (react-refresh) — shadcn-Original, unverändert gelassen.
+
+---
+
+## 6. Oberfläche
+
+Navigation: **fünf Tabs oben**, Talent und Kampf nebeneinander, Einzelwurf in der Hauptnavigation.
+Bewusst keine zweite Ebene — verschachtelte Tabs waren schon vorher die schwächste Stelle.
+
+Was sich geändert hat:
+
+- **Held-Leiste** mit Name und Lebensenergie auf **jedem** Tab. Die LeP stand vorher am Ende des
+  Kampf-Tabs — genau dort, wo man mitten im Kampf am wenigsten hinsieht.
+- **Eine gemeinsame `RollResultCard`** für Talent, Kampf und Einzelwurf. Vorher wirkten die drei
+  Ergebnisse wie drei verschiedene Apps.
+- **Rechenweg eingeklappt.** Am Tisch zählt Erfolg → QS; die Herleitung kostete vorher so viel Höhe
+  wie alles andere zusammen.
+- **Modifikator in der Würfeln-Leiste**, mit Label und dem gewohnten Hinweis „Erschwernis" bzw.
+  „Erleichterung". Auf dem Kampf-Tab trägt die Leiste nur den Modifikator — dort lösen die
+  einzelnen Kampfwerte den Wurf aus.
+- **Desktop ist kein gestrecktes Handy:** ab `lg` zweispaltig, Eingabe links, Ergebnis rechts
+  mitlaufend. Auf dem Handy klebt die Würfeln-Leiste in der Daumenzone.
+- **Charaktername**, auch als Export-Dateiname statt immer `charakter.dsa`.
+
+Ein Detail aus dem Testlauf: Bei einem Krit mit negativen FP stand „−2 FP übrig" unter einem
+Erfolg. Steht jetzt als „ohne FP-Reserve gelungen" da.
+
+---
+
+## 7. Datenformat
+
+Der Speicher-Blob steht auf **Version 3** und trägt eine Charakterliste:
+
+```jsonc
+{
+  "version": 3,
+  "activeCharacterId": "held-1",
+  "characters": [{ "id": "held-1", "name": "…", "attributes": {}, "talents": [], "combat": {} }],
+  "history": [],      // gehört der App, nicht dem Charakter
+  "settings": {}
+}
+```
+
+Die App verwaltet weiterhin genau einen Charakter — der Store bleibt flach, nur die Persistenz kennt
+die Liste. Mehr-Charakter-Support kostet damit später keine Migration. `migratePersisted` liest
+v3, v2 (flacher Charakter) und das versionslose Alt-Format.
+
+Datei- und Speicherformat teilen sich jetzt **eine** Version; vorher gab es zwei konkurrierende
+Zählungen unter demselben Namen.
+
+---
+
+## 8. Prüfung
+
+```
+npm test          60 Tests, 3 Dateien
+npx tsc -b        sauber
+npx eslint .      1 Warnung (shadcn button.tsx, vorbestanden)
+npm run build     456 KB / 142 KB gzip
+```
+
+Für den Lebensbalken zusätzlich 24 Checks über die Kreuzung aus **40/40, 2/40, 0/40** × Hell-/
+Dunkelmodus × Handy/Desktop: Zahl in allen zwölf Kombinationen vollständig innerhalb der Leiste,
+bei 2/40 ein sichtbarer roter Streifen, bei 0/40 keine Füllung und trotzdem `0 / 40`.
+
+Zusätzlich 23 UI-Checks per Playwright gegen `vite preview`, Handy (390×844) und Desktop (1440×900):
+LeP 32 setzen und über das Maximum hinaus klemmen, Kampfwurf mit Bestätigungswurf, Tab-Wechsel mit
+erhaltenem Zustand, Krit mit QS und korrekt gefärbten Würfeln, Rechenweg auf/zu, Modifikator mit
+Erschwernis/Erleichterung, Persistenz v3, Reload, kaputter Import ohne Erfolgsmeldung, zweispaltiges
+Desktop-Layout.
+
+Nicht automatisiert geprüft: Offline-Betrieb über den Service Worker, echtes Gerät statt
+Viewport-Emulation.
+
+---
+
+## Wenn du nur drei Dinge mitnimmst
+
+1. **Ein Default-Parameter hat den Charakterbogen unbrauchbar gemacht** (1.1). `max = 20` sah
+   harmlos aus und deckelte die Lebensenergie jedes DSA-5-Helden. Pflichtparameter an Stellen, wo
+   es keinen sinnvollen Standardwert gibt.
+2. **Zwei Wege in denselben Zustand brauchen dieselbe Regel** (1.3). Die Reducer klemmten sauber,
+   die Persistenz umging sie — und lieferte `width: NaN%`. Solche Fehler entstehen nicht in der
+   Logik, sondern an den Nähten.
+3. **Die Regeln waren richtig, die Ränder nicht.** Wer die DSA-Mathematik prüft, findet nichts.
+   Alles Kaputte lag dort, wo Daten die App betreten oder verlassen: Import, Persistenz,
+   Eingabefelder.

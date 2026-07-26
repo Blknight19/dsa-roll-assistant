@@ -7,6 +7,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ConfirmDialog from './ConfirmDialog';
 import { Trash2, Dices, Swords, Scroll } from 'lucide-react';
 
+/** Uhrzeit reicht nur für heute — 100 Einträge können mehrere Spielabende umfassen. */
+const formatRollDate = (iso: string): string => {
+	const date = new Date(iso);
+	if (Number.isNaN(date.getTime())) return '';
+
+	const time = date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+	const isToday = date.toDateString() === new Date().toDateString();
+	if (isToday) return time;
+
+	return `${date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })} ${time}`;
+};
+
 const RollHistory = () => {
 	const dispatch = useDispatch();
 	const rollHistory: RollHistoryEntry[] = useSelector((state: RootState) => state.roll.history);
@@ -49,23 +61,24 @@ const RollHistory = () => {
 							<Trash2 className="w-4 h-4 mr-2" />
 							Löschen
 						</Button>
-						<ConfirmDialog
-							open={confirmOpen}
-							onOpenChange={setConfirmOpen}
-							title="Historie löschen?"
-							description="Alle gespeicherten Würfe werden entfernt. Das kann nicht rückgängig gemacht werden."
-							confirmLabel="Historie löschen"
-							onConfirm={() => dispatch(clearHistory())}
-						/>
 					</div>
 				</CardHeader>
 			</Card>
+
+			<ConfirmDialog
+				open={confirmOpen}
+				onOpenChange={setConfirmOpen}
+				title="Historie löschen?"
+				description="Alle gespeicherten Würfe werden entfernt. Das kann nicht rückgängig gemacht werden."
+				confirmLabel="Historie löschen"
+				onConfirm={() => dispatch(clearHistory())}
+			/>
 
 			{/* Empty State */}
 			{rollHistory.length === 0 ? (
 				<Card variant="parchment">
 					<CardContent className="text-center py-16">
-						<div className="text-8xl mb-6 float-dice">🎲</div>
+						<Dices className="w-20 h-20 mx-auto mb-6 float-dice text-aventurian-500" />
 						<h3 className="text-2xl font-heading font-semibold mb-3">
 							Noch keine Würfe
 						</h3>
@@ -110,7 +123,7 @@ const RollHistory = () => {
 													{roll.type}
 												</span>
 												<span className="text-xs text-muted-foreground">
-													{new Date(roll.date).toLocaleTimeString('de-DE')}
+													{formatRollDate(roll.date)}
 												</span>
 											</div>
 											<p className="text-sm">{roll.result}</p>

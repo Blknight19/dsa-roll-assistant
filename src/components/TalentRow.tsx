@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import PropertyNumber from './PropertyNumber';
-import type { Talent } from '@/store/talentsSlice';
+import { TALENT_VALUE_MAX, type Talent } from '@/store/talentsSlice';
 
 type TalentRowProps = {
 	talent: Talent;
@@ -28,6 +28,7 @@ const TalentRow = memo(({ talent, striped, onChange }: TalentRowProps) => (
 		<td className="p-3 text-center">
 			<PropertyNumber
 				value={talent.value}
+				max={TALENT_VALUE_MAX}
 				size="s"
 				onChange={(value) => onChange(talent.id, value)}
 			/>

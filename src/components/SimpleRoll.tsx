@@ -1,161 +1,147 @@
-import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { nanoid } from '@reduxjs/toolkit';
 import PropertyNumber from './PropertyNumber';
-import DiceIcon from './DiceIcon';
+import RollBar from './RollBar';
+import RollResultCard from './RollResultCard';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
 } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { rollDice } from '@/utils/dice';
-import { useDispatch } from 'react-redux';
+import type { RootState } from '@/store';
+import {
+	setSimpleCount,
+	setSimpleModifier,
+	setSimpleSides,
+	setSimpleLastRoll
+} from '@/store/simpleRollSlice';
 import { addRoll } from '@/store/rollSlice';
+import { rollDice } from '@/utils/dice';
+import { signedModifier } from '@/utils/format';
 import { Dices } from 'lucide-react';
 
-const diceOptions = [
-    { label: 'W20', value: '20' },
-    { label: 'W12', value: '12' },
-    { label: 'W10', value: '10' },
-    { label: 'W8', value: '8' },
-    { label: 'W6', value: '6' },
-    { label: 'W4', value: '4' },
-];
+const DICE_SIDES = [20, 12, 10, 8, 6, 4];
+const MAX_DICE = 20;
 
 const SimpleRoll = () => {
-    const dispatch = useDispatch();
-    const [diceCount, setDiceCount] = useState<number>(1);
-    const [modifier, setModifier] = useState<number>(0);
-    const [selectedDice, setSelectedDice] = useState<string>('20');
-    const [results, setResults] = useState<number[]>([]);
-    const [total, setTotal] = useState<number | null>(null);
+	const dispatch = useDispatch();
+	const { count, sides, modifier, lastRoll } = useSelector((state: RootState) => state.simpleRoll);
 
-    const handleRoll = () => {
-        const rolls = rollDice(diceCount, Number(selectedDice));
-        setResults(rolls);
-        const total = rolls.reduce((sum, currentValue) => sum + currentValue, 0) + modifier;
-        setTotal(total);
+	const handleRoll = () => {
+		const dice = rollDice(count, sides);
+		const total = dice.reduce((sum, value) => sum + value, 0) + modifier;
 
-        dispatch(addRoll({
-            id: nanoid(),
-            type: 'Einzel',
-            values: rolls,
-            result: `Gesamt: ${total} (${diceCount}W${selectedDice} ${modifier >= 0 ? `+${modifier}` : modifier})`,
-            date: new Date().toISOString()
-        }));
-    };
+		dispatch(setSimpleLastRoll({ count, sides, modifier, dice, total }));
+		dispatch(addRoll({
+			id: nanoid(),
+			type: 'Einzel',
+			values: dice,
+			result: `Gesamt: ${total} (${count}W${sides} ${signedModifier(modifier)})`,
+			date: new Date().toISOString()
+		}));
+	};
 
-    return (
-        <div className="flex flex-col items-center space-y-8 w-full max-w-4xl mx-auto">
-            {/* Würfel-Auswahl */}
-            <Card variant="parchment" className="w-full">
-                <CardHeader>
-                    <CardTitle className="text-center">Einzelwurf</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    {/* Würfel-Typ */}
-                    <div className="flex flex-col items-center space-y-3">
-                        <label className="text-sm font-heading font-semibold uppercase tracking-wide text-aventurian-700 dark:text-aventurian-300">
-                            Würfel-Typ
-                        </label>
-                        <Select defaultValue={selectedDice} onValueChange={setSelectedDice}>
-                            <SelectTrigger className="w-[200px] font-heading">
-                                <SelectValue placeholder="Wähle einen Würfel" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {diceOptions.map(die => (
-                                    <SelectItem key={die.value} value={die.value} className="font-heading">
-                                        {die.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+	const setup = (
+		<Card variant="parchment">
+			<CardHeader>
+				<CardTitle className="text-lg">Einzelwurf</CardTitle>
+			</CardHeader>
+			<CardContent className="space-y-5">
+				<div className="flex flex-col gap-2">
+					<span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+						Würfel
+					</span>
+					<Select
+						value={String(sides)}
+						onValueChange={(value) => dispatch(setSimpleSides(Number(value)))}
+					>
+						<SelectTrigger className="font-heading" aria-label="Würfel-Typ">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{DICE_SIDES.map(side => (
+								<SelectItem key={side} value={String(side)} className="font-heading">
+									W{side}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</div>
 
-                    {/* Anzahl & Modifier */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="flex flex-col items-center p-4 rounded-lg bg-aventurian-100/50 dark:bg-aventurian-800/50">
-                            <PropertyNumber 
-                                label='Anzahl' 
-                                value={diceCount} 
-                                onChange={setDiceCount} 
-                                min={1} 
-                                max={20} 
-                            />
-                        </div>
-                        <div className="flex flex-col items-center p-4 rounded-lg bg-aventurian-100/50 dark:bg-aventurian-800/50">
-                            <PropertyNumber 
-                                label='Modifier' 
-                                value={modifier} 
-                                onChange={setModifier} 
-                                min={-20} 
-                                max={20} 
-                            />
-                        </div>
-                    </div>
+				<div className="flex justify-center">
+					<PropertyNumber
+						label="Anzahl"
+						value={count}
+						min={1}
+						max={MAX_DICE}
+						onChange={(value) => dispatch(setSimpleCount(value))}
+					/>
+				</div>
+			</CardContent>
+		</Card>
+	);
 
-                    {/* Würfel-Button */}
-                    <div className="flex justify-center pt-4">
-                        <Button 
-                            onClick={handleRoll} 
-                            size="xl" 
-                            variant="aventurian"
-                            className="w-full max-w-xs shadow-lg hover:shadow-xl"
-                        >
-                            <Dices className="w-6 h-6 mr-2" />
-                            Würfeln
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
+	const result = lastRoll && (
+		<RollResultCard
+			tone="success"
+			title={`${lastRoll.count}W${lastRoll.sides}${
+				lastRoll.modifier !== 0 ? ` ${signedModifier(lastRoll.modifier)}` : ''
+			}`}
+			hero={{ value: lastRoll.total, caption: 'Gesamt' }}
+			dice={lastRoll.dice.map(value => ({ value, size: 'md' as const }))}
+			details={
+				<p className="rounded-lg bg-background/50 p-4 text-center text-sm text-muted-foreground">
+					{lastRoll.dice.join(' + ')}
+					{lastRoll.modifier !== 0 && ` ${signedModifier(lastRoll.modifier)}`}
+					{' = '}{lastRoll.total}
+				</p>
+			}
+			detailsLabel="Einzelwürfe"
+		/>
+	);
 
-            {/* Screenreader-Ansage des Ergebnisses */}
-            <div aria-live="polite" className="sr-only">
-                {total !== null ? `Gesamt: ${total}` : ''}
-            </div>
+	return (
+		<div className="mx-auto w-full max-w-6xl lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+			<div aria-live="polite" className="sr-only">
+				{lastRoll ? `Gesamt: ${lastRoll.total}` : ''}
+			</div>
 
-            {/* Ergebnis */}
-            {total !== null && (
-                <Card
-                    variant="parchment"
-                    className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500"
-                >
-                    <CardHeader>
-                        <CardTitle className="text-center text-3xl">
-                            {total}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        {/* Würfel-Anzeige */}
-                        <div className="flex flex-wrap justify-center gap-3">
-                            {results.map((value, index) => (
-                                <DiceIcon
-                                    key={index}
-                                    value={value}
-                                    size="md"
-                                    variant="default"
-                                />
-                            ))}
-                        </div>
+			<div className="lg:sticky lg:top-24 lg:order-2">
+				{result}
+				{!result && (
+					<Card variant="parchment" className="hidden border-dashed lg:block">
+						<CardContent className="flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
+							<Dices className="h-8 w-8 opacity-50" />
+							<p className="text-sm">Das Ergebnis erscheint hier.</p>
+						</CardContent>
+					</Card>
+				)}
+			</div>
 
-                        {/* Details */}
-                        <div className="bg-background/50 rounded-lg p-4 text-center space-y-2">
-                            <p className="text-sm text-muted-foreground">
-                                {diceCount}W{selectedDice} {modifier !== 0 && `${modifier >= 0 ? '+' : ''}${modifier}`}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                                Würfel: {results.join(' + ')} 
-                                {modifier !== 0 && ` ${modifier >= 0 ? '+' : ''}${modifier}`} = {total}
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
-        </div>
-    );
+			<div className="mt-4 flex flex-col gap-4 lg:mt-0 lg:order-1">
+				{setup}
+				<div className="hidden lg:block">
+					<RollBar
+						modifier={modifier}
+						onModifierChange={(value) => dispatch(setSimpleModifier(value))}
+						onRoll={handleRoll}
+					/>
+				</div>
+			</div>
+
+			<div className="lg:hidden">
+				<RollBar
+					sticky
+					modifier={modifier}
+					onModifierChange={(value) => dispatch(setSimpleModifier(value))}
+					onRoll={handleRoll}
+				/>
+			</div>
+		</div>
+	);
 };
 
 export default SimpleRoll;

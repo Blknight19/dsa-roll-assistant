@@ -1,426 +1,383 @@
 import { useEffect, useRef, useState } from 'react';
 import { nanoid } from '@reduxjs/toolkit';
-import { roll3D20 } from '../utils/dice';
-import { evaluateTalentCheck } from '../utils/rules';
-import PropertyNumber from './PropertyNumber';
-import DiceIcon from './DiceIcon';
 import { useDispatch, useSelector } from 'react-redux';
+import { roll3D20 } from '@/utils/dice';
+import { evaluateTalentCheck } from '@/utils/rules';
+import { modifierTerm, signedModifier } from '@/utils/format';
+import PropertyNumber from './PropertyNumber';
+import RollBar from './RollBar';
+import RollResultCard, { type ResultDie } from './RollResultCard';
 import { addRoll } from '@/store/rollSlice';
-import { updateTalent } from '@/store/talentsSlice';
+import { TALENT_VALUE_MAX, updateTalent } from '@/store/talentsSlice';
 import {
-  selectProbeTalent,
-  setProbeEntry,
-  setProbeModifier,
-  setProbeTaw,
-  setProbeLastRoll,
+	selectProbeTalent,
+	setProbeEntry,
+	setProbeModifier,
+	setProbeTaw,
+	setProbeLastRoll,
+	type ProbeRoll
 } from '@/store/probeSlice';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
 } from '@/components/ui/select';
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
+	Command,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList
 } from '@/components/ui/command';
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from '@/components/ui/popover';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { RootState } from '@/store';
-import { ATTRIBUTE_KEYS, type AttributeKey } from '@/store/attributesSlice';
+import {
+	ATTRIBUTE_KEYS,
+	ATTRIBUTE_MAX,
+	ATTRIBUTE_MIN,
+	type AttributeKey
+} from '@/store/attributesSlice';
 import { ChevronDown, Dices, Sparkles, Skull, Pencil, Check } from 'lucide-react';
 
-/** Modifikator als lesbarer Rechenterm, z. B. " − 2" oder " + 3". */
-const modifierTerm = (modifier: number): string => {
-  if (modifier === 0) return '';
-  return modifier < 0 ? ` − ${Math.abs(modifier)}` : ` + ${modifier}`;
+const dieTone = (value: number): ResultDie['tone'] => {
+	if (value === 1) return 'critical';
+	if (value === 20) return 'failure';
+	return 'default';
+};
+
+const summaryOf = (roll: ProbeRoll): string => {
+	if (roll.result.special === 'krit') return `Kritischer Erfolg, Qualitätsstufe ${roll.result.qs}`;
+	if (roll.result.special === 'patzer') return 'Patzer';
+	return roll.result.success ? `Erfolg, Qualitätsstufe ${roll.result.qs}` : 'Misslungen';
 };
 
 const TalentRoll = () => {
-  const dispatch = useDispatch();
+	const dispatch = useDispatch();
+	const attributes = useSelector((state: RootState) => state.attributes);
+	const talents = useSelector((state: RootState) => state.talents.talents);
+	const probe = useSelector((state: RootState) => state.probe);
 
-  const attributes = useSelector((state: RootState) => state.attributes);
-  const talents = useSelector((state: RootState) => state.talents.talents);
-  const probe = useSelector((state: RootState) => state.probe);
+	const [pickerOpen, setPickerOpen] = useState(false);
+	const [editAttributes, setEditAttributes] = useState(false);
 
-  const [open, setOpen] = useState<boolean>(false);
-  const [editAttributes, setEditAttributes] = useState<boolean>(false);
+	const lastRoll = probe.lastRoll;
 
-  const lastRoll = probe.lastRoll;
+	// Nach einem neuen Wurf das Ergebnis in den Blick holen — nicht beim bloßen
+	// Zurückwechseln auf den Tab.
+	const resultRef = useRef<HTMLDivElement>(null);
+	const previousRoll = useRef(lastRoll);
+	useEffect(() => {
+		if (lastRoll && lastRoll !== previousRoll.current) {
+			resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+		}
+		previousRoll.current = lastRoll;
+	}, [lastRoll]);
 
-  // Nach einem neuen Wurf das Ergebnis in den Blick scrollen —
-  // nicht aber beim bloßen Zurückwechseln auf den Tab.
-  const resultRef = useRef<HTMLDivElement>(null);
-  const prevRollRef = useRef(lastRoll);
-  useEffect(() => {
-    if (lastRoll && lastRoll !== prevRollRef.current) {
-      resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    prevRollRef.current = lastRoll;
-  }, [lastRoll]);
+	const sheetTalent = probe.talentId
+		? talents.find(talent => talent.id === probe.talentId)
+		: undefined;
+	const tawDiffersFromSheet = sheetTalent !== undefined && sheetTalent.value !== probe.taw;
 
-  const sheetTalent = probe.talentId ? talents.find(talent => talent.id === probe.talentId) : undefined;
-  const tawDiffersFromSheet = sheetTalent !== undefined && sheetTalent.value !== probe.taw;
+	const selectTalent = (talentId: string) => {
+		const talent = talents.find(entry => entry.id === talentId);
+		if (!talent) return;
 
-  const handleSelectTalent = (talentId: string) => {
-    const currentTalent = talents.find(talent => talent.id === talentId);
-    if (!currentTalent) return;
+		dispatch(selectProbeTalent({
+			id: talent.id,
+			name: talent.name,
+			entries: [talent.attribute1, talent.attribute2, talent.attribute3]
+				.map(attribute => ({ attribute, value: attributes[attribute] })),
+			taw: talent.value
+		}));
+		setPickerOpen(false);
+	};
 
-    dispatch(selectProbeTalent({
-      id: currentTalent.id,
-      name: currentTalent.name,
-      entries: [currentTalent.attribute1, currentTalent.attribute2, currentTalent.attribute3]
-        .map(attribute => ({ attribute, value: attributes[attribute] })),
-      taw: currentTalent.value,
-    }));
-    setOpen(false);
-  };
+	const rollProbe = () => {
+		const dice = roll3D20();
+		const attrs = probe.entries.map(entry => entry.value) as [number, number, number];
+		const result = evaluateTalentCheck(attrs, probe.taw, probe.modifier, dice);
 
-  const handleRoll = () => {
-    const dice = roll3D20();
-    const attrs = probe.entries.map(entry => entry.value) as [number, number, number];
-    const result = evaluateTalentCheck(attrs, probe.taw, probe.modifier, dice);
+		const snapshot: ProbeRoll = {
+			talentName: probe.talentName,
+			entries: probe.entries.map(entry => ({ ...entry })),
+			modifier: probe.modifier,
+			taw: probe.taw,
+			result
+		};
+		dispatch(setProbeLastRoll(snapshot));
 
-    dispatch(setProbeLastRoll({
-      talentName: probe.talentName,
-      entries: probe.entries.map(entry => ({ ...entry })),
-      modifier: probe.modifier,
-      taw: probe.taw,
-      result,
-    }));
+		const outcome = result.success ? `(QS: ${result.qs})` : '(Misslungen)';
+		const special = result.special === 'krit'
+			? 'Kritischer Erfolg! '
+			: result.special === 'patzer' ? 'Patzer! ' : '';
 
-    const modifierText = probe.modifier > 0 ? `+${probe.modifier}` : `${probe.modifier}`;
-    let historyResult = `Ergebnis: ${result.fp} ${result.success ? `(QS: ${result.qs})` : '(Misslungen)'} [Modifikator: ${modifierText}]`;
-    if (result.special === 'krit') historyResult = 'Kritischer Erfolg!';
-    if (result.special === 'patzer') historyResult = 'Patzer!';
+		dispatch(addRoll({
+			id: nanoid(),
+			type: 'Talent',
+			values: [...result.dice],
+			result: `${special}${probe.talentName}: ${result.fp} FP ${outcome} [Mod ${signedModifier(probe.modifier)}]`,
+			date: new Date().toISOString()
+		}));
+	};
 
-    dispatch(addRoll({
-      id: nanoid(),
-      type: 'Talent',
-      values: [...result.dice],
-      result: historyResult,
-      date: new Date().toISOString(),
-    }));
-  };
+	const setup = (
+		<>
+			<Card variant="parchment">
+				<CardHeader>
+					<CardTitle className="text-lg">Talentprobe</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					<Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+						<PopoverTrigger asChild>
+							<Button
+								variant="aventurian"
+								size="lg"
+								role="combobox"
+								className="w-full justify-between"
+								aria-expanded={pickerOpen}
+							>
+								{probe.talentName || 'Talent wählen…'}
+								<ChevronDown className="opacity-50" />
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent className="w-[min(24rem,90vw)] p-0">
+							<Command>
+								<CommandInput placeholder="Talent suchen…" className="font-body" />
+								<CommandList>
+									<CommandEmpty>Kein Talent gefunden</CommandEmpty>
+									<CommandGroup>
+										{talents.map(talent => (
+											<CommandItem
+												key={talent.id}
+												onSelect={() => selectTalent(talent.id)}
+												className="font-body"
+											>
+												{talent.name}
+											</CommandItem>
+										))}
+									</CommandGroup>
+								</CommandList>
+							</Command>
+						</PopoverContent>
+					</Popover>
 
-  // Buch-Konvention: negativer Modifikator = Erschwernis
-  let modifierText = null;
-  let modifierColor = '';
+					{editAttributes ? (
+						<div className="space-y-4">
+							<div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+								{probe.entries.map((entry, index) => (
+									<div
+										key={index}
+										className="flex flex-col items-center gap-3 rounded-lg bg-aventurian-100/50 p-3 dark:bg-aventurian-800/50"
+									>
+										<Select
+											value={entry.attribute}
+											onValueChange={(value) => {
+												const attribute = value as AttributeKey;
+												dispatch(setProbeEntry({ index, attribute, value: attributes[attribute] }));
+											}}
+										>
+											<SelectTrigger
+												className="w-24 text-center font-heading"
+												aria-label={`Eigenschaft ${index + 1}`}
+											>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												{ATTRIBUTE_KEYS.map(key => (
+													<SelectItem key={key} value={key} className="font-heading">
+														{key}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+										<PropertyNumber
+											value={entry.value}
+											min={ATTRIBUTE_MIN}
+											max={ATTRIBUTE_MAX}
+											size="s"
+											onChange={(value) => dispatch(setProbeEntry({ index, value }))}
+										/>
+									</div>
+								))}
+							</div>
+							<div className="flex justify-center">
+								<Button variant="outline" size="sm" onClick={() => setEditAttributes(false)}>
+									<Check className="mr-1 h-4 w-4" />
+									Fertig
+								</Button>
+							</div>
+						</div>
+					) : (
+						<div className="flex flex-wrap items-center gap-2">
+							{probe.entries.map((entry, index) => (
+								<span
+									key={index}
+									className="rounded-lg bg-aventurian-100/60 px-3 py-2 font-heading text-sm dark:bg-aventurian-800/60"
+								>
+									{entry.attribute} <span className="font-bold">{entry.value}</span>
+								</span>
+							))}
+							<Button
+								variant="ghost"
+								size="icon"
+								onClick={() => setEditAttributes(true)}
+								aria-label="Eigenschaften bearbeiten"
+							>
+								<Pencil className="h-4 w-4" />
+							</Button>
+						</div>
+					)}
 
-  if (probe.modifier < 0) {
-    modifierText = 'Erschwernis';
-    modifierColor = 'text-amber-700 dark:text-amber-400';
-  } else if (probe.modifier > 0) {
-    modifierText = 'Erleichterung';
-    modifierColor = 'text-sky-700 dark:text-sky-400';
-  }
+					<div className="flex flex-wrap items-end justify-between gap-3 border-t border-border pt-4">
+						<div className="flex flex-col items-center gap-1">
+							<PropertyNumber
+								label="Talentwert"
+								value={probe.taw}
+								max={TALENT_VALUE_MAX}
+								size="s"
+								onChange={(value) => dispatch(setProbeTaw(value))}
+							/>
+							<span className="text-xs text-muted-foreground">nur für diese Probe</span>
+						</div>
+						{tawDiffersFromSheet && (
+							<Button
+								variant="outline"
+								size="sm"
+								className="mb-5 text-xs"
+								onClick={() => dispatch(updateTalent({ id: sheetTalent.id, value: probe.taw }))}
+							>
+								In Charakterbogen übernehmen
+							</Button>
+						)}
+					</div>
+				</CardContent>
+			</Card>
+		</>
+	);
 
-  // Würfel-Varianten basierend auf Wert
-  const getDiceVariant = (value: number): 'default' | 'critical' | 'failure' => {
-    if (lastRoll?.result.special === 'krit') return 'critical';
-    if (lastRoll?.result.special === 'patzer') return 'failure';
-    if (value === 1) return 'critical';
-    if (value === 20) return 'failure';
-    return 'default';
-  };
+	const result = lastRoll && (
+		<div ref={resultRef}>
+			<RollResultCard
+				tone={
+					lastRoll.result.special === 'krit' ? 'critical' :
+					lastRoll.result.success ? 'success' : 'failure'
+				}
+				title={
+					lastRoll.result.special === 'krit' ? 'Kritischer Erfolg!' :
+					lastRoll.result.special === 'patzer' ? 'Patzer!' :
+					`${lastRoll.talentName}${lastRoll.result.success ? ' — Erfolg' : ' — Misslungen'}`
+				}
+				icon={
+					lastRoll.result.special === 'krit' ? <Sparkles className="h-6 w-6 animate-glow" /> :
+					lastRoll.result.special === 'patzer' ? <Skull className="h-6 w-6 shake-error" /> :
+					undefined
+				}
+				hero={
+					lastRoll.result.success
+						? {
+							value: lastRoll.result.qs,
+							caption: 'Qualitätsstufe',
+							// Ein Krit gelingt auch mit negativen FP — „−2 FP übrig" unter
+							// einem Erfolg zu zeigen wäre irreführend.
+							note: lastRoll.result.fp >= 0
+								? `${lastRoll.result.fp} FP übrig`
+								: 'ohne FP-Reserve gelungen'
+						}
+						: {
+							value: lastRoll.result.fp,
+							caption: 'Fertigkeitspunkte',
+							note: lastRoll.result.special === 'patzer'
+								? 'Zwei Zwanzigen — die Probe misslingt unabhängig von den FP.'
+								: undefined
+						}
+				}
+				dice={lastRoll.result.dice.map(value => ({ value, tone: dieTone(value) }))}
+				consequence={
+					lastRoll.result.special === 'krit'
+						? 'Zwei Einsen — die Probe gelingt unabhängig von den FP.'
+						: undefined
+				}
+				details={
+					<div className="grid gap-2 rounded-lg bg-background/50 p-4 text-sm">
+						{lastRoll.entries.map((entry, index) => (
+							<div className="flex justify-between gap-4" key={index}>
+								<span>
+									{entry.attribute}: {entry.value}{modifierTerm(lastRoll.modifier)} − {lastRoll.result.dice[index]}
+								</span>
+								<span className="font-semibold tabular-nums">
+									{lastRoll.result.perDieShortfall[index]}
+								</span>
+							</div>
+						))}
+						<div className="mt-1 flex justify-between gap-4 border-t border-border pt-2 font-semibold">
+							<span>
+								Talentwert {lastRoll.taw} − Verluste{' '}
+								{Math.abs(lastRoll.result.perDieShortfall.reduce((sum, value) => sum + value, 0))}
+							</span>
+							<span className="tabular-nums">= {lastRoll.result.fp}</span>
+						</div>
+					</div>
+				}
+			/>
+		</div>
+	);
 
-  const resultSummary = lastRoll
-    ? lastRoll.result.special === 'krit'
-      ? 'Kritischer Erfolg!'
-      : lastRoll.result.special === 'patzer'
-        ? 'Patzer!'
-        : lastRoll.result.success
-          ? `Erfolg, Qualitätsstufe ${lastRoll.result.qs}`
-          : 'Misslungen'
-    : '';
+	const rollBar = (
+		<RollBar
+			modifier={probe.modifier}
+			onModifierChange={(value) => dispatch(setProbeModifier(value))}
+			onRoll={rollProbe}
+			disabled={!probe.talentName}
+		/>
+	);
 
-  return (
-    <div className='flex flex-col items-center space-y-6 w-full max-w-5xl mx-auto'>
-      {/* Screenreader-Ansage des Ergebnisses */}
-      <div aria-live="polite" className="sr-only">{resultSummary}</div>
+	return (
+		<div className="mx-auto w-full max-w-6xl lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+			<div aria-live="polite" className="sr-only">
+				{lastRoll ? summaryOf(lastRoll) : ''}
+			</div>
 
-      {/* Ergebnis-Anzeige — oben, rendert ausschließlich aus dem Wurf-Schnappschuss */}
-      {lastRoll && (
-        <Card
-          ref={resultRef}
-          variant={
-            lastRoll.result.special === 'krit' ? 'critical' :
-            lastRoll.result.special === 'patzer' ? 'failure' :
-            lastRoll.result.success ? 'success' : 'failure'
-          }
-          className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500 scroll-mt-20"
-        >
-          <CardHeader>
-            {lastRoll.result.special === 'krit' && (
-              <div className="flex items-center justify-center gap-3">
-                <Sparkles className="w-8 h-8 text-critical-dark dark:text-critical-light animate-glow" />
-                <CardTitle className="text-3xl text-critical-dark dark:text-critical-light">
-                  Kritischer Erfolg!
-                </CardTitle>
-                <Sparkles className="w-8 h-8 text-critical-dark dark:text-critical-light animate-glow" />
-              </div>
-            )}
-            {lastRoll.result.special === 'patzer' && (
-              <div className="flex items-center justify-center gap-3">
-                <Skull className="w-8 h-8 text-failure-dark dark:text-failure-light shake-error" />
-                <CardTitle className="text-3xl text-failure-dark dark:text-failure-light">
-                  Patzer!
-                </CardTitle>
-                <Skull className="w-8 h-8 text-failure-dark dark:text-failure-light shake-error" />
-              </div>
-            )}
-            {lastRoll.result.special === null && (
-              <CardTitle className="text-center text-2xl">
-                {lastRoll.result.success ? (
-                  <span className="text-success-dark dark:text-success-light">
-                    {lastRoll.talentName ? `${lastRoll.talentName}: ` : ''}Erfolg!
-                  </span>
-                ) : (
-                  <span className="text-failure-dark dark:text-failure-light">
-                    {lastRoll.talentName ? `${lastRoll.talentName}: ` : ''}Misslungen
-                  </span>
-                )}
-              </CardTitle>
-            )}
-          </CardHeader>
+			{/* Ergebnis: auf dem Handy über der Eingabe, auf dem Desktop rechts daneben
+			    und mitlaufend. Nur einmal im DOM — sonst kollidiert die Ref. */}
+			<div className="lg:sticky lg:top-24 lg:order-2">
+				{result}
+				{!result && (
+					<Card variant="parchment" className="hidden border-dashed lg:block">
+						<CardContent className="flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
+							<Dices className="h-8 w-8 opacity-50" />
+							<p className="text-sm">
+								{probe.talentName
+									? 'Das Ergebnis erscheint hier.'
+									: 'Wähle ein Talent, um zu würfeln.'}
+							</p>
+						</CardContent>
+					</Card>
+				)}
+			</div>
 
-          <CardContent className="space-y-6">
-            {/* QS als Hero-Zahl */}
-            {lastRoll.result.special === null && lastRoll.result.success && (
-              <div className="text-center">
-                <p className="text-7xl font-heading font-bold text-success-dark dark:text-success-light">
-                  {lastRoll.result.qs}
-                </p>
-                <p className="text-sm uppercase tracking-wide text-muted-foreground mt-1">
-                  Qualitätsstufe
-                </p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {lastRoll.result.fp} FP übrig
-                </p>
-              </div>
-            )}
-            {lastRoll.result.special === null && !lastRoll.result.success && (
-              <div className="text-center">
-                <p className="text-4xl font-heading font-bold">
-                  {lastRoll.result.fp}
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Fertigkeitspunkte (unter 0)
-                </p>
-              </div>
-            )}
+			<div className="mt-4 flex flex-col gap-4 lg:mt-0 lg:order-1">
+				{setup}
+				{/* Desktop: die Leiste sitzt am Fuß der Eingabespalte … */}
+				<div className="hidden lg:block">{rollBar}</div>
+			</div>
 
-            {/* Würfel-Anzeige */}
-            <div className="flex justify-center gap-4">
-              {lastRoll.result.dice.map((value, index) => (
-                <DiceIcon
-                  key={index}
-                  value={value}
-                  size="lg"
-                  variant={getDiceVariant(value)}
-                />
-              ))}
-            </div>
-
-            {/* Detaillierte Berechnung */}
-            <div className="bg-background/50 rounded-lg p-4 space-y-2">
-              <h4 className="font-heading font-semibold text-center mb-3">Berechnung</h4>
-              <div className="grid gap-2 text-sm">
-                {lastRoll.entries.map((entry, index) => (
-                  <div className="flex justify-between" key={index}>
-                    <span>
-                      {entry.attribute}: {entry.value}{modifierTerm(lastRoll.modifier)} − {lastRoll.result.dice[index]}
-                    </span>
-                    <span className="font-semibold">{lastRoll.result.perDieShortfall[index]}</span>
-                  </div>
-                ))}
-                <div className="border-t border-border pt-2 mt-2 flex justify-between font-semibold">
-                  <span>
-                    Talentwert: {lastRoll.taw} + Summe: {lastRoll.result.perDieShortfall.reduce((a, b) => a + b, 0)}
-                  </span>
-                  <span>= {lastRoll.result.fp}</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Talent-Auswahl */}
-      <Card variant="parchment" className="w-full">
-        <CardHeader>
-          <CardTitle className="text-center">Talentprobe</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center space-y-4">
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="aventurian"
-                size="lg"
-                role="combobox"
-                className="w-full max-w-md justify-between"
-                aria-expanded={open}
-              >
-                {probe.talentName || 'Talent wählen...'}
-                <ChevronDown className="opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-full max-w-md p-0">
-              <Command>
-                <CommandInput placeholder="Talent suchen..." className="font-body" />
-                <CommandList>
-                  <CommandEmpty>Kein Talent gefunden</CommandEmpty>
-                  <CommandGroup>
-                    {talents.map((talent) => (
-                      <CommandItem
-                        key={talent.id}
-                        onSelect={() => handleSelectTalent(talent.id)}
-                        className="font-body"
-                      >
-                        {talent.name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-
-          {/* Eigenschaften: kompakte Chips, auf Wunsch editierbar */}
-          {!editAttributes ? (
-            <div className="flex items-center justify-center gap-2 flex-wrap">
-              {probe.entries.map((entry, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-2 rounded-lg bg-aventurian-100/50 dark:bg-aventurian-800/50 font-heading text-sm"
-                >
-                  {entry.attribute} <span className="font-bold">{entry.value}</span>
-                </span>
-              ))}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setEditAttributes(true)}
-                aria-label="Eigenschaften bearbeiten"
-              >
-                <Pencil className="w-4 h-4" />
-              </Button>
-            </div>
-          ) : (
-            <div className="w-full space-y-4">
-              <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-                {probe.entries.map((entry, index) => (
-                  <div key={index} className='flex flex-col items-center gap-3 p-4 rounded-lg bg-aventurian-100/50 dark:bg-aventurian-800/50'>
-                    <Select
-                      value={entry.attribute}
-                      onValueChange={(val) => {
-                        const attribute = val as AttributeKey;
-                        dispatch(setProbeEntry({ index, attribute, value: attributes[attribute] }));
-                      }}
-                    >
-                      <SelectTrigger className="w-24 text-center font-heading" aria-label={`Eigenschaft ${index + 1}`}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ATTRIBUTE_KEYS.map((key) => (
-                          <SelectItem key={key} value={key} className="font-heading">
-                            {key}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <PropertyNumber
-                      value={entry.value}
-                      onChange={(value) => dispatch(setProbeEntry({ index, value }))}
-                    />
-                  </div>
-                ))}
-              </div>
-              <div className="flex justify-center">
-                <Button variant="outline" size="sm" onClick={() => setEditAttributes(false)}>
-                  <Check className="w-4 h-4 mr-1" />
-                  Fertig
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Modifikator & Talentwert */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-        <Card variant="parchment">
-          <CardHeader>
-            <CardTitle className="text-center text-lg">Modifikator</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center gap-2">
-            <PropertyNumber
-              value={probe.modifier}
-              onChange={(value) => dispatch(setProbeModifier(value))}
-              min={-20}
-              max={20}
-              size="s"
-            />
-            {modifierText && (
-              <span className={`text-sm font-semibold ${modifierColor}`}>
-                {modifierText}
-              </span>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card variant="parchment">
-          <CardHeader>
-            <CardTitle className="text-center text-lg">
-              Talentwert{' '}
-              <span className="text-xs font-normal text-muted-foreground">(nur für diese Probe)</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center gap-2">
-            <PropertyNumber
-              value={probe.taw}
-              onChange={(value) => dispatch(setProbeTaw(value))}
-              size="s"
-            />
-            {tawDiffersFromSheet && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs text-muted-foreground"
-                onClick={() => dispatch(updateTalent({ id: sheetTalent.id, value: probe.taw }))}
-              >
-                In Charakterbogen übernehmen
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Würfel-Button — sticky in der Daumenzone */}
-      <div className="sticky bottom-4 z-40 w-full flex justify-center pointer-events-none pb-[env(safe-area-inset-bottom)]">
-        <Button
-          onClick={handleRoll}
-          size="xl"
-          variant="aventurian"
-          className="pointer-events-auto w-full max-w-xs shadow-lg hover:shadow-xl"
-          disabled={!probe.talentName}
-        >
-          <Dices className="w-6 h-6 mr-2" />
-          Würfeln
-        </Button>
-      </div>
-    </div>
-  );
+			{/* … auf dem Handy klebt sie stattdessen in der Daumenzone. */}
+			<div className="lg:hidden">
+				<RollBar
+					sticky
+					modifier={probe.modifier}
+					onModifierChange={(value) => dispatch(setProbeModifier(value))}
+					onRoll={rollProbe}
+					disabled={!probe.talentName}
+				/>
+			</div>
+		</div>
+	);
 };
 
 export default TalentRoll;

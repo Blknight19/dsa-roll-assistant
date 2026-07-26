@@ -79,15 +79,19 @@ export const initialTalentState: TalentState = {
 	]
 };
 
+/** DSA 5 steigert Fertigkeitswerte bis 25 — der frühere Deckel von 20 war zu niedrig. */
+export const TALENT_VALUE_MAX = 25;
+
+export const clampTalentValue = (value: number): number =>
+	Math.min(TALENT_VALUE_MAX, Math.max(0, Math.round(value)));
+
 const talentSlice = createSlice({
 	name: 'talents',
 	initialState: initialTalentState,
 	reducers: {
 		updateTalent: (state, action: PayloadAction<{ id: string, value: number }>) => {
-			const index = state.talents.findIndex(talent => talent.id === action.payload.id);
-			if (index !== -1) {
-				state.talents[index].value = action.payload.value;
-			}
+			const talent = state.talents.find(entry => entry.id === action.payload.id);
+			if (talent) talent.value = clampTalentValue(action.payload.value);
 		}
 	}
 });

@@ -137,4 +137,24 @@ describe('evaluateCombatRoll', () => {
     expect(evaluateCombatRoll(10, -3, 1, 8).special).toBeNull();
     expect(evaluateCombatRoll(10, -3, 1, 7).special).toBe('krit');
   });
+
+  // Festgehaltenes Verhalten, kein bestätigtes Regelwissen: ab einem modifizierten
+  // Zielwert von 20 kann der Bestätigungswurf nicht mehr scheitern bzw. gelingen.
+  // Ob eine gewürfelte 20 hier trotzdem nie bestätigt, ist am Regelwerk zu klären
+  // (siehe REVIEW.md, R2). Der Test pinnt den Status quo, damit er nicht unbemerkt kippt.
+  describe('Randfall: Zielwert >= 20', () => {
+    it('bestätigt derzeit jeden Krit, auch bei einer gewürfelten 20', () => {
+      expect(evaluateCombatRoll(20, 0, 1, 20)).toMatchObject({
+        special: 'krit',
+        confirmation: { roll: 20, confirmed: true },
+      });
+    });
+
+    it('bestätigt derzeit keinen Patzer', () => {
+      expect(evaluateCombatRoll(20, 0, 20, 20)).toMatchObject({
+        special: null,
+        confirmation: { roll: 20, confirmed: false },
+      });
+    });
+  });
 });
