@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/dsa-roll-assistant/sw.js', { scope: '/dsa-roll-assistant/' })})}
