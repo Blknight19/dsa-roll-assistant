@@ -90,3 +90,19 @@ export const evaluateCombatRoll = (
 
   return { d20, target, success: d20 <= target, special: null };
 };
+
+/**
+ * Fällige AsP nach Ausgang der Zauberprobe. Volle Kosten nur beim schlichten Erfolg;
+ * misslungene Proben kosten laut Regelwerk „die Hälfte der Astralenergie", ein
+ * kritischer Erfolg ebenfalls. Ohne Rundungsregel im Buch wird aufgerundet — das ist
+ * die verbreitete Auslegung und für den Helden die teurere, also die sichere.
+ */
+export const spellAspCost = (cost: number, result: TalentCheckResult): number => {
+  const base = Math.max(0, Math.round(cost));
+  const halved = result.special === 'krit' || !result.success;
+  return halved ? Math.ceil(base / 2) : base;
+};
+
+/** Jeder aufrechterhaltene Zauber erschwert alle weiteren Zauberproben um 1. */
+export const upkeepModifier = (activeCount: number): number =>
+  -Math.max(0, Math.trunc(activeCount)) || 0;
