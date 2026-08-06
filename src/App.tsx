@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Toaster } from '@/components/ui/sonner';
 import TalentRoll from './components/TalentRoll';
@@ -7,19 +9,32 @@ import ThemeToggle from './components/ThemeToggle';
 import Character from './components/Character';
 import Combat from './components/Combat';
 import HeroBar from './components/HeroBar';
-import { Scroll, Dices, History, User, Swords } from 'lucide-react';
+import type { RootState } from '@/store';
+import { Scroll, Dices, History, User, Swords, Wand2 } from 'lucide-react';
 
 // Talent und Kampf stehen bewusst nebeneinander — dazwischen wird am Tisch am
-// häufigsten gewechselt.
-const tabs = [
+// häufigsten gewechselt. Magie sitzt daneben, weil ein Magier zwischen Zauber und
+// Kampf genauso oft springt.
+const allTabs = [
   { value: 'talentRoll', label: 'Talent', icon: Scroll },
   { value: 'combat', label: 'Kampf', icon: Swords },
+  { value: 'spellRoll', label: 'Magie', icon: Wand2, magic: true },
   { value: 'simpleRoll', label: 'Einzel', icon: Dices },
   { value: 'history', label: 'Historie', icon: History },
   { value: 'character', label: 'Held', icon: User },
 ];
 
 function App() {
+  const isSpellcaster = useSelector((state: RootState) => state.spellbook.isSpellcaster);
+  const tabs = allTabs.filter(tab => !tab.magic || isSpellcaster);
+
+  const [tab, setTab] = useState('talentRoll');
+
+  // Der Magie-Tab kann verschwinden, während er offen ist.
+  useEffect(() => {
+    if (!isSpellcaster && tab === 'spellRoll') setTab('talentRoll');
+  }, [isSpellcaster, tab]);
+
   return (
     <>
       {/* Aventurian Gradient Background */}
@@ -45,8 +60,10 @@ function App() {
         {/* Main Content */}
         <main className="container mx-auto flex-1 flex flex-col items-center">
           <div className='w-full max-w-6xl'>
-            <Tabs defaultValue="talentRoll" className="w-full">
-              <TabsList className="grid w-full grid-cols-5 h-auto mb-4 bg-aventurian-100 dark:bg-aventurian-800">
+            <Tabs value={tab} onValueChange={setTab} className="w-full">
+              <TabsList
+                className={`grid w-full ${tabs.length === 6 ? 'grid-cols-6' : 'grid-cols-5'} h-auto mb-4 bg-aventurian-100 dark:bg-aventurian-800`}
+              >
                 {tabs.map(({ value, label, icon: Icon }) => (
                   <TabsTrigger
                     key={value}
@@ -68,6 +85,11 @@ function App() {
               <TabsContent value="combat" className="mt-0">
                 <Combat />
               </TabsContent>
+              {isSpellcaster && (
+                <TabsContent value="spellRoll" className="mt-0">
+                  <p className="text-center text-muted-foreground">Magie-Tab folgt.</p>
+                </TabsContent>
+              )}
               <TabsContent value="simpleRoll" className="mt-0">
                 <SimpleRoll />
               </TabsContent>

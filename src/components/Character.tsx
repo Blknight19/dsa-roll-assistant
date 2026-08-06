@@ -5,16 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PropertyNumber from './PropertyNumber';
 import ImportExportSettings from './ImportExportSettings';
 import RulesSettings from './RulesSettings';
+import HeroSettings from './HeroSettings';
 import TalentRow from './TalentRow';
 import type { RootState } from '@/store';
 import { ATTRIBUTE_KEYS, ATTRIBUTE_MAX, ATTRIBUTE_MIN, setAttribute } from '@/store/attributesSlice';
 import { updateTalent } from '@/store/talentsSlice';
-import { User, Sparkles, Settings } from 'lucide-react';
+import { User, Sparkles, Settings, BookOpen } from 'lucide-react';
 
 const Character = () => {
 	const dispatch = useDispatch();
 	const attributes = useSelector((state: RootState) => state.attributes);
 	const talents = useSelector((state: RootState) => state.talents.talents);
+	const isSpellcaster = useSelector((state: RootState) => state.spellbook.isSpellcaster);
 
 	const handleTalentChange = useCallback(
 		(id: string, value: number) => { dispatch(updateTalent({ id, value })); },
@@ -24,7 +26,7 @@ const Character = () => {
 	return (
 		<div className="w-full max-w-6xl mx-auto">
 			<Tabs defaultValue="attributes" className="w-full">
-				<TabsList className="grid w-full grid-cols-3 h-auto mb-6">
+				<TabsList className={`grid w-full ${isSpellcaster ? 'grid-cols-4' : 'grid-cols-3'} h-auto mb-6`}>
 					<TabsTrigger value="attributes" className="font-heading flex flex-col items-center gap-1 py-2" aria-label="Eigenschaften">
 						<User className="w-4 h-4" />
 						<span className="text-[10px] sm:text-xs leading-none">Eigenschaften</span>
@@ -33,6 +35,12 @@ const Character = () => {
 						<Sparkles className="w-4 h-4" />
 						<span className="text-[10px] sm:text-xs leading-none">Talente</span>
 					</TabsTrigger>
+					{isSpellcaster && (
+						<TabsTrigger value="spellbook" className="font-heading flex flex-col items-center gap-1 py-2" aria-label="Zauberbuch">
+							<BookOpen className="w-4 h-4" />
+							<span className="text-[10px] sm:text-xs leading-none">Zauberbuch</span>
+						</TabsTrigger>
+					)}
 					<TabsTrigger value="settings" className="font-heading flex flex-col items-center gap-1 py-2" aria-label="Einstellungen">
 						<Settings className="w-4 h-4" />
 						<span className="text-[10px] sm:text-xs leading-none">Einstellungen</span>
@@ -107,9 +115,16 @@ const Character = () => {
 					</Card>
 				</TabsContent>
 
+				{isSpellcaster && (
+					<TabsContent value="spellbook">
+						<p className="text-center text-muted-foreground">Zauberbuch folgt.</p>
+					</TabsContent>
+				)}
+
 				{/* Einstellungen */}
 				<TabsContent value='settings'>
 					<div className="space-y-6 max-w-2xl mx-auto">
+						<HeroSettings />
 						<RulesSettings />
 						<ImportExportSettings />
 					</div>
