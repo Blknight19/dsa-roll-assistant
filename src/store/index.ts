@@ -9,6 +9,7 @@ import { profileReducer } from './profileSlice';
 import { combatRollReducer } from './combatRollSlice';
 import { simpleRollReducer } from './simpleRollSlice';
 import { loadState, saveState } from './persistence';
+import { initialSpellbookState } from './spellbookSlice';
 
 const rootReducer = combineReducers({
 	profile: profileReducer,
@@ -46,7 +47,9 @@ export const cancelPendingSave = () => {
 const flushSave = () => {
 	if (!hasUnsavedChanges) return;
 	cancelPendingSave();
-	saveState(store.getState());
+	// Der Reducer für `spellbook` wird erst in Task 4 in den Store eingehängt —
+	// bis dahin speichert dieser Pfad ein leeres Zauberbuch mit ab.
+	saveState({ ...store.getState(), spellbook: initialSpellbookState });
 };
 
 store.subscribe(() => {
