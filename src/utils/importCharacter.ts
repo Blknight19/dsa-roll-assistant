@@ -11,6 +11,7 @@ import {
 import { setCharacterName } from '@/store/profileSlice';
 import { setHistory } from '@/store/rollSlice';
 import { setConfirmCriticals } from '@/store/settingsSlice';
+import { setSpellbook } from '@/store/spellbookSlice';
 import { updateTalent } from '@/store/talentsSlice';
 
 /** Eine Charakterdatei ist ein paar Kilobyte groß; alles darüber ist keine. */
@@ -65,6 +66,7 @@ export const importCharacter = async (file: File): Promise<boolean> => {
 		dispatch(updateCombatStat({ key, value: imported.combat[key] }));
 	}
 	dispatch(updateLifeStat(imported.combat.life));
+	dispatch(setSpellbook(imported.spellbook));
 	dispatch(setHistory(imported.roll.history));
 	dispatch(setConfirmCriticals(imported.settings.confirmCriticals));
 

@@ -1,6 +1,5 @@
 import { store } from '@/store';
 import { toPersisted } from '@/store/persistence';
-import { initialSpellbookState } from '@/store/spellbookSlice';
 
 /** Charaktername als Dateiname, auf Zeichen reduziert, die jedes Dateisystem verträgt. */
 const fileNameFor = (name: string): string => {
@@ -12,10 +11,8 @@ const fileNameFor = (name: string): string => {
 };
 
 export const exportCharacter = () => {
-	const { profile, attributes, talents, combat, roll, settings } = store.getState();
-	// Der Reducer für `spellbook` wird erst in Task 4 in den Store eingehängt —
-	// bis dahin exportiert diese Funktion ein leeres Zauberbuch.
-	const snapshot = toPersisted({ profile, attributes, talents, combat, spellbook: initialSpellbookState, roll, settings });
+	const { profile, attributes, talents, combat, spellbook, roll, settings } = store.getState();
+	const snapshot = toPersisted({ profile, attributes, talents, combat, spellbook, roll, settings });
 
 	// `toPersisted` trägt die Version schon — Datei und localStorage teilen ein Format.
 	const payload = JSON.stringify(snapshot, null, 2);

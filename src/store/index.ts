@@ -9,7 +9,8 @@ import { profileReducer } from './profileSlice';
 import { combatRollReducer } from './combatRollSlice';
 import { simpleRollReducer } from './simpleRollSlice';
 import { loadState, saveState } from './persistence';
-import { initialSpellbookState } from './spellbookSlice';
+import { spellbookReducer } from './spellbookSlice';
+import { spellRollReducer } from './spellRollSlice';
 
 const rootReducer = combineReducers({
 	profile: profileReducer,
@@ -17,11 +18,13 @@ const rootReducer = combineReducers({
 	talents: talentReducer,
 	attributes: attributeReducer,
 	combat: combatReducer,
+	spellbook: spellbookReducer,
 	settings: settingsReducer,
 	// Laufende Wurf-Eingaben: bewusst nicht persistiert, aber im Store, damit sie
 	// den Unmount der Radix-Tab-Panels überleben.
 	probe: probeReducer,
 	combatRoll: combatRollReducer,
+	spellRoll: spellRollReducer,
 	simpleRoll: simpleRollReducer
 });
 
@@ -47,9 +50,7 @@ export const cancelPendingSave = () => {
 const flushSave = () => {
 	if (!hasUnsavedChanges) return;
 	cancelPendingSave();
-	// Der Reducer für `spellbook` wird erst in Task 4 in den Store eingehängt —
-	// bis dahin speichert dieser Pfad ein leeres Zauberbuch mit ab.
-	saveState({ ...store.getState(), spellbook: initialSpellbookState });
+	saveState(store.getState());
 };
 
 store.subscribe(() => {
