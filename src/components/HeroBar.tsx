@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Input } from '@/components/ui/input';
 import type { RootState } from '@/store';
-import { lifeFillPercent } from '@/store/combatSlice';
 import { CHARACTER_NAME_MAX, setCharacterName } from '@/store/profileSlice';
 import { Pencil, User } from 'lucide-react';
+import ResourceBar from './ResourceBar';
 
 /**
  * Name und Lebensenergie auf jedem Tab. Die LeP lag früher am Ende des Kampf-Tabs —
@@ -14,14 +14,12 @@ const HeroBar = () => {
 	const dispatch = useDispatch();
 	const name = useSelector((state: RootState) => state.profile.name);
 	const life = useSelector((state: RootState) => state.combat.life);
+	const asp = useSelector((state: RootState) => state.spellbook.asp);
+	const isSpellcaster = useSelector((state: RootState) => state.spellbook.isSpellcaster);
 	const [editing, setEditing] = useState(false);
 
-	const ratio = (life.current / life.max) * 100;
-	const width = lifeFillPercent(life);
-	const fill = ratio > 66 ? 'bg-success' : ratio > 33 ? 'bg-amber-500' : 'bg-failure';
-
 	return (
-		<div className="mb-6 flex items-center gap-3 rounded-lg border border-aventurian-300 bg-card px-4 py-3 dark:border-aventurian-700">
+		<div className="mb-6 flex flex-wrap items-center gap-3 rounded-lg border border-aventurian-300 bg-card px-4 py-3 dark:border-aventurian-700">
 			{editing ? (
 				<Input
 					autoFocus
@@ -51,28 +49,11 @@ const HeroBar = () => {
 				</button>
 			)}
 
-			<div className="ml-auto flex items-center gap-3">
-				<span className="text-[0.65rem] font-semibold uppercase tracking-widest text-muted-foreground">
-					LeP
-				</span>
-				<div
-					className="relative h-4 w-24 overflow-hidden rounded-full border border-aventurian-400 bg-muted sm:w-36 dark:border-aventurian-600"
-					role="img"
-					aria-label={`Lebensenergie ${life.current} von ${life.max}`}
-				>
-					<div className={`h-full ${fill} transition-all duration-500`} style={{ width: `${width}%` }} />
-					{/* Schwellen der Schmerzstufen bei ¼, ½ und ¾ */}
-					{[25, 50, 75].map((mark) => (
-						<div
-							key={mark}
-							className="absolute top-0 h-full w-px bg-foreground/25"
-							style={{ left: `${mark}%` }}
-						/>
-					))}
-				</div>
-				<span className="whitespace-nowrap font-heading text-sm font-semibold tabular-nums">
-					{life.current} / {life.max}
-				</span>
+			<div className="ml-auto flex flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-4">
+				<ResourceBar label="LeP" current={life.current} max={life.max} tone="life" className="w-24 sm:w-36" />
+				{isSpellcaster && (
+					<ResourceBar label="AsP" current={asp.current} max={asp.max} tone="astral" className="w-24 sm:w-36" />
+				)}
 			</div>
 		</div>
 	);

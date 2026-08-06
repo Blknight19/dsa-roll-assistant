@@ -52,17 +52,17 @@ export const clampLife = ({ current, max }: LifeState): LifeState => {
 	};
 };
 
-/** Sichtbarer Rest-Streifen, solange der Held nicht bei 0 liegt. */
-export const LIFE_MIN_FILL_PERCENT = 4;
+/** Sichtbarer Rest-Streifen, solange der Wert nicht bei 0 liegt. */
+export const MIN_FILL_PERCENT = 4;
 
 /**
- * Breite des Lebensbalkens in Prozent. Bei wenigen LeP bliebe der Balken sonst
- * unsichtbar — 1 LeP und 0 LeP sähen gleich aus. Nur für die Darstellung; die
+ * Breite eines Ressourcenbalkens in Prozent. Bei wenigen Punkten bliebe der Balken
+ * sonst unsichtbar — 1 LeP und 0 LeP sähen gleich aus. Nur für die Darstellung; die
  * Farbschwellen richten sich weiter nach dem exakten Verhältnis.
  */
-export const lifeFillPercent = ({ current, max }: LifeState): number => {
+export const fillPercent = (current: number, max: number): number => {
 	if (current <= 0 || max <= 0) return 0;
-	return Math.min(100, Math.max(LIFE_MIN_FILL_PERCENT, (current / max) * 100));
+	return Math.min(100, Math.max(MIN_FILL_PERCENT, (current / max) * 100));
 };
 
 const combatSlice = createSlice({

@@ -9,7 +9,7 @@ import type { RootState } from '@/store';
 import {
 	COMBAT_STAT_MAX,
 	LIFE_MAX,
-	lifeFillPercent,
+	fillPercent,
 	updateCombatStat,
 	updateLifeStat,
 	type CombatStatKey
@@ -132,7 +132,7 @@ const Combat = () => {
 	// Farbe nach dem exakten Verhältnis, Breite mit Mindest-Streifen — sonst
 	// würde der Streifen bei sehr wenig LeP die Farbschwelle verfälschen.
 	const lifeRatio = (combat.life.current / combat.life.max) * 100;
-	const lifeWidth = lifeFillPercent(combat.life);
+	const lifeWidth = fillPercent(combat.life.current, combat.life.max);
 	const healthColor =
 		lifeRatio > 66 ? 'bg-success' : lifeRatio > 33 ? 'bg-amber-500' : 'bg-failure';
 
