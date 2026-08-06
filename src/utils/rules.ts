@@ -105,4 +105,5 @@ export const spellAspCost = (cost: number, result: TalentCheckResult): number =>
 
 /** Jeder aufrechterhaltene Zauber erschwert alle weiteren Zauberproben um 1. */
 export const upkeepModifier = (activeCount: number): number =>
+  // `|| 0` normalisiert -0 zu +0, da `toBe` in Tests mit Object.is vergleicht.
   -Math.max(0, Math.trunc(activeCount)) || 0;
