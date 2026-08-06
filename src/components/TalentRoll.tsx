@@ -3,10 +3,10 @@ import { nanoid } from '@reduxjs/toolkit';
 import { useDispatch, useSelector } from 'react-redux';
 import { roll3D20 } from '@/utils/dice';
 import { evaluateTalentCheck } from '@/utils/rules';
-import { modifierTerm, signedModifier } from '@/utils/format';
+import { signedModifier } from '@/utils/format';
 import PropertyNumber from './PropertyNumber';
 import RollBar from './RollBar';
-import RollResultCard, { type ResultDie } from './RollResultCard';
+import CheckResultCard, { checkSummary } from './CheckResultCard';
 import { addRoll } from '@/store/rollSlice';
 import { TALENT_VALUE_MAX, updateTalent } from '@/store/talentsSlice';
 import {
@@ -42,19 +42,7 @@ import {
 	ATTRIBUTE_MIN,
 	type AttributeKey
 } from '@/store/attributesSlice';
-import { ChevronDown, Dices, Sparkles, Skull, Pencil, Check } from 'lucide-react';
-
-const dieTone = (value: number): ResultDie['tone'] => {
-	if (value === 1) return 'critical';
-	if (value === 20) return 'failure';
-	return 'default';
-};
-
-const summaryOf = (roll: ProbeRoll): string => {
-	if (roll.result.special === 'krit') return `Kritischer Erfolg, Qualitätsstufe ${roll.result.qs}`;
-	if (roll.result.special === 'patzer') return 'Patzer';
-	return roll.result.success ? `Erfolg, Qualitätsstufe ${roll.result.qs}` : 'Misslungen';
-};
+import { ChevronDown, Dices, Pencil, Check } from 'lucide-react';
 
 const TalentRoll = () => {
 	const dispatch = useDispatch();
@@ -262,67 +250,13 @@ const TalentRoll = () => {
 
 	const result = lastRoll && (
 		<div ref={resultRef}>
-			<RollResultCard
-				tone={
-					lastRoll.result.special === 'krit' ? 'critical' :
-					lastRoll.result.success ? 'success' : 'failure'
-				}
-				title={
-					lastRoll.result.special === 'krit' ? 'Kritischer Erfolg!' :
-					lastRoll.result.special === 'patzer' ? 'Patzer!' :
-					`${lastRoll.talentName}${lastRoll.result.success ? ' — Erfolg' : ' — Misslungen'}`
-				}
-				icon={
-					lastRoll.result.special === 'krit' ? <Sparkles className="h-6 w-6 animate-glow" /> :
-					lastRoll.result.special === 'patzer' ? <Skull className="h-6 w-6 shake-error" /> :
-					undefined
-				}
-				hero={
-					lastRoll.result.success
-						? {
-							value: lastRoll.result.qs,
-							caption: 'Qualitätsstufe',
-							// Ein Krit gelingt auch mit negativen FP — „−2 FP übrig" unter
-							// einem Erfolg zu zeigen wäre irreführend.
-							note: lastRoll.result.fp >= 0
-								? `${lastRoll.result.fp} FP übrig`
-								: 'ohne FP-Reserve gelungen'
-						}
-						: {
-							value: lastRoll.result.fp,
-							caption: 'Fertigkeitspunkte',
-							note: lastRoll.result.special === 'patzer'
-								? 'Zwei Zwanzigen — die Probe misslingt unabhängig von den FP.'
-								: undefined
-						}
-				}
-				dice={lastRoll.result.dice.map(value => ({ value, tone: dieTone(value) }))}
-				consequence={
-					lastRoll.result.special === 'krit'
-						? 'Zwei Einsen — die Probe gelingt unabhängig von den FP.'
-						: undefined
-				}
-				details={
-					<div className="grid gap-2 rounded-lg bg-background/50 p-4 text-sm">
-						{lastRoll.entries.map((entry, index) => (
-							<div className="flex justify-between gap-4" key={index}>
-								<span>
-									{entry.attribute}: {entry.value}{modifierTerm(lastRoll.modifier)} − {lastRoll.result.dice[index]}
-								</span>
-								<span className="font-semibold tabular-nums">
-									{lastRoll.result.perDieShortfall[index]}
-								</span>
-							</div>
-						))}
-						<div className="mt-1 flex justify-between gap-4 border-t border-border pt-2 font-semibold">
-							<span>
-								Talentwert {lastRoll.taw} − Verluste{' '}
-								{Math.abs(lastRoll.result.perDieShortfall.reduce((sum, value) => sum + value, 0))}
-							</span>
-							<span className="tabular-nums">= {lastRoll.result.fp}</span>
-						</div>
-					</div>
-				}
+			<CheckResultCard
+				name={lastRoll.talentName}
+				entries={lastRoll.entries}
+				modifier={lastRoll.modifier}
+				taw={lastRoll.taw}
+				tawLabel="Talentwert"
+				result={lastRoll.result}
 			/>
 		</div>
 	);
@@ -339,7 +273,7 @@ const TalentRoll = () => {
 	return (
 		<div className="mx-auto w-full max-w-6xl lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
 			<div aria-live="polite" className="sr-only">
-				{lastRoll ? summaryOf(lastRoll) : ''}
+				{lastRoll ? checkSummary(lastRoll.talentName, lastRoll.result) : ''}
 			</div>
 
 			{/* Ergebnis: auf dem Handy über der Eingabe, auf dem Desktop rechts daneben
