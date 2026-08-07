@@ -14,19 +14,20 @@ export type SpellRoll = {
 	taw: number;
 	/** Tatsächlich gebuchte AsP — der Rückgängig-Knopf bucht genau diese zurück. */
 	aspSpent: number;
-	/** Wirkungsdauer aus dem Zauberbuch; „sofort" verhindert das Aufrechterhalten. */
+	/** Wirkungsdauer zum Zeitpunkt des Wurfs; nur „aufrechterhaltend" bindet Konzentration. */
 	duration?: string;
 	result: TalentCheckResult;
 };
 
+/**
+ * Bewusst nur die Auswahl, nicht die Werte des Zaubers: Fertigkeitswert, Kosten,
+ * Eigenschaften und Wirkungsdauer liest die Ansicht bei jedem Render frisch aus dem
+ * Zauberbuch. Ein hier abgelegter Schnappschuss würde veralten, sobald der Spieler im
+ * Charakterbogen den FW anhebt, den Zauber löscht oder einen Charakter importiert.
+ */
 export type SpellRollState = {
 	spellId: string | null;
-	spellName: string;
-	entries: SpellEntry[];
 	modifier: number;
-	taw: number;
-	cost: number;
-	duration?: string;
 	lastRoll: SpellRoll | null;
 	/** Ob die AsP des letzten Wurfs noch gebucht sind — schaltet den Rückgängig-Knopf. */
 	lastRollBooked: boolean;
@@ -34,16 +35,7 @@ export type SpellRollState = {
 
 const initialState: SpellRollState = {
 	spellId: null,
-	spellName: '',
-	entries: [
-		{ attribute: 'KL', value: 8 },
-		{ attribute: 'IN', value: 8 },
-		{ attribute: 'IN', value: 8 }
-	],
 	modifier: 0,
-	taw: 0,
-	cost: 0,
-	duration: undefined,
 	lastRoll: null,
 	lastRollBooked: false
 };
@@ -52,27 +44,14 @@ const spellRollSlice = createSlice({
 	name: 'spellRoll',
 	initialState,
 	reducers: {
-		selectSpell: (state, action: PayloadAction<{
-			id: string; name: string; entries: SpellEntry[]; taw: number; cost: number; duration?: string;
-		}>) => {
-			state.spellId = action.payload.id;
-			state.spellName = action.payload.name;
-			state.entries = action.payload.entries;
-			state.taw = action.payload.taw;
-			state.cost = action.payload.cost;
-			state.duration = action.payload.duration;
+		selectSpell: (state, action: PayloadAction<string>) => {
+			state.spellId = action.payload;
 			// Sonst steht das Ergebnis des vorigen Zaubers über der neuen Auswahl.
 			state.lastRoll = null;
 			state.lastRollBooked = false;
 		},
 		setSpellModifier: (state, action: PayloadAction<number>) => {
 			state.modifier = action.payload;
-		},
-		setSpellTaw: (state, action: PayloadAction<number>) => {
-			state.taw = action.payload;
-		},
-		setSpellCost: (state, action: PayloadAction<number>) => {
-			state.cost = action.payload;
 		},
 		setSpellLastRoll: (state, action: PayloadAction<SpellRoll>) => {
 			state.lastRoll = action.payload;
@@ -88,8 +67,6 @@ const spellRollSlice = createSlice({
 export const {
 	selectSpell,
 	setSpellModifier,
-	setSpellTaw,
-	setSpellCost,
 	setSpellLastRoll,
 	markLastRollRefunded
 } = spellRollSlice.actions;

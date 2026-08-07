@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { nanoid } from '@reduxjs/toolkit';
 import { roll3D20 } from '@/utils/dice';
-import { evaluateTalentCheck, spellAspCost, upkeepModifier } from '@/utils/rules';
+import { canSustain, evaluateTalentCheck, spellAspCost, upkeepModifier } from '@/utils/rules';
 import { signedModifier } from '@/utils/format';
 import RollBar from './RollBar';
 import CheckResultCard, { checkSummary } from './CheckResultCard';
@@ -24,22 +24,26 @@ import {
 	type SpellRoll as SpellRollSnapshot
 } from '@/store/spellRollSlice';
 import type { RootState } from '@/store';
-import { ChevronDown, RotateCcw, Sparkle, Timer, Wand2, X } from 'lucide-react';
+import { ChevronDown, Info, RotateCcw, Sparkle, StickyNote, Timer, Wand2, X } from 'lucide-react';
 
 /** Begründung der Buchung — die halbe Zahl allein wirkt sonst wie ein Fehler. */
 const costNote = (roll: SpellRollSnapshot): string => {
+	// Formelzauber stehen im Zauberbuch bei 0 AsP, bis der Spieler die Zahl einträgt.
+	// „−0 AsP" sähe nach einem Fehler aus, obwohl schlicht nichts gebucht wurde.
+	if (roll.aspSpent === 0) return 'keine AsP gebucht';
 	if (roll.result.special === 'krit') return `−${roll.aspSpent} AsP (halbe Kosten, kritischer Erfolg)`;
 	if (!roll.result.success) return `−${roll.aspSpent} AsP (halbe Kosten, Probe misslungen)`;
 	return `−${roll.aspSpent} AsP`;
 };
 
-/**
- * „sofort" wirkende Zauber lassen sich nicht aufrechterhalten. Fehlt die Angabe
- * (selbst eingetragener Zauber), bleibt der Knopf erlaubt — die App weiß es nicht
- * besser als der Spieler.
- */
-const canSustain = (duration?: string): boolean =>
-	duration === undefined || !/^\s*sofort\s*$/i.test(duration);
+/** Dieselbe Aussage in Worten — die Vorlesehilfe spricht kein „−". */
+const spokenBooking = (roll: SpellRollSnapshot, booked: boolean): string => {
+	if (!booked) return `Buchung zurückgenommen, ${roll.aspSpent} AsP erstattet`;
+	if (roll.aspSpent === 0) return 'keine AsP gebucht';
+	if (roll.result.special === 'krit') return `${roll.aspSpent} AsP gebucht, halbe Kosten bei kritischem Erfolg`;
+	if (!roll.result.success) return `${roll.aspSpent} AsP gebucht, halbe Kosten bei misslungener Probe`;
+	return `${roll.aspSpent} AsP gebucht`;
+};
 
 const SpellRoll = () => {
 	const dispatch = useDispatch();
@@ -49,11 +53,25 @@ const SpellRoll = () => {
 
 	const [pickerOpen, setPickerOpen] = useState(false);
 
+	// Der Zauber wird bei jedem Render frisch aus dem Zauberbuch geholt, nicht beim
+	// Auswählen kopiert: sonst zeigt und würfelt dieser Tab weiter den alten FW,
+	// nachdem er im Charakterbogen angehoben wurde.
+	const spell = spellRoll.spellId !== null
+		? spells.find(entry => entry.id === spellRoll.spellId)
+		: undefined;
+	// Ausgewählt, aber nicht mehr im Buch: gelöscht oder durch einen Import ersetzt.
+	const selectionLost = spellRoll.spellId !== null && spell === undefined;
+
+	const entries = spell
+		? spell.attributes.map(attribute => ({ attribute, value: attributes[attribute] }))
+		: [];
+	const cost = spell?.cost ?? 0;
+
 	const lastRoll = spellRoll.lastRoll;
 	const auto = upkeepModifier(upkeep.length);
 	const totalModifier = spellRoll.modifier + auto;
-	const canAfford = spellRoll.cost <= asp.current;
-	const ready = spellRoll.spellId !== null && canAfford;
+	const canAfford = cost <= asp.current;
+	const ready = spell !== undefined && canAfford;
 
 	const resultRef = useRef<HTMLDivElement>(null);
 	const previousRoll = useRef(lastRoll);
@@ -65,33 +83,25 @@ const SpellRoll = () => {
 	}, [lastRoll]);
 
 	const pick = (spellId: string) => {
-		const spell = spells.find(entry => entry.id === spellId);
-		if (!spell) return;
-		dispatch(selectSpell({
-			id: spell.id,
-			name: spell.name,
-			entries: spell.attributes.map(attribute => ({ attribute, value: attributes[attribute] })),
-			taw: spell.value,
-			cost: spell.cost,
-			duration: spell.duration
-		}));
+		dispatch(selectSpell(spellId));
 		setPickerOpen(false);
 	};
 
 	const cast = () => {
+		if (!spell) return;
 		const dice = roll3D20();
-		const attrs = spellRoll.entries.map(entry => entry.value) as [number, number, number];
-		const result = evaluateTalentCheck(attrs, spellRoll.taw, totalModifier, dice);
-		const aspSpent = spellAspCost(spellRoll.cost, result);
+		const attrs = entries.map(entry => entry.value) as [number, number, number];
+		const result = evaluateTalentCheck(attrs, spell.value, totalModifier, dice);
+		const aspSpent = spellAspCost(spell.cost, result);
 
 		const snapshot: SpellRollSnapshot = {
-			spellId: spellRoll.spellId!,
-			spellName: spellRoll.spellName,
-			entries: spellRoll.entries.map(entry => ({ ...entry })),
+			spellId: spell.id,
+			spellName: spell.name,
+			entries: entries.map(entry => ({ ...entry })),
 			modifier: totalModifier,
-			taw: spellRoll.taw,
+			taw: spell.value,
 			aspSpent,
-			duration: spellRoll.duration,
+			duration: spell.duration,
 			result
 		};
 
@@ -107,7 +117,7 @@ const SpellRoll = () => {
 			id: nanoid(),
 			type: 'Zauber',
 			values: [...result.dice],
-			result: `${special}${spellRoll.spellName}: ${result.fp} FP ${outcome} [Mod ${signedModifier(totalModifier)}, −${aspSpent} AsP]`,
+			result: `${special}${spell.name}: ${result.fp} FP ${outcome} [Mod ${signedModifier(totalModifier)}, −${aspSpent} AsP]`,
 			date: new Date().toISOString()
 		}));
 	};
@@ -121,7 +131,7 @@ const SpellRoll = () => {
 	const alreadySustained = lastRoll !== null && upkeep.some(entry => entry.spellName === lastRoll.spellName);
 
 	const sustain = () => {
-		if (!lastRoll) return;
+		if (!lastRoll || !spellRoll.lastRollBooked || !canSustain(lastRoll.duration)) return;
 		dispatch(addUpkeep({ id: nanoid(), spellName: lastRoll.spellName, qs: lastRoll.result.qs }));
 	};
 
@@ -143,7 +153,7 @@ const SpellRoll = () => {
 								aria-label="Zauber wählen"
 								disabled={spells.length === 0}
 							>
-								{spellRoll.spellName || (spells.length === 0 ? 'Zauberbuch ist leer' : 'Zauber wählen…')}
+								{spell?.name ?? (spells.length === 0 ? 'Zauberbuch ist leer' : 'Zauber wählen…')}
 								<ChevronDown className="opacity-50" />
 							</Button>
 						</PopoverTrigger>
@@ -153,10 +163,15 @@ const SpellRoll = () => {
 								<CommandList>
 									<CommandEmpty>Kein Zauber gefunden</CommandEmpty>
 									<CommandGroup>
-										{spells.map(spell => (
-											<CommandItem key={spell.id} onSelect={() => pick(spell.id)} className="font-body">
-												{spell.name}
-												<span className="ml-auto text-xs text-muted-foreground">{spell.cost} AsP</span>
+										{spells.map(entry => (
+											<CommandItem key={entry.id} onSelect={() => pick(entry.id)} className="font-body">
+												<div className="min-w-0 flex-1">
+													<div>{entry.name}</div>
+													{entry.probeNote && (
+														<div className="truncate text-xs text-muted-foreground">{entry.probeNote}</div>
+													)}
+												</div>
+												<span className="ml-2 text-xs text-muted-foreground">{entry.cost} AsP</span>
 											</CommandItem>
 										))}
 									</CommandGroup>
@@ -171,10 +186,16 @@ const SpellRoll = () => {
 						</p>
 					)}
 
-					{spellRoll.spellId && (
+					{selectionLost && (
+						<p className="text-sm font-semibold text-failure-dark dark:text-failure-light">
+							Der gewählte Zauber steht nicht mehr im Zauberbuch. Wähle einen anderen.
+						</p>
+					)}
+
+					{spell && (
 						<>
 							<div className="flex flex-wrap items-center gap-2">
-								{spellRoll.entries.map((entry, index) => (
+								{entries.map((entry, index) => (
 									<span
 										key={index}
 										className="rounded-lg bg-aventurian-100/60 px-3 py-2 font-heading text-sm dark:bg-aventurian-800/60"
@@ -183,17 +204,31 @@ const SpellRoll = () => {
 									</span>
 								))}
 								<span className="rounded-lg bg-aventurian-100/60 px-3 py-2 font-heading text-sm dark:bg-aventurian-800/60">
-									FW <span className="font-bold">{spellRoll.taw}</span>
+									FW <span className="font-bold">{spell.value}</span>
 								</span>
 							</div>
 
+							{spell.probeNote && (
+								<p className="flex items-start gap-2 text-sm text-magic-dark dark:text-magic-light">
+									<Info className="mt-0.5 h-4 w-4 shrink-0" />
+									<span>Probe {spell.probeNote}</span>
+								</p>
+							)}
+
+							{spell.note && (
+								<p className="flex items-start gap-2 text-sm text-muted-foreground">
+									<StickyNote className="mt-0.5 h-4 w-4 shrink-0" />
+									<span className="whitespace-pre-wrap">{spell.note}</span>
+								</p>
+							)}
+
 							<div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
 								<span className="font-heading text-sm">
-									Kosten <span className="font-bold text-magic-dark dark:text-magic-light">{spellRoll.cost} AsP</span>
+									Kosten <span className="font-bold text-magic-dark dark:text-magic-light">{cost} AsP</span>
 								</span>
 								<span className={`text-sm ${canAfford ? 'text-muted-foreground' : 'font-semibold text-failure-dark dark:text-failure-light'}`}>
 									{canAfford
-										? `→ ${asp.current - spellRoll.cost} AsP übrig`
+										? `→ ${asp.current - cost} AsP übrig`
 										: `Nicht genug AsP (${asp.current} vorhanden)`}
 								</span>
 							</div>
@@ -318,7 +353,10 @@ const SpellRoll = () => {
 								AsP zurückbuchen
 							</Button>
 						)}
-						{lastRoll.result.success && canSustain(lastRoll.duration) && !alreadySustained && (
+						{/* Nach einer zurückgenommenen Buchung gilt der Zauber als nicht gewirkt —
+						    dann darf er auch nicht in die laufenden Zauber wandern. */}
+						{spellRoll.lastRollBooked && lastRoll.result.success
+							&& canSustain(lastRoll.duration) && !alreadySustained && (
 							<Button variant="outline" size="sm" onClick={sustain}>
 								<Timer className="mr-1 h-4 w-4" />
 								Aufrechterhalten
@@ -347,8 +385,12 @@ const SpellRoll = () => {
 
 	return (
 		<div className="mx-auto w-full max-w-6xl lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+			{/* Die AsP-Buchung gehört mit in die Ansage: sie ist das, was dieser Tab
+			    gegenüber der Talentprobe zusätzlich tut. */}
 			<div aria-live="polite" className="sr-only">
-				{lastRoll ? checkSummary(lastRoll.result) : ''}
+				{lastRoll
+					? `${checkSummary(lastRoll.result)}. ${spokenBooking(lastRoll, spellRoll.lastRollBooked)}.`
+					: ''}
 			</div>
 
 			<div className="lg:sticky lg:top-24 lg:order-2">
@@ -358,7 +400,7 @@ const SpellRoll = () => {
 						<CardContent className="flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
 							<Wand2 className="h-8 w-8 opacity-50" />
 							<p className="text-sm">
-								{spellRoll.spellName ? 'Das Ergebnis erscheint hier.' : 'Wähle einen Zauber, um zu wirken.'}
+								{spell ? 'Das Ergebnis erscheint hier.' : 'Wähle einen Zauber, um zu wirken.'}
 							</p>
 						</CardContent>
 					</Card>
