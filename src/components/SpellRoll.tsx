@@ -6,6 +6,8 @@ import { evaluateTalentCheck, spellAspCost, upkeepModifier } from '@/utils/rules
 import { signedModifier } from '@/utils/format';
 import RollBar from './RollBar';
 import CheckResultCard, { checkSummary } from './CheckResultCard';
+import PropertyNumber from './PropertyNumber';
+import ResourceBar from './ResourceBar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -13,7 +15,7 @@ import {
 } from '@/components/ui/command';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { addRoll } from '@/store/rollSlice';
-import { changeAsp } from '@/store/spellbookSlice';
+import { ASP_MAX, changeAsp, setAsp } from '@/store/spellbookSlice';
 import {
 	markLastRollRefunded,
 	selectSpell,
@@ -22,7 +24,7 @@ import {
 	type SpellRoll as SpellRollSnapshot
 } from '@/store/spellRollSlice';
 import type { RootState } from '@/store';
-import { ChevronDown, RotateCcw, Wand2 } from 'lucide-react';
+import { ChevronDown, RotateCcw, Sparkle, Wand2 } from 'lucide-react';
 
 /** Begründung der Buchung — die halbe Zahl allein wirkt sonst wie ein Fehler. */
 const costNote = (roll: SpellRollSnapshot): string => {
@@ -109,79 +111,138 @@ const SpellRoll = () => {
 	};
 
 	const setup = (
-		<Card variant="parchment">
-			<CardHeader>
-				<CardTitle className="text-lg">Zauberprobe</CardTitle>
-			</CardHeader>
-			<CardContent className="space-y-4">
-				<Popover open={pickerOpen} onOpenChange={setPickerOpen}>
-					<PopoverTrigger asChild>
-						<Button
-							variant="aventurian"
-							size="lg"
-							role="combobox"
-							className="w-full justify-between"
-							aria-expanded={pickerOpen}
-							disabled={spells.length === 0}
-						>
-							{spellRoll.spellName || (spells.length === 0 ? 'Zauberbuch ist leer' : 'Zauber wählen…')}
-							<ChevronDown className="opacity-50" />
-						</Button>
-					</PopoverTrigger>
-					<PopoverContent className="w-[min(24rem,90vw)] p-0">
-						<Command>
-							<CommandInput placeholder="Zauber suchen…" className="font-body" />
-							<CommandList>
-								<CommandEmpty>Kein Zauber gefunden</CommandEmpty>
-								<CommandGroup>
-									{spells.map(spell => (
-										<CommandItem key={spell.id} onSelect={() => pick(spell.id)} className="font-body">
-											{spell.name}
-											<span className="ml-auto text-xs text-muted-foreground">{spell.cost} AsP</span>
-										</CommandItem>
-									))}
-								</CommandGroup>
-							</CommandList>
-						</Command>
-					</PopoverContent>
-				</Popover>
+		<>
+			<Card variant="parchment">
+				<CardHeader>
+					<CardTitle className="text-lg">Zauberprobe</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					<Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+						<PopoverTrigger asChild>
+							<Button
+								variant="aventurian"
+								size="lg"
+								role="combobox"
+								className="w-full justify-between"
+								aria-expanded={pickerOpen}
+								disabled={spells.length === 0}
+							>
+								{spellRoll.spellName || (spells.length === 0 ? 'Zauberbuch ist leer' : 'Zauber wählen…')}
+								<ChevronDown className="opacity-50" />
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent className="w-[min(24rem,90vw)] p-0">
+							<Command>
+								<CommandInput placeholder="Zauber suchen…" className="font-body" />
+								<CommandList>
+									<CommandEmpty>Kein Zauber gefunden</CommandEmpty>
+									<CommandGroup>
+										{spells.map(spell => (
+											<CommandItem key={spell.id} onSelect={() => pick(spell.id)} className="font-body">
+												{spell.name}
+												<span className="ml-auto text-xs text-muted-foreground">{spell.cost} AsP</span>
+											</CommandItem>
+										))}
+									</CommandGroup>
+								</CommandList>
+							</Command>
+						</PopoverContent>
+					</Popover>
 
-				{spells.length === 0 && (
-					<p className="text-sm text-muted-foreground">
-						Trage im Charakterbogen unter „Zauberbuch" Zauber ein.
-					</p>
-				)}
+					{spells.length === 0 && (
+						<p className="text-sm text-muted-foreground">
+							Trage im Charakterbogen unter „Zauberbuch" Zauber ein.
+						</p>
+					)}
 
-				{spellRoll.spellId && (
-					<>
-						<div className="flex flex-wrap items-center gap-2">
-							{spellRoll.entries.map((entry, index) => (
-								<span
-									key={index}
-									className="rounded-lg bg-aventurian-100/60 px-3 py-2 font-heading text-sm dark:bg-aventurian-800/60"
-								>
-									{entry.attribute} <span className="font-bold">{entry.value}</span>
+					{spellRoll.spellId && (
+						<>
+							<div className="flex flex-wrap items-center gap-2">
+								{spellRoll.entries.map((entry, index) => (
+									<span
+										key={index}
+										className="rounded-lg bg-aventurian-100/60 px-3 py-2 font-heading text-sm dark:bg-aventurian-800/60"
+									>
+										{entry.attribute} <span className="font-bold">{entry.value}</span>
+									</span>
+								))}
+								<span className="rounded-lg bg-aventurian-100/60 px-3 py-2 font-heading text-sm dark:bg-aventurian-800/60">
+									FW <span className="font-bold">{spellRoll.taw}</span>
 								</span>
-							))}
-							<span className="rounded-lg bg-aventurian-100/60 px-3 py-2 font-heading text-sm dark:bg-aventurian-800/60">
-								FW <span className="font-bold">{spellRoll.taw}</span>
-							</span>
-						</div>
+							</div>
 
-						<div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
-							<span className="font-heading text-sm">
-								Kosten <span className="font-bold text-magic-dark dark:text-magic-light">{spellRoll.cost} AsP</span>
-							</span>
-							<span className={`text-sm ${canAfford ? 'text-muted-foreground' : 'font-semibold text-failure-dark dark:text-failure-light'}`}>
-								{canAfford
-									? `→ ${asp.current - spellRoll.cost} AsP übrig`
-									: `Nicht genug AsP (${asp.current} vorhanden)`}
-							</span>
-						</div>
-					</>
-				)}
-			</CardContent>
-		</Card>
+							<div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
+								<span className="font-heading text-sm">
+									Kosten <span className="font-bold text-magic-dark dark:text-magic-light">{spellRoll.cost} AsP</span>
+								</span>
+								<span className={`text-sm ${canAfford ? 'text-muted-foreground' : 'font-semibold text-failure-dark dark:text-failure-light'}`}>
+									{canAfford
+										? `→ ${asp.current - spellRoll.cost} AsP übrig`
+										: `Nicht genug AsP (${asp.current} vorhanden)`}
+								</span>
+							</div>
+						</>
+					)}
+				</CardContent>
+			</Card>
+
+			<Card variant="parchment">
+				<CardHeader className="pb-3">
+					<CardTitle className="flex items-center gap-2 text-lg">
+						<Sparkle className="h-5 w-5 text-magic-dark dark:text-magic-light" />
+						Astralenergie
+					</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					<ResourceBar label="AsP" current={asp.current} max={asp.max} tone="astral" className="w-full" />
+
+					<div className="flex flex-wrap items-center justify-center gap-2">
+						<span className="mr-1 font-heading text-sm uppercase tracking-wide text-aventurian-700 dark:text-aventurian-300">
+							Verbrauch
+						</span>
+						{[1, 4, 8].map((amount) => (
+							<Button
+								key={amount}
+								variant="outline"
+								size="sm"
+								className="h-11 min-w-11 font-heading"
+								onClick={() => dispatch(changeAsp(-amount))}
+								aria-label={`${amount} AsP verbrauchen`}
+							>
+								−{amount}
+							</Button>
+						))}
+						<Button
+							variant="outline"
+							size="sm"
+							className="h-11 min-w-11 font-heading"
+							onClick={() => dispatch(changeAsp(1))}
+							aria-label="1 AsP regenerieren"
+						>
+							+1
+						</Button>
+					</div>
+
+					<div className="flex items-center justify-center gap-3">
+						<PropertyNumber
+							label="Aktuell"
+							value={asp.current}
+							max={asp.max}
+							size="s"
+							onChange={(value) => dispatch(setAsp({ current: value }))}
+						/>
+						<span className="mb-5 font-heading text-xl">/</span>
+						<PropertyNumber
+							label="Maximum"
+							value={asp.max}
+							max={ASP_MAX}
+							size="s"
+							onChange={(value) => dispatch(setAsp({ max: value }))}
+						/>
+					</div>
+				</CardContent>
+			</Card>
+		</>
 	);
 
 	const result = lastRoll && (
