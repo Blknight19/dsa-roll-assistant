@@ -7,6 +7,7 @@ import ImportExportSettings from './ImportExportSettings';
 import RulesSettings from './RulesSettings';
 import HeroSettings from './HeroSettings';
 import TalentRow from './TalentRow';
+import Spellbook from './Spellbook';
 import type { RootState } from '@/store';
 import { ATTRIBUTE_KEYS, ATTRIBUTE_MAX, ATTRIBUTE_MIN, setAttribute } from '@/store/attributesSlice';
 import { updateTalent } from '@/store/talentsSlice';
@@ -117,7 +118,7 @@ const Character = () => {
 
 				{isSpellcaster && (
 					<TabsContent value="spellbook">
-						<p className="text-center text-muted-foreground">Zauberbuch folgt.</p>
+						<Spellbook />
 					</TabsContent>
 				)}
 
