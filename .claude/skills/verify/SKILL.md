@@ -35,17 +35,25 @@ Math.random = () => (window.__rolls.length ? window.__rolls.shift() : orig());
 
 ### localStorage-Seed
 
-Persistenz-Key: `dsa-app-state` (v2: `{ version: 2, attributes, talents: [{id,value}],
-combat, history, settings }`; Legacy v1 = roher Slice-Dump ohne `version`).
+Persistenz-Key: `dsa-app-state`. Aktuelles Format ist v4: `{ version: 4,
+activeCharacterId, characters: [{ id, name, attributes, talents: [{id,value}],
+combat, spellbook }], history, settings }`. `spellbook` je Charakter ist
+`{ isSpellcaster, asp: { current, max }, spells: [...], upkeep: [...] }`.
+Ältere Blobs werden beim Laden migriert: v2/v3 lagen flacher (Charakter auf
+oberster Ebene bzw. `characters` ohne `spellbook`), Legacy v1 ist ein roher
+Slice-Dump ohne `version`. Zum Seeden reicht ein v4-Blob mit genau einem
+Eintrag in `characters`.
 **Achtung:** `addInitScript` läuft bei jedem Reload — nur seeden, wenn der Key `null`
-ist, sonst überschreibt der Seed den von der App geschriebenen v2-Blob und
+ist, sonst überschreibt der Seed den von der App geschriebenen v4-Blob und
 Persistenz-Checks schlagen fälschlich fehl. Saves sind ~500 ms debounced: vor dem
 Auslesen `waitForTimeout(800)`.
 
 ### Nützliche Selektoren
 
-- Tabs: `getByRole('tab', { name: 'Talentprobe' | 'Kampf' | ... })` (5 Top-Level,
-  Charakter hat 3 Sub-Tabs: Eigenschaften/Talente/Einstellungen)
+- Tabs: `getByRole('tab', { name: 'Talent' | 'Kampf' | 'Magie' | 'Einzel' | 'Historie' | 'Held' })`
+  (5 Top-Level ohne Zauberkundig, 6. Tab „Magie" erscheint erst danach; Charakter
+  hat 3 Sub-Tabs ohne Zauberkundig — Eigenschaften/Talente/Einstellungen —, mit
+  Zauberkundig kommt „Zauberbuch" dazwischen dazu)
 - Talent wählen: combobox "Talent wählen" → `getByPlaceholder('Talent suchen...')`
   → `getByRole('option', { name: ... })`
 - Kampf-Würfe: `getByRole('button', { name: 'Attacke würfeln' })` etc.
