@@ -273,7 +273,7 @@ const TalentRoll = () => {
 	return (
 		<div className="mx-auto w-full max-w-6xl lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
 			<div aria-live="polite" className="sr-only">
-				{lastRoll ? checkSummary(lastRoll.talentName, lastRoll.result) : ''}
+				{lastRoll ? checkSummary(lastRoll.result) : ''}
 			</div>
 
 			{/* Ergebnis: auf dem Handy über der Eingabe, auf dem Desktop rechts daneben

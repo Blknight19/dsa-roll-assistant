@@ -28,7 +28,7 @@ const dieTone = (value: number): ResultDie['tone'] => {
 };
 
 /** Ergebnis in einem Satz — für die `aria-live`-Region. */
-export const checkSummary = (_name: string, result: TalentCheckResult): string => {
+export const checkSummary = (result: TalentCheckResult): string => {
 	if (result.special === 'krit') return `Kritischer Erfolg, Qualitätsstufe ${result.qs}`;
 	if (result.special === 'patzer') return 'Patzer';
 	return result.success ? `Erfolg, Qualitätsstufe ${result.qs}` : 'Misslungen';
