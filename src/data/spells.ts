@@ -161,6 +161,18 @@ export const SPELL_CATALOG: SpellCatalogEntry[] = [
 		merkmal: 'Elementar'
 	},
 	{
+		id: 'foramen',
+		name: 'Foramen',
+		attributes: ['KL', 'IN', 'FF'],
+		cost: 8,
+		costText: '8 AsP',
+		castTime: '2 Aktionen',
+		range: 'Berührung',
+		duration: '5 Minuten',
+		target: 'Objekte (Schlösser)',
+		merkmal: 'Objekt'
+	},
+	{
 		id: 'fulminictus',
 		name: 'Fulminictus',
 		attributes: ['KL', 'IN', 'KO'],
