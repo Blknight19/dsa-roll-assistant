@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Toaster } from '@/components/ui/sonner';
 import TalentRoll from './components/TalentRoll';
+import SpellRoll from './components/SpellRoll';
 import SimpleRoll from './components/SimpleRoll';
 import RollHistory from './components/RollHistory';
 import ThemeToggle from './components/ThemeToggle';
@@ -87,7 +88,7 @@ function App() {
               </TabsContent>
               {isSpellcaster && (
                 <TabsContent value="spellRoll" className="mt-0">
-                  <p className="text-center text-muted-foreground">Magie-Tab folgt.</p>
+                  <SpellRoll />
                 </TabsContent>
               )}
               <TabsContent value="simpleRoll" className="mt-0">
