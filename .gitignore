@@ -29,3 +29,8 @@ dist-ssr
 skills-lock.json
 .claude/skills/minimalist-ui
 .claude/skills/industrial-brutalist-ui
+
+# Arbeitsnotizen zur Entwicklung (Entwürfe, Pläne, Review-Hilfen) — lokal, nicht Teil
+# des Projekts. Der Code und seine Kommentare müssen für sich stehen.
+docs/superpowers/
+.superpowers/
