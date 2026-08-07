@@ -5,7 +5,42 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ConfirmDialog from './ConfirmDialog';
-import { Trash2, Dices, Swords, Scroll } from 'lucide-react';
+import { Trash2, Dices, Swords, Scroll, Wand2, type LucideIcon } from 'lucide-react';
+
+/**
+ * Icon, Farbe und Zählername je Wurfart — an einer Stelle, damit eine neue Art nicht
+ * wieder nur zur Hälfte ankommt. Die Magie-Farbe gehört seit dem Magie-Modul dem
+ * Zauber; die Talentprobe trägt jetzt den Bronzeton der App.
+ */
+const ROLL_TYPE_STYLES = {
+	Talent: {
+		icon: Scroll,
+		color: 'text-aventurian-600 dark:text-aventurian-400',
+		plural: 'Talente'
+	},
+	Kampf: {
+		icon: Swords,
+		color: 'text-failure-dark dark:text-failure-light',
+		plural: 'Kämpfe'
+	},
+	Zauber: {
+		icon: Wand2,
+		color: 'text-magic-dark dark:text-magic-light',
+		plural: 'Zauber'
+	},
+	Einzel: {
+		icon: Dices,
+		color: 'text-foreground',
+		plural: 'Einzelwürfe'
+	}
+} satisfies Record<string, { icon: LucideIcon; color: string; plural: string }>;
+
+type RollType = keyof typeof ROLL_TYPE_STYLES;
+
+const ROLL_TYPE_ORDER = Object.keys(ROLL_TYPE_STYLES) as RollType[];
+
+const styleFor = (type: string) =>
+	ROLL_TYPE_STYLES[type as RollType] ?? { icon: Dices, color: 'text-foreground', plural: type };
 
 /** Uhrzeit reicht nur für heute — 100 Einträge können mehrere Spielabende umfassen. */
 const formatRollDate = (iso: string): string => {
@@ -22,25 +57,16 @@ const formatRollDate = (iso: string): string => {
 const RollHistory = () => {
 	const dispatch = useDispatch();
 	const rollHistory: RollHistoryEntry[] = useSelector((state: RootState) => state.roll.history);
+	const isSpellcaster = useSelector((state: RootState) => state.spellbook.isSpellcaster);
 	const [confirmOpen, setConfirmOpen] = useState(false);
 
-	const getTypeIcon = (type: string) => {
-		switch (type) {
-			case 'Talent': return <Scroll className="w-4 h-4" />;
-			case 'Kampf': return <Swords className="w-4 h-4" />;
-			case 'Einzel': return <Dices className="w-4 h-4" />;
-			default: return <Dices className="w-4 h-4" />;
-		}
-	};
+	const countOf = (type: RollType) => rollHistory.filter(entry => entry.type === type).length;
 
-	const getTypeColor = (type: string) => {
-		switch (type) {
-			case 'Talent': return 'text-magic-dark dark:text-magic-light';
-			case 'Kampf': return 'text-failure-dark dark:text-failure-light';
-			case 'Einzel': return 'text-aventurian-600 dark:text-aventurian-400';
-			default: return 'text-foreground';
-		}
-	};
+	// „Zauber" erscheint für Zauberkundige — und auch sonst, solange noch Zauberwürfe
+	// in der Historie stehen (der Schalter versteckt nur, er löscht nichts).
+	const shownTypes = ROLL_TYPE_ORDER.filter(
+		type => type !== 'Zauber' || isSpellcaster || countOf('Zauber') > 0
+	);
 
 	return (
 		<div className="w-full max-w-4xl mx-auto space-y-6">
@@ -86,24 +112,26 @@ const RollHistory = () => {
 							Würfle deine erste Probe und sie erscheint hier!
 						</p>
 						<div className="flex flex-wrap justify-center gap-2 text-sm text-muted-foreground">
-							<span className="flex items-center gap-1">
-								<Scroll className="w-4 h-4" /> Talentproben
-							</span>
-							<span>•</span>
-							<span className="flex items-center gap-1">
-								<Dices className="w-4 h-4" /> Einzelwürfe
-							</span>
-							<span>•</span>
-							<span className="flex items-center gap-1">
-								<Swords className="w-4 h-4" /> Kampfwürfe
-							</span>
+							{shownTypes.map((type, index) => {
+								const { icon: Icon, plural } = ROLL_TYPE_STYLES[type];
+								return (
+									<span key={type} className="flex items-center gap-2">
+										{index > 0 && <span>•</span>}
+										<span className="flex items-center gap-1">
+											<Icon className="w-4 h-4" /> {plural}
+										</span>
+									</span>
+								);
+							})}
 						</div>
 					</CardContent>
 				</Card>
 			) : (
 				/* History List */
 				<div className="space-y-3">
-					{rollHistory.map((roll, index) => (
+					{rollHistory.map((roll, index) => {
+						const { icon: Icon, color } = styleFor(roll.type);
+						return (
 						<Card
 							key={roll.id}
 							variant="parchment"
@@ -114,12 +142,12 @@ const RollHistory = () => {
 								<div className="flex items-start justify-between gap-4">
 									{/* Icon & Type */}
 									<div className="flex items-center gap-3">
-										<div className={`${getTypeColor(roll.type)}`}>
-											{getTypeIcon(roll.type)}
+										<div className={color}>
+											<Icon className="w-4 h-4" />
 										</div>
 										<div className="flex-1">
 											<div className="flex items-center gap-2 mb-1">
-												<span className={`font-heading font-semibold ${getTypeColor(roll.type)}`}>
+												<span className={`font-heading font-semibold ${color}`}>
 													{roll.type}
 												</span>
 												<span className="text-xs text-muted-foreground">
@@ -135,7 +163,8 @@ const RollHistory = () => {
 								</div>
 							</CardContent>
 						</Card>
-					))}
+						);
+					})}
 				</div>
 			)}
 
@@ -150,24 +179,14 @@ const RollHistory = () => {
 								</p>
 								<p>Gesamt</p>
 							</div>
-							<div className="text-center">
-								<p className="font-heading font-semibold text-magic-dark dark:text-magic-light text-lg">
-									{rollHistory.filter(r => r.type === 'Talent').length}
-								</p>
-								<p>Talente</p>
-							</div>
-							<div className="text-center">
-								<p className="font-heading font-semibold text-failure-dark dark:text-failure-light text-lg">
-									{rollHistory.filter(r => r.type === 'Kampf').length}
-								</p>
-								<p>Kämpfe</p>
-							</div>
-							<div className="text-center">
-								<p className="font-heading font-semibold text-aventurian-600 dark:text-aventurian-400 text-lg">
-									{rollHistory.filter(r => r.type === 'Einzel').length}
-								</p>
-								<p>Einzelwürfe</p>
-							</div>
+							{shownTypes.map(type => (
+								<div key={type} className="text-center">
+									<p className={`font-heading font-semibold text-lg ${ROLL_TYPE_STYLES[type].color}`}>
+										{countOf(type)}
+									</p>
+									<p>{ROLL_TYPE_STYLES[type].plural}</p>
+								</div>
+							))}
 						</div>
 					</CardContent>
 				</Card>

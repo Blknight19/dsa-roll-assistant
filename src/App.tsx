@@ -63,7 +63,7 @@ function App() {
           <div className='w-full max-w-6xl'>
             <Tabs value={tab} onValueChange={setTab} className="w-full">
               <TabsList
-                className={`grid w-full ${tabs.length === 6 ? 'grid-cols-6' : 'grid-cols-5'} h-auto mb-4 bg-aventurian-100 dark:bg-aventurian-800`}
+                className={`grid w-full ${isSpellcaster ? 'grid-cols-6' : 'grid-cols-5'} h-auto mb-4 bg-aventurian-100 dark:bg-aventurian-800`}
               >
                 {tabs.map(({ value, label, icon: Icon }) => (
                   <TabsTrigger
