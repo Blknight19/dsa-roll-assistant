@@ -38,4 +38,8 @@ describe('SPELL_CATALOG', () => {
 			expect(entry.duration.trim(), entry.name).not.toBe('');
 		}
 	});
+
+	it('umfasst mindestens 40 geprüfte Zauber', () => {
+		expect(SPELL_CATALOG.length).toBeGreaterThanOrEqual(40);
+	});
 });
