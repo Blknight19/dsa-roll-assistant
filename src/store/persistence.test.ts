@@ -172,6 +172,13 @@ describe('sanitizeSpellbook', () => {
 		expect(sanitizeSpellbook({ asp: { current: 99, max: 20 } }).asp).toEqual({ current: 20, max: 20 });
 	});
 
+	it('übernimmt eine gespeicherte AsP von 0/30 unverändert — kein automatisches Auffüllen beim Laden', () => {
+		// 0/30 ist ein legitim leergezauberter Magier, nicht vom ursprünglichen
+		// Ersteinrichtungsfehler unterscheidbar. Auto-Auffüllen beim Laden würde einem
+		// tatsächlich erschöpften Magier bei jedem Neustart die Kraft zurückschenken.
+		expect(sanitizeSpellbook({ asp: { current: 0, max: 30 } }).asp).toEqual({ current: 0, max: 30 });
+	});
+
 	it('übernimmt laufende Zauber nur mit gültiger QS', () => {
 		const book = sanitizeSpellbook({
 			upkeep: [

@@ -194,6 +194,11 @@ export const sanitizeSpellbook = (raw: unknown): SpellbookState => {
 			.slice(0, SPELL_LIMIT)
 		: [];
 
+	// Bewusst nur `clampAsp`, ohne die Ersteinrichtungs-Auffüllung von `setAsp`: eine
+	// gespeicherte AsP von 0/30 ist ein legitimer Zustand (leergezauberter Magier), nicht
+	// erkennbar vom ursprünglichen Ersteinrichtungsfehler unterscheidbar. Automatisches
+	// Auffüllen beim Laden würde einem tatsächlich erschöpften Magier bei jedem Neustart
+	// die Kraft zurückschenken — Persistenz muss exakt wiederherstellen, was gespeichert wurde.
 	const asp = isRecord(raw.asp)
 		? clampAsp({
 			current: isFiniteNumber(raw.asp.current) ? raw.asp.current : 0,

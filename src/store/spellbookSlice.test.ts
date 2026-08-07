@@ -8,6 +8,7 @@ import {
 	removeSpell,
 	removeUpkeep,
 	setAsp,
+	setSpellbook,
 	setSpellcaster,
 	spellbookReducer,
 	updateSpell,
@@ -87,6 +88,26 @@ describe('spellbookReducer', () => {
 	it('ändert nichts, wenn max von 0 auf 0 gesetzt wird', () => {
 		const state = spellbookReducer(initialSpellbookState, setAsp({ max: 0 }));
 		expect(state.asp).toEqual({ current: 0, max: 0 });
+	});
+
+	it('greift die Ersteinrichtung erneut, wenn max im UI auf 0 zurück- und wieder hochgesetzt wird — unbedenklich, weil dabei nichts Ausgegebenes verloren geht', () => {
+		let state = spellbookReducer(initialSpellbookState, setAsp({ current: 10, max: 10 }));
+		state = spellbookReducer(state, changeAsp(-8));
+		expect(state.asp.current).toBe(2);
+		state = spellbookReducer(state, setAsp({ max: 0 }));
+		// clampAsp zieht current schon hier auf 0 — das gezielt heruntergezauberte current
+		// existiert danach nicht mehr, es gibt nichts mehr zu verlieren.
+		expect(state.asp).toEqual({ current: 0, max: 0 });
+		state = spellbookReducer(state, setAsp({ max: 15 }));
+		expect(state.asp).toEqual({ current: 15, max: 15 });
+	});
+
+	it('setSpellbook übernimmt eine importierte AsP von 0/30 unverändert — kein automatisches Auffüllen beim Import', () => {
+		const state = spellbookReducer(
+			initialSpellbookState,
+			setSpellbook({ ...initialSpellbookState, isSpellcaster: true, asp: { current: 0, max: 30 } })
+		);
+		expect(state.asp).toEqual({ current: 0, max: 30 });
 	});
 
 	it('kappt Zaubernamen und Fertigkeitswerte', () => {

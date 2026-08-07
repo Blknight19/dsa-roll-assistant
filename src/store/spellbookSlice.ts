@@ -86,9 +86,11 @@ const spellbookSlice = createSlice({
 			// Bewusst NICHT verallgemeinert auf „current an max nachziehen, wenn max steigt":
 			// ein Spieler, der gezielt auf 2/10 heruntergezaubert hat und dann max auf 15
 			// anhebt, muss bei 2/15 bleiben — stilles Auffüllen wäre schlimmer als der
-			// ursprüngliche Fehler. Die Kante kann im normalen Spiel nicht erneut greifen,
-			// weil max nach dem ersten Setzen nicht wieder auf 0 zurückfällt. Ein explizit
-			// mitgegebenes current gewinnt immer — der Aufrufer hat gesagt, was er will.
+			// ursprüngliche Fehler. Die Kante kann im UI erneut greifen (das Maximum-Feld lässt
+			// sich auf 0 zurückstellen und neu hochsetzen) — das ist unbedenklich, weil
+			// `clampAsp` current schon beim Erreichen von max === 0 auf 0 zieht: ein gezielt
+			// heruntergezaubertes current existiert dann nicht mehr, es gibt nichts zu verlieren.
+			// Ein explizit mitgegebenes current gewinnt immer — der Aufrufer hat gesagt, was er will.
 			const isFirstSetup = state.asp.max === 0 && nextMax > 0;
 			const nextCurrent = action.payload.current ?? (isFirstSetup ? nextMax : state.asp.current);
 			state.asp = clampAsp({ current: nextCurrent, max: nextMax });
@@ -115,7 +117,16 @@ const spellbookSlice = createSlice({
 		removeUpkeep: (state, action: PayloadAction<string>) => {
 			state.upkeep = state.upkeep.filter(entry => entry.id !== action.payload);
 		},
-		/** Ersetzt das Buch am Stück — für den Import. */
+		/**
+		 * Ersetzt das Buch am Stück — für den Import.
+		 * Teilt bewusst NICHT die Ersteinrichtungs-Auffüllung aus `setAsp`: eine importierte
+		 * AsP von 0/30 ist ein legitimer Zustand (ein leergezauberter Magier), kein Zeichen für
+		 * den ursprünglichen Fehler. Die App kann beides nicht unterscheiden — automatisches
+		 * Auffüllen beim Laden würde also einem tatsächlich erschöpften Magier bei jedem
+		 * Neustart die Kraft zurückschenken. Persistenz muss exakt wiederherstellen, was
+		 * gespeichert wurde; die Auffüllung gehört ausschließlich in den interaktiven
+		 * Ersteinrichtungspfad, wo der Spieler gerade aktiv sein Maximum einträgt.
+		 */
 		setSpellbook: (state, action: PayloadAction<SpellbookState>) => {
 			state.isSpellcaster = action.payload.isSpellcaster;
 			state.asp = clampAsp(action.payload.asp);
