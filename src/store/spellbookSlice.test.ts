@@ -60,6 +60,35 @@ describe('spellbookReducer', () => {
 		expect(state.asp.current).toBe(30);
 	});
 
+	it('füllt current beim erstmaligen Setzen von max auf (0 → 30) automatisch auf', () => {
+		const state = spellbookReducer(initialSpellbookState, setAsp({ max: 30 }));
+		expect(state.asp).toEqual({ current: 30, max: 30 });
+	});
+
+	it('lässt ein bereits ausgegebenes current unangetastet, wenn max weiter angehoben wird', () => {
+		let state = spellbookReducer(initialSpellbookState, setAsp({ current: 10, max: 10 }));
+		state = spellbookReducer(state, changeAsp(-8));
+		expect(state.asp.current).toBe(2);
+		state = spellbookReducer(state, setAsp({ max: 15 }));
+		expect(state.asp).toEqual({ current: 2, max: 15 });
+	});
+
+	it('kappt current weiterhin nach unten, wenn max gesenkt wird', () => {
+		let state = spellbookReducer(initialSpellbookState, setAsp({ current: 30, max: 30 }));
+		state = spellbookReducer(state, setAsp({ max: 10 }));
+		expect(state.asp).toEqual({ current: 10, max: 10 });
+	});
+
+	it('übernimmt beim Ersteinrichten ein explizit mitgegebenes current statt aufzufüllen', () => {
+		const state = spellbookReducer(initialSpellbookState, setAsp({ current: 5, max: 30 }));
+		expect(state.asp).toEqual({ current: 5, max: 30 });
+	});
+
+	it('ändert nichts, wenn max von 0 auf 0 gesetzt wird', () => {
+		const state = spellbookReducer(initialSpellbookState, setAsp({ max: 0 }));
+		expect(state.asp).toEqual({ current: 0, max: 0 });
+	});
+
 	it('kappt Zaubernamen und Fertigkeitswerte', () => {
 		const state = spellbookReducer(
 			initialSpellbookState,

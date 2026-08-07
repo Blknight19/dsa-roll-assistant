@@ -78,10 +78,20 @@ const spellbookSlice = createSlice({
 			state.isSpellcaster = action.payload;
 		},
 		setAsp: (state, action: PayloadAction<Partial<AspState>>) => {
-			state.asp = clampAsp({
-				current: action.payload.current ?? state.asp.current,
-				max: action.payload.max ?? state.asp.max
-			});
+			const nextMax = action.payload.max ?? state.asp.max;
+			// Ersteinrichtung: ein frisch zauberkundig geschalteter Held startet bei 0/0 AsP.
+			// Trägt er nun ein Maximum ein, bliebe current sonst bei 0 hängen — der
+			// „Zaubern"-Knopf wäre gesperrt, ohne dass ersichtlich ist, warum. Diese eine
+			// Übergangskante (max von 0 auf > 0) füllt current einmalig auf max auf.
+			// Bewusst NICHT verallgemeinert auf „current an max nachziehen, wenn max steigt":
+			// ein Spieler, der gezielt auf 2/10 heruntergezaubert hat und dann max auf 15
+			// anhebt, muss bei 2/15 bleiben — stilles Auffüllen wäre schlimmer als der
+			// ursprüngliche Fehler. Die Kante kann im normalen Spiel nicht erneut greifen,
+			// weil max nach dem ersten Setzen nicht wieder auf 0 zurückfällt. Ein explizit
+			// mitgegebenes current gewinnt immer — der Aufrufer hat gesagt, was er will.
+			const isFirstSetup = state.asp.max === 0 && nextMax > 0;
+			const nextCurrent = action.payload.current ?? (isFirstSetup ? nextMax : state.asp.current);
+			state.asp = clampAsp({ current: nextCurrent, max: nextMax });
 		},
 		/** Relative Buchung — der Rückgängig-Knopf bucht denselben Betrag positiv zurück. */
 		changeAsp: (state, action: PayloadAction<number>) => {
