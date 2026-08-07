@@ -3,7 +3,13 @@ import { migratePersisted, toPersisted, sanitizeHistory, sanitizeSpellbook, PERS
 import { initialTalentState } from './talentsSlice';
 import { initialSettingsState } from './settingsSlice';
 import { HISTORY_LIMIT, type RollHistoryEntry } from './rollSlice';
-import { initialSpellbookState } from './spellbookSlice';
+import {
+	SPELL_COST_TEXT_MAX,
+	SPELL_DURATION_MAX,
+	SPELL_NOTE_MAX,
+	SPELL_PROBE_NOTE_MAX,
+	initialSpellbookState
+} from './spellbookSlice';
 
 const historyEntry = (id: string): RollHistoryEntry => ({
 	id,
@@ -159,6 +165,43 @@ describe('sanitizeSpellbook', () => {
 		expect(book.spells[0].name).toHaveLength(60);
 		expect(book.spells[0].cost).toBe(99);
 		expect(book.spells[0].value).toBe(25);
+	});
+
+	it('übernimmt die Freitextfelder und kappt sie auf die Slice-Grenzen', () => {
+		const book = sanitizeSpellbook({
+			spells: [{
+				id: 'a', name: 'Blitz', attributes: ['KL', 'IN', 'IN'], cost: 4, value: 8,
+				costText: 'k'.repeat(200),
+				probeNote: 'p'.repeat(200),
+				duration: 'd'.repeat(200),
+				note: 'n'.repeat(900)
+			}]
+		});
+		expect(book.spells[0].costText).toHaveLength(SPELL_COST_TEXT_MAX);
+		expect(book.spells[0].probeNote).toHaveLength(SPELL_PROBE_NOTE_MAX);
+		expect(book.spells[0].duration).toHaveLength(SPELL_DURATION_MAX);
+		expect(book.spells[0].note).toHaveLength(SPELL_NOTE_MAX);
+	});
+
+	it('trägt probeNote unverändert durch — der Hinweis auf ZK/SK überlebt den Export', () => {
+		const book = sanitizeSpellbook({
+			spells: [{
+				id: 'a', name: 'Horriphobus', attributes: ['MU', 'CH', 'CH'], cost: 8, value: 8,
+				probeNote: 'modifiziert durch SK'
+			}]
+		});
+		expect(book.spells[0].probeNote).toBe('modifiziert durch SK');
+	});
+
+	it('verwirft nicht-textliche Freitextfelder, statt sie zu übernehmen', () => {
+		const book = sanitizeSpellbook({
+			spells: [{
+				id: 'a', name: 'Blitz', attributes: ['KL', 'IN', 'IN'], cost: 4, value: 8,
+				probeNote: { boese: true }, note: 42
+			}]
+		});
+		expect(book.spells[0].probeNote).toBeUndefined();
+		expect(book.spells[0].note).toBeUndefined();
 	});
 
 	it('deckelt die Zahl der Zauber', () => {

@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+	SPELL_COST_TEXT_MAX,
+	SPELL_DURATION_MAX,
+	SPELL_NOTE_MAX,
+	SPELL_PROBE_NOTE_MAX,
 	addSpell,
 	addUpkeep,
 	changeAsp,
@@ -117,6 +121,42 @@ describe('spellbookReducer', () => {
 		);
 		expect(state.spells[0].name).toHaveLength(60);
 		expect(state.spells[0].value).toBe(25);
+	});
+
+	it('kappt die Freitextfelder auf dieselben Grenzen wie der Import', () => {
+		// Sonst hält ein überlanger Wert die Sitzung durch und ändert sich still beim
+		// nächsten Laden — und `duration` steuert, ob aufrechterhalten werden darf.
+		const state = spellbookReducer(initialSpellbookState, addSpell(zauber({
+			costText: 'k'.repeat(200),
+			probeNote: 'p'.repeat(200),
+			duration: 'd'.repeat(200),
+			note: 'n'.repeat(900)
+		})));
+		expect(state.spells[0].costText).toHaveLength(SPELL_COST_TEXT_MAX);
+		expect(state.spells[0].probeNote).toHaveLength(SPELL_PROBE_NOTE_MAX);
+		expect(state.spells[0].duration).toHaveLength(SPELL_DURATION_MAX);
+		expect(state.spells[0].note).toHaveLength(SPELL_NOTE_MAX);
+	});
+
+	it('kappt Freitext auch beim Ändern und beim Import per setSpellbook', () => {
+		let state = spellbookReducer(initialSpellbookState, addSpell(zauber()));
+		state = spellbookReducer(state, updateSpell({
+			id: 'z1',
+			changes: { note: 'n'.repeat(900) }
+		}));
+		expect(state.spells[0].note).toHaveLength(SPELL_NOTE_MAX);
+
+		state = spellbookReducer(state, setSpellbook({
+			...initialSpellbookState,
+			spells: [zauber({ duration: 'd'.repeat(200) })]
+		}));
+		expect(state.spells[0].duration).toHaveLength(SPELL_DURATION_MAX);
+	});
+
+	it('lässt Freitextfelder undefined, wenn sie nicht gesetzt sind', () => {
+		const state = spellbookReducer(initialSpellbookState, addSpell(zauber()));
+		expect(state.spells[0].note).toBeUndefined();
+		expect(state.spells[0].probeNote).toBeUndefined();
 	});
 
 	it('nimmt nicht mehr als SPELL_LIMIT Zauber auf', () => {

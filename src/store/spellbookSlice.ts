@@ -14,8 +14,11 @@ export type Spell = {
 	cost: number;
 	/** Wortlaut aus dem Katalog, z. B. „1 AsP pro LeP". Nur Erinnerung. */
 	costText?: string;
+	/** Zusatz zur Probe aus dem Katalog, z. B. „modifiziert durch ZK". Reine Anzeige. */
+	probeNote?: string;
 	duration?: string;
 	value: number;
+	/** Freie Notiz des Spielers — Merkhilfe, keine Regelmechanik. */
 	note?: string;
 };
 
@@ -36,6 +39,16 @@ export const SPELL_NAME_MAX = 60;
 export const SPELL_LIMIT = 100;
 export const SPELL_COST_MAX = 99;
 export const ASP_MAX = 999;
+
+/**
+ * Grenzen der Freitextfelder eines Zaubers. Reducer und Import ziehen sie über
+ * `clampSpellText` gemeinsam — sonst überlebt ein zu langer Wert die Sitzung und
+ * ändert sich still beim nächsten Laden.
+ */
+export const SPELL_COST_TEXT_MAX = 120;
+export const SPELL_PROBE_NOTE_MAX = 60;
+export const SPELL_DURATION_MAX = 60;
+export const SPELL_NOTE_MAX = 500;
 
 export const initialSpellbookState: SpellbookState = {
 	isSpellcaster: false,
@@ -62,11 +75,22 @@ export const sanitizeSpellName = (name: string): string =>
 export const clampSpellCost = (value: number): number =>
 	Math.min(SPELL_COST_MAX, Math.max(0, Math.round(value)));
 
+/**
+ * Ein optionales Freitextfeld auf seine Länge kappen. Nimmt `unknown`, damit der
+ * Import dieselbe Funktion benutzen kann: alles, was kein String ist, entfällt.
+ */
+export const clampSpellText = (value: unknown, max: number): string | undefined =>
+	typeof value === 'string' ? value.slice(0, max) : undefined;
+
 const normalizeSpell = (spell: Spell): Spell => ({
 	...spell,
 	name: sanitizeSpellName(spell.name),
 	cost: clampSpellCost(spell.cost),
-	value: clampTalentValue(spell.value)
+	value: clampTalentValue(spell.value),
+	costText: clampSpellText(spell.costText, SPELL_COST_TEXT_MAX),
+	probeNote: clampSpellText(spell.probeNote, SPELL_PROBE_NOTE_MAX),
+	duration: clampSpellText(spell.duration, SPELL_DURATION_MAX),
+	note: clampSpellText(spell.note, SPELL_NOTE_MAX)
 });
 
 const spellbookSlice = createSlice({

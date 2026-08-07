@@ -22,9 +22,14 @@ import { HISTORY_LIMIT, type RollHistoryEntry } from './rollSlice';
 import { initialSettingsState, type SettingsState } from './settingsSlice';
 import {
 	ASP_MAX,
+	SPELL_COST_TEXT_MAX,
+	SPELL_DURATION_MAX,
 	SPELL_LIMIT,
+	SPELL_NOTE_MAX,
+	SPELL_PROBE_NOTE_MAX,
 	clampAsp,
 	clampSpellCost,
+	clampSpellText,
 	initialSpellbookState,
 	sanitizeSpellName,
 	type Spell,
@@ -163,10 +168,11 @@ const sanitizeSpell = (raw: unknown): Spell | undefined => {
 		name: sanitizeSpellName(raw.name),
 		attributes: raw.attributes as [AttributeKey, AttributeKey, AttributeKey],
 		cost: clampSpellCost(raw.cost),
-		costText: typeof raw.costText === 'string' ? raw.costText.slice(0, 120) : undefined,
-		duration: typeof raw.duration === 'string' ? raw.duration.slice(0, 60) : undefined,
+		costText: clampSpellText(raw.costText, SPELL_COST_TEXT_MAX),
+		probeNote: clampSpellText(raw.probeNote, SPELL_PROBE_NOTE_MAX),
+		duration: clampSpellText(raw.duration, SPELL_DURATION_MAX),
 		value: clampTalentValue(raw.value),
-		note: typeof raw.note === 'string' ? raw.note.slice(0, 500) : undefined
+		note: clampSpellText(raw.note, SPELL_NOTE_MAX)
 	};
 };
 
