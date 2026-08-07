@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/command';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { addRoll } from '@/store/rollSlice';
-import { ASP_MAX, changeAsp, setAsp } from '@/store/spellbookSlice';
+import { ASP_MAX, addUpkeep, changeAsp, removeUpkeep, setAsp } from '@/store/spellbookSlice';
 import {
 	markLastRollRefunded,
 	selectSpell,
@@ -24,7 +24,7 @@ import {
 	type SpellRoll as SpellRollSnapshot
 } from '@/store/spellRollSlice';
 import type { RootState } from '@/store';
-import { ChevronDown, RotateCcw, Sparkle, Wand2 } from 'lucide-react';
+import { ChevronDown, RotateCcw, Sparkle, Timer, Wand2, X } from 'lucide-react';
 
 /** Begründung der Buchung — die halbe Zahl allein wirkt sonst wie ein Fehler. */
 const costNote = (roll: SpellRollSnapshot): string => {
@@ -32,6 +32,14 @@ const costNote = (roll: SpellRollSnapshot): string => {
 	if (!roll.result.success) return `−${roll.aspSpent} AsP (halbe Kosten, Probe misslungen)`;
 	return `−${roll.aspSpent} AsP`;
 };
+
+/**
+ * „sofort" wirkende Zauber lassen sich nicht aufrechterhalten. Fehlt die Angabe
+ * (selbst eingetragener Zauber), bleibt der Knopf erlaubt — die App weiß es nicht
+ * besser als der Spieler.
+ */
+const canSustain = (duration?: string): boolean =>
+	duration === undefined || !/^\s*sofort\s*$/i.test(duration);
 
 const SpellRoll = () => {
 	const dispatch = useDispatch();
@@ -108,6 +116,13 @@ const SpellRoll = () => {
 		if (!lastRoll || !spellRoll.lastRollBooked) return;
 		dispatch(changeAsp(lastRoll.aspSpent));
 		dispatch(markLastRollRefunded());
+	};
+
+	const alreadySustained = lastRoll !== null && upkeep.some(entry => entry.spellName === lastRoll.spellName);
+
+	const sustain = () => {
+		if (!lastRoll) return;
+		dispatch(addUpkeep({ id: nanoid(), spellName: lastRoll.spellName, qs: lastRoll.result.qs }));
 	};
 
 	const setup = (
@@ -242,6 +257,39 @@ const SpellRoll = () => {
 					</div>
 				</CardContent>
 			</Card>
+
+			{upkeep.length > 0 && (
+				<Card variant="parchment">
+					<CardHeader className="pb-3">
+						<CardTitle className="flex items-center gap-2 text-lg">
+							<Timer className="h-5 w-5 text-magic-dark dark:text-magic-light" />
+							Laufende Zauber
+						</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-2">
+						{upkeep.map(entry => (
+							<div
+								key={entry.id}
+								className="flex items-center gap-3 rounded-lg bg-aventurian-100/50 px-3 py-2 dark:bg-aventurian-800/50"
+							>
+								<span className="min-w-0 flex-1 truncate font-heading text-sm">{entry.spellName}</span>
+								<span className="whitespace-nowrap text-xs text-muted-foreground">QS {entry.qs}</span>
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={() => dispatch(removeUpkeep(entry.id))}
+									aria-label={`${entry.spellName} beenden`}
+								>
+									<X className="h-4 w-4" />
+								</Button>
+							</div>
+						))}
+						<p className="pt-1 text-xs text-muted-foreground">
+							Jeder laufende Zauber erschwert weitere Zauberproben um 1.
+						</p>
+					</CardContent>
+				</Card>
+			)}
 		</>
 	);
 
@@ -262,12 +310,20 @@ const SpellRoll = () => {
 						: `Buchung zurückgenommen (${lastRoll.aspSpent} AsP erstattet)`
 				}
 				action={
-					spellRoll.lastRollBooked && lastRoll.aspSpent > 0 ? (
-						<Button variant="outline" size="sm" onClick={undoBooking}>
-							<RotateCcw className="mr-1 h-4 w-4" />
-							AsP zurückbuchen
-						</Button>
-					) : undefined
+					<>
+						{spellRoll.lastRollBooked && lastRoll.aspSpent > 0 && (
+							<Button variant="outline" size="sm" onClick={undoBooking}>
+								<RotateCcw className="mr-1 h-4 w-4" />
+								AsP zurückbuchen
+							</Button>
+						)}
+						{lastRoll.result.success && canSustain(lastRoll.duration) && !alreadySustained && (
+							<Button variant="outline" size="sm" onClick={sustain}>
+								<Timer className="mr-1 h-4 w-4" />
+								Aufrechterhalten
+							</Button>
+						)}
+					</>
 				}
 			/>
 		</div>
