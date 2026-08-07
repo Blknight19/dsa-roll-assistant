@@ -16,7 +16,8 @@ import type { RootState } from '@/store';
 import { ATTRIBUTE_KEYS, type AttributeKey } from '@/store/attributesSlice';
 import { TALENT_VALUE_MAX } from '@/store/talentsSlice';
 import {
-	SPELL_COST_MAX, SPELL_LIMIT, SPELL_NAME_MAX, addSpell, removeSpell, updateSpell
+	SPELL_COST_MAX, SPELL_LIMIT, SPELL_NAME_MAX, SPELL_NOTE_MAX,
+	addSpell, removeSpell, updateSpell
 } from '@/store/spellbookSlice';
 import { SPELL_CATALOG, type SpellCatalogEntry } from '@/data/spells';
 import { BookOpen, ChevronDown, Plus, Trash2 } from 'lucide-react';
@@ -45,6 +46,7 @@ const Spellbook = () => {
 			// steht als Erinnerung daneben.
 			cost: entry.cost ?? 0,
 			costText: entry.costText,
+			probeNote: entry.probeNote,
 			duration: entry.duration,
 			value: 0
 		}));
@@ -89,6 +91,7 @@ const Spellbook = () => {
 										<th className="p-3 text-center font-heading">Probe</th>
 										<th className="p-3 text-center font-heading">AsP</th>
 										<th className="p-3 text-center font-heading">FW</th>
+										<th className="p-3 text-left font-heading">Notiz</th>
 										<th className="p-3 text-center font-heading"><span className="sr-only">Löschen</span></th>
 									</tr>
 								</thead>
@@ -104,7 +107,14 @@ const Spellbook = () => {
 													<div className="text-xs text-muted-foreground">{spell.costText}</div>
 												)}
 											</td>
-											<td className="p-3 text-center font-heading">{spell.attributes.join('/')}</td>
+											<td className="p-3 text-center font-heading">
+												{spell.attributes.join('/')}
+												{spell.probeNote && (
+													<div className="font-body text-xs text-magic-dark dark:text-magic-light">
+														{spell.probeNote}
+													</div>
+												)}
+											</td>
 											<td className="p-3">
 												<PropertyNumber
 													value={spell.cost}
@@ -121,6 +131,19 @@ const Spellbook = () => {
 													size="s"
 													onChange={(value) => dispatch(updateSpell({ id: spell.id, changes: { value } }))}
 													className="mx-auto"
+												/>
+											</td>
+											<td className="p-3">
+												<Input
+													value={spell.note ?? ''}
+													maxLength={SPELL_NOTE_MAX}
+													placeholder="Notiz"
+													aria-label={`Notiz zu ${spell.name}`}
+													onChange={(event) => dispatch(updateSpell({
+														id: spell.id,
+														changes: { note: event.target.value }
+													}))}
+													className="min-w-40 font-body"
 												/>
 											</td>
 											<td className="p-3 text-center">
@@ -179,7 +202,8 @@ const Spellbook = () => {
 												<div className="min-w-0 flex-1">
 													<div className="font-heading">{entry.name}</div>
 													<div className="truncate text-xs text-muted-foreground">
-														{entry.attributes.join('/')} · {entry.costText} · {entry.merkmal}
+														{entry.attributes.join('/')}
+														{entry.probeNote ? ` (${entry.probeNote})` : ''} · {entry.costText} · {entry.merkmal}
 													</div>
 												</div>
 												{owned.has(entry.id) && (
