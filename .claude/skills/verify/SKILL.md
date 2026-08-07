@@ -57,7 +57,11 @@ Auslesen `waitForTimeout(800)`.
 - Talent wählen: combobox "Talent wählen" → `getByPlaceholder('Talent suchen...')`
   → `getByRole('option', { name: ... })`
 - Kampf-Würfe: `getByRole('button', { name: 'Attacke würfeln' })` etc.
-- Settings-Toggle: `getByRole('switch')` (Bestätigungswurf, default an)
+- Settings-Toggle: seit dem Magie-Modul liegen zwei Switches auf Charakter →
+  Einstellungen — `getByRole('switch')` ohne Namen ist mehrdeutig. Gezielt:
+  `getByRole('switch', { name: 'Bestätigungswurf bei Kritisch und Patzer' })`
+  (default an) und `getByRole('switch', { name: 'Held ist zauberkundig' })`
+  (default aus)
 - PropertyNumber: `getByRole('button', { name: '<Label> verringern/erhöhen' })`;
   ohne Label heißen sie "Wert verringern/erhöhen" — auf dem Talentprobe-Screen ist
   `input[type=number]` nth(0) = Modifikator, nth(1) = Talentwert
@@ -70,5 +74,5 @@ Auslesen `waitForTimeout(800)`.
 2. TaW 20, Würfe klein → QS-Hero zeigt 6 (Cap), nicht 7
 3. Nach Wurf Modifikator ändern → Berechnung/QS unverändert (Snapshot)
 4. Kampf: d20=1 + Bestätigung ≤/> Zielwert → Krit vs. "Gelungen (Krit nicht bestätigt)"
-5. Legacy-Blob seeden → Talente/Attribute migriert, Blob wird als v2 zurückgeschrieben
+5. Legacy-Blob seeden → Talente/Attribute migriert, Blob wird als v4 zurückgeschrieben
 6. `navigator.serviceWorker.ready` abwarten → `context.setOffline(true)` → Reload rendert
