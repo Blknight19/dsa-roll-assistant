@@ -155,6 +155,7 @@ const Spellbook = () => {
 								role="combobox"
 								className="w-full justify-between"
 								aria-expanded={catalogOpen}
+								aria-label="Zauber aus dem Katalog wählen"
 								disabled={full}
 							>
 								Zauber suchen…

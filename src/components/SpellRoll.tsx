@@ -140,6 +140,7 @@ const SpellRoll = () => {
 								role="combobox"
 								className="w-full justify-between"
 								aria-expanded={pickerOpen}
+								aria-label="Zauber wählen"
 								disabled={spells.length === 0}
 							>
 								{spellRoll.spellName || (spells.length === 0 ? 'Zauberbuch ist leer' : 'Zauber wählen…')}

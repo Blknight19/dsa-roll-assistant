@@ -128,6 +128,7 @@ const TalentRoll = () => {
 								role="combobox"
 								className="w-full justify-between"
 								aria-expanded={pickerOpen}
+								aria-label="Talent wählen"
 							>
 								{probe.talentName || 'Talent wählen…'}
 								<ChevronDown className="opacity-50" />
