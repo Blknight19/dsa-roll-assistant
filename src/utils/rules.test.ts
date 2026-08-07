@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { evaluateCombatRoll, evaluateTalentCheck, spellAspCost, upkeepModifier } from './rules';
+import {
+  canSustain,
+  evaluateCombatRoll,
+  evaluateTalentCheck,
+  spellAspCost,
+  upkeepModifier
+} from './rules';
 
 describe('evaluateTalentCheck', () => {
   it('gelingt ohne FP-Verlust, wenn alle Würfel unter den Eigenschaften liegen', () => {
@@ -209,5 +215,36 @@ describe('upkeepModifier', () => {
 
   it('ignoriert negative Eingaben', () => {
     expect(upkeepModifier(-2)).toBe(0);
+  });
+});
+
+describe('canSustain', () => {
+  it('erlaubt genau die Wirkungsdauer „aufrechterhaltend"', () => {
+    expect(canSustain('aufrechterhaltend')).toBe(true);
+  });
+
+  it('ignoriert Groß-/Kleinschreibung und umgebende Leerzeichen', () => {
+    expect(canSustain('  Aufrechterhaltend ')).toBe(true);
+    expect(canSustain('AUFRECHTERHALTEND')).toBe(true);
+  });
+
+  it('schließt „sofort" aus', () => {
+    expect(canSustain('sofort')).toBe(false);
+  });
+
+  it('schließt feste Wirkungsdauern aus — sie laufen ohne Konzentration weiter', () => {
+    expect(canSustain('QS x 3 Minuten')).toBe(false);
+    expect(canSustain('1 Minute')).toBe(false);
+    expect(canSustain('5 Kampfrunden')).toBe(false);
+    expect(canSustain('QS x 15 Minuten, danach verweht der Nebel')).toBe(false);
+    expect(canSustain('Bis zum nächsten Schuss, maximal QS x 2 Kampfrunden')).toBe(false);
+  });
+
+  it('erlaubt den Knopf ohne Angabe — ein selbst eingetragener Zauber', () => {
+    expect(canSustain(undefined)).toBe(true);
+  });
+
+  it('lässt einen leeren String nicht durch — eine Angabe ist da, sie sagt nur nichts', () => {
+    expect(canSustain('')).toBe(false);
   });
 });

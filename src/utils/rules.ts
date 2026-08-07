@@ -107,3 +107,14 @@ export const spellAspCost = (cost: number, result: TalentCheckResult): number =>
 export const upkeepModifier = (activeCount: number): number =>
   // `|| 0` normalisiert -0 zu +0, da `toBe` in Tests mit Object.is vergleicht.
   -Math.max(0, Math.trunc(activeCount)) || 0;
+
+/**
+ * Ob ein Zauber Konzentration bindet und damit aufrechterhalten werden kann.
+ * Nur die Wirkungsdauer „aufrechterhaltend" tut das. Ein Zauber mit fester Dauer
+ * („QS x 3 Minuten", „5 Kampfrunden", …) läuft von allein weiter — niemand
+ * konzentriert sich darauf, also erschwert er auch keine weitere Zauberprobe.
+ * Fehlt die Angabe ganz (selbst eingetragener Zauber), bleibt der Knopf erlaubt:
+ * die App weiß es dort nicht besser als der Spieler.
+ */
+export const canSustain = (duration?: string): boolean =>
+  duration === undefined || /^\s*aufrechterhaltend\s*$/i.test(duration);

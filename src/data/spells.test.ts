@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ATTRIBUTE_KEYS } from '@/store/attributesSlice';
+import { canSustain } from '@/utils/rules';
 import { SPELL_CATALOG } from './spells';
 
 describe('SPELL_CATALOG', () => {
@@ -41,5 +42,24 @@ describe('SPELL_CATALOG', () => {
 
 	it('umfasst mindestens 41 geprüfte Zauber', () => {
 		expect(SPELL_CATALOG.length).toBeGreaterThanOrEqual(41);
+	});
+
+	it('lässt genau die „aufrechterhaltend"-Zauber aufrechterhalten', () => {
+		// Gegen die echten Daten geprüft, nicht nach Augenmaß: die Vorgängerfassung
+		// schloss nur „sofort" aus und erlaubte damit auch jeden Zauber mit fester
+		// Wirkungsdauer („QS x 3 Minuten", …) — der hätte fälschlich −1 gekostet.
+		const sustainable = SPELL_CATALOG.filter(entry => canSustain(entry.duration));
+		const declared = SPELL_CATALOG.filter(entry => entry.duration === 'aufrechterhaltend');
+
+		expect(sustainable.map(entry => entry.id)).toEqual(declared.map(entry => entry.id));
+		expect(sustainable).toHaveLength(12);
+	});
+
+	it('trägt probeNote nur als bekannten Hinweis auf ZK oder SK', () => {
+		const notes = SPELL_CATALOG.map(entry => entry.probeNote).filter(Boolean);
+		expect(notes.length).toBeGreaterThan(0);
+		for (const note of notes) {
+			expect(note).toMatch(/^modifiziert durch (ZK|SK)$/);
+		}
 	});
 });
