@@ -7,6 +7,10 @@ import { Input } from '@/components/ui/input';
 import {
 	Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '@/components/ui/select';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import {
+	Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList
+} from '@/components/ui/command';
 import PropertyNumber from './PropertyNumber';
 import type { RootState } from '@/store';
 import { ATTRIBUTE_KEYS, type AttributeKey } from '@/store/attributesSlice';
@@ -14,7 +18,8 @@ import { TALENT_VALUE_MAX } from '@/store/talentsSlice';
 import {
 	SPELL_COST_MAX, SPELL_LIMIT, SPELL_NAME_MAX, addSpell, removeSpell, updateSpell
 } from '@/store/spellbookSlice';
-import { BookOpen, Plus, Trash2 } from 'lucide-react';
+import { SPELL_CATALOG, type SpellCatalogEntry } from '@/data/spells';
+import { BookOpen, ChevronDown, Plus, Trash2 } from 'lucide-react';
 
 const DEFAULT_ATTRIBUTES: [AttributeKey, AttributeKey, AttributeKey] = ['KL', 'KL', 'IN'];
 
@@ -25,8 +30,26 @@ const Spellbook = () => {
 	const [name, setName] = useState('');
 	const [attributes, setAttributes] = useState<[AttributeKey, AttributeKey, AttributeKey]>(DEFAULT_ATTRIBUTES);
 	const [cost, setCost] = useState(4);
+	const [catalogOpen, setCatalogOpen] = useState(false);
 
 	const full = spells.length >= SPELL_LIMIT;
+	const owned = new Set(spells.map(spell => spell.catalogId).filter(Boolean));
+
+	const adopt = (entry: SpellCatalogEntry) => {
+		dispatch(addSpell({
+			id: nanoid(),
+			catalogId: entry.id,
+			name: entry.name,
+			attributes: [...entry.attributes] as [AttributeKey, AttributeKey, AttributeKey],
+			// Formelzauber starten bei 0 — die Zahl trägt der Spieler ein, der Wortlaut
+			// steht als Erinnerung daneben.
+			cost: entry.cost ?? 0,
+			costText: entry.costText,
+			duration: entry.duration,
+			value: 0
+		}));
+		setCatalogOpen(false);
+	};
 
 	const create = () => {
 		const trimmed = name.trim();
@@ -116,6 +139,64 @@ const Spellbook = () => {
 							</table>
 						</div>
 					)}
+				</CardContent>
+			</Card>
+
+			<Card variant="parchment">
+				<CardHeader>
+					<CardTitle className="text-lg">Aus dem Katalog übernehmen</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-3">
+					<Popover open={catalogOpen} onOpenChange={setCatalogOpen}>
+						<PopoverTrigger asChild>
+							<Button
+								variant="aventurian"
+								size="lg"
+								role="combobox"
+								className="w-full justify-between"
+								aria-expanded={catalogOpen}
+								disabled={full}
+							>
+								Zauber suchen…
+								<ChevronDown className="opacity-50" />
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent className="w-[min(28rem,90vw)] p-0">
+							<Command>
+								<CommandInput placeholder="Zauber suchen…" className="font-body" />
+								<CommandList>
+									<CommandEmpty>Kein Zauber gefunden</CommandEmpty>
+									<CommandGroup>
+										{SPELL_CATALOG.map(entry => (
+											<CommandItem
+												key={entry.id}
+												value={entry.name}
+												onSelect={() => adopt(entry)}
+												disabled={owned.has(entry.id)}
+												className="font-body"
+											>
+												<div className="min-w-0 flex-1">
+													<div className="font-heading">{entry.name}</div>
+													<div className="truncate text-xs text-muted-foreground">
+														{entry.attributes.join('/')} · {entry.costText} · {entry.merkmal}
+													</div>
+												</div>
+												{owned.has(entry.id) && (
+													<span className="ml-2 text-xs text-muted-foreground">im Buch</span>
+												)}
+											</CommandItem>
+										))}
+									</CommandGroup>
+								</CommandList>
+							</Command>
+						</PopoverContent>
+					</Popover>
+
+					<p className="text-xs text-muted-foreground">
+						Übernommene Zauber lassen sich frei überschreiben. Bei Zaubern mit
+						Kostenformel steht der Wortlaut in der Tabelle — trage die Zahl ein,
+						mit der du rechnest.
+					</p>
 				</CardContent>
 			</Card>
 
