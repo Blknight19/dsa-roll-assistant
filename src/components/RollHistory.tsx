@@ -172,7 +172,7 @@ const RollHistory = () => {
 			{rollHistory.length > 0 && (
 				<Card variant="parchment">
 					<CardContent className="p-4">
-						<div className="flex justify-center gap-8 text-sm text-muted-foreground">
+						<div className="flex flex-wrap justify-center gap-8 text-sm text-muted-foreground">
 							<div className="text-center">
 								<p className="font-heading font-semibold text-foreground text-lg">
 									{rollHistory.length}

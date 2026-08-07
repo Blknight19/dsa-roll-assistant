@@ -18,7 +18,7 @@ export type SpellCatalogEntry = {
 	costText: string;
 	castTime: string;
 	range: string;
-	/** „sofort" schließt das Aufrechterhalten aus. */
+	/** Nur „aufrechterhaltend" lässt sich aufrechterhalten; jede feste Dauer läuft von selbst ab. */
 	duration: string;
 	target: string;
 	merkmal: string;

@@ -112,12 +112,15 @@ const SpellRoll = () => {
 		const special = result.special === 'krit'
 			? 'Kritischer Erfolg! '
 			: result.special === 'patzer' ? 'Patzer! ' : '';
+		// Formelzauber stehen bei 0 AsP, bis der Spieler die Zahl einträgt — „−0 AsP"
+		// sähe nach einem Fehler aus, siehe costNote().
+		const aspBooking = aspSpent === 0 ? 'keine AsP gebucht' : `−${aspSpent} AsP`;
 
 		dispatch(addRoll({
 			id: nanoid(),
 			type: 'Zauber',
 			values: [...result.dice],
-			result: `${special}${spell.name}: ${result.fp} FP ${outcome} [Mod ${signedModifier(totalModifier)}, −${aspSpent} AsP]`,
+			result: `${special}${spell.name}: ${result.fp} FP ${outcome} [Mod ${signedModifier(totalModifier)}, ${aspBooking}]`,
 			date: new Date().toISOString()
 		}));
 	};
