@@ -73,7 +73,7 @@ function App() {
                     aria-label={label}
                   >
                     <Icon className="w-4 h-4 shrink-0" />
-                    <span className="text-[10px] sm:text-xs leading-none">{label}</span>
+                    <span className="text-[11px] sm:text-xs leading-none">{label}</span>
                   </TabsTrigger>
                 ))}
               </TabsList>

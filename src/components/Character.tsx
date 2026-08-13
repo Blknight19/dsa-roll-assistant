@@ -30,21 +30,21 @@ const Character = () => {
 				<TabsList className={`grid w-full ${isSpellcaster ? 'grid-cols-4' : 'grid-cols-3'} h-auto mb-6`}>
 					<TabsTrigger value="attributes" className="font-heading flex flex-col items-center gap-1 py-2" aria-label="Eigenschaften">
 						<User className="w-4 h-4" />
-						<span className="text-[10px] sm:text-xs leading-none">Eigenschaften</span>
+						<span className="text-[11px] sm:text-xs leading-none">Eigenschaften</span>
 					</TabsTrigger>
 					<TabsTrigger value="talents" className="font-heading flex flex-col items-center gap-1 py-2" aria-label="Talente">
 						<Sparkles className="w-4 h-4" />
-						<span className="text-[10px] sm:text-xs leading-none">Talente</span>
+						<span className="text-[11px] sm:text-xs leading-none">Talente</span>
 					</TabsTrigger>
 					{isSpellcaster && (
 						<TabsTrigger value="spellbook" className="font-heading flex flex-col items-center gap-1 py-2" aria-label="Zauberbuch">
 							<BookOpen className="w-4 h-4" />
-							<span className="text-[10px] sm:text-xs leading-none">Zauberbuch</span>
+							<span className="text-[11px] sm:text-xs leading-none">Zauberbuch</span>
 						</TabsTrigger>
 					)}
 					<TabsTrigger value="settings" className="font-heading flex flex-col items-center gap-1 py-2" aria-label="Einstellungen">
 						<Settings className="w-4 h-4" />
-						<span className="text-[10px] sm:text-xs leading-none">Einstellungen</span>
+						<span className="text-[11px] sm:text-xs leading-none">Einstellungen</span>
 					</TabsTrigger>
 				</TabsList>
 
