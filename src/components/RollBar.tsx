@@ -8,6 +8,12 @@ type RollBarProps = {
 	onModifierChange: (value: number) => void;
 	onRoll: () => void;
 	disabled?: boolean;
+	/**
+	 * Warum der Auslöser grau ist. Gehört an die Leiste und nicht in die
+	 * Ergebnisspalte: die gibt es auf dem Handy nicht, dort stand vorher ein
+	 * toter Knopf ohne jede Begründung.
+	 */
+	disabledReason?: string;
 	label?: string;
 	/**
 	 * Auf dem Handy klebt die Leiste am unteren Rand (Daumenzone); auf dem Desktop
@@ -32,6 +38,7 @@ const RollBar = ({
 	onModifierChange,
 	onRoll,
 	disabled = false,
+	disabledReason,
 	label = 'Würfeln',
 	sticky = false,
 	autoModifier = 0,
@@ -65,6 +72,12 @@ const RollBar = ({
 					{label}
 				</Button>
 			</div>
+
+			{disabled && disabledReason && (
+				<p className="mx-auto mt-2 max-w-3xl text-center text-sm text-muted-foreground">
+					{disabledReason}
+				</p>
+			)}
 
 			{autoModifier !== 0 && (
 				<p className="mx-auto mt-2 max-w-3xl text-center text-xs text-muted-foreground">

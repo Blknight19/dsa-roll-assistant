@@ -378,6 +378,11 @@ const SpellRoll = () => {
 			onModifierChange={(value) => dispatch(setSpellModifier(value))}
 			onRoll={cast}
 			disabled={!ready}
+			disabledReason={spell === undefined
+				? (spells.length === 0
+					? 'Trage im Charakterbogen unter „Zauberbuch" Zauber ein.'
+					: 'Wähle einen Zauber, um zu wirken.')
+				: `Nicht genug AsP — ${cost} nötig, ${asp.current} vorhanden.`}
 			label="Zaubern"
 			autoModifier={auto}
 			autoNote={upkeep.length > 0

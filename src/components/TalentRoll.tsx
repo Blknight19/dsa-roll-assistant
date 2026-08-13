@@ -269,6 +269,7 @@ const TalentRoll = () => {
 			onModifierChange={(value) => dispatch(setProbeModifier(value))}
 			onRoll={rollProbe}
 			disabled={!probe.talentName}
+			disabledReason="Wähle ein Talent, um zu würfeln."
 		/>
 	);
 

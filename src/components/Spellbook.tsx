@@ -12,6 +12,7 @@ import {
 	Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList
 } from '@/components/ui/command';
 import PropertyNumber from './PropertyNumber';
+import ConfirmDialog from './ConfirmDialog';
 import type { RootState } from '@/store';
 import { ATTRIBUTE_KEYS, type AttributeKey } from '@/store/attributesSlice';
 import { TALENT_VALUE_MAX } from '@/store/talentsSlice';
@@ -32,6 +33,9 @@ const Spellbook = () => {
 	const [attributes, setAttributes] = useState<[AttributeKey, AttributeKey, AttributeKey]>(DEFAULT_ATTRIBUTES);
 	const [cost, setCost] = useState(4);
 	const [catalogOpen, setCatalogOpen] = useState(false);
+	// Löschen ist der einzige Weg, einen Zauber samt Notiz zu verlieren — wie in der
+	// Historie fragt die App vorher nach.
+	const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
 
 	const full = spells.length >= SPELL_LIMIT;
 	const owned = new Set(spells.map(spell => spell.catalogId).filter(Boolean));
@@ -150,7 +154,7 @@ const Spellbook = () => {
 												<Button
 													variant="ghost"
 													size="icon"
-													onClick={() => dispatch(removeSpell(spell.id))}
+													onClick={() => setPendingDelete({ id: spell.id, name: spell.name })}
 													aria-label={`${spell.name} entfernen`}
 												>
 													<Trash2 className="h-4 w-4" />
@@ -276,6 +280,20 @@ const Spellbook = () => {
 					)}
 				</CardContent>
 			</Card>
+
+			<ConfirmDialog
+				open={pendingDelete !== null}
+				onOpenChange={(open) => { if (!open) setPendingDelete(null); }}
+				title="Zauber entfernen?"
+				description={
+					<>
+						„{pendingDelete?.name}" verschwindet samt Notiz und Fertigkeitswert aus
+						dem Zauberbuch. Das lässt sich nicht rückgängig machen.
+					</>
+				}
+				confirmLabel="Entfernen"
+				onConfirm={() => { if (pendingDelete) dispatch(removeSpell(pendingDelete.id)); }}
+			/>
 		</div>
 	);
 };
