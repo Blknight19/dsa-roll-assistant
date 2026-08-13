@@ -7,6 +7,7 @@ import SpellRoll from './components/SpellRoll';
 import SimpleRoll from './components/SimpleRoll';
 import RollHistory from './components/RollHistory';
 import ThemeToggle from './components/ThemeToggle';
+import SettingsDialog from './components/SettingsDialog';
 import Character from './components/Character';
 import Combat from './components/Combat';
 import HeroBar from './components/HeroBar';
@@ -54,7 +55,10 @@ function App() {
               </div>
             </div>
 
-            <ThemeToggle />
+            <div className="flex items-center gap-1">
+              <SettingsDialog />
+              <ThemeToggle />
+            </div>
           </div>
         </header>
 
