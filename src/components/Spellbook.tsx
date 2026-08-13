@@ -263,7 +263,7 @@ const Spellbook = () => {
 
 						<PropertyNumber label="AsP" value={cost} max={SPELL_COST_MAX} size="s" onChange={setCost} />
 
-						<Button variant="aventurian" onClick={create} disabled={!name.trim() || full} className="mb-5">
+						<Button variant="aventurian" onClick={create} disabled={!name.trim() || full}>
 							<Plus className="mr-1 h-4 w-4" />
 							Hinzufügen
 						</Button>
