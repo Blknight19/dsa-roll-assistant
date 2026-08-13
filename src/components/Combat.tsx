@@ -2,7 +2,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { nanoid } from '@reduxjs/toolkit';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import PropertyNumber from './PropertyNumber';
-import RollBar from './RollBar';
+import ModifierControl from './ModifierControl';
 import RollResultCard from './RollResultCard';
 import { Button } from './ui/button';
 import type { RootState } from '@/store';
@@ -142,8 +142,24 @@ const Combat = () => {
 				<CardHeader>
 					<CardTitle className="text-lg">Kampfwerte</CardTitle>
 				</CardHeader>
-				<CardContent>
-					<div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+				<CardContent className="space-y-4">
+					{/* Der Modifikator steht bewusst in derselben Karte wie die Auslöser:
+					    als eigene Leiste am Fuß der Spalte lag er 776 px unter dem ersten
+					    Würfeln-Button und war nie mit ihm zusammen im Bild. */}
+					<div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
+						<ModifierControl
+							value={modifier}
+							onChange={(value) => dispatch(setCombatModifier(value))}
+							orientation="row"
+						/>
+						<p className="text-sm text-muted-foreground">Gilt für den nächsten Kampfwurf.</p>
+					</div>
+
+					{/* Drei Spalten nur, solange die Karte die volle Breite hat. Im
+					    Desktop-Layout steht sie in einer halbbreiten Spalte — dort passen
+					    drei Stepper (je 160 px) nicht mehr in die Zellen und ragen über
+					    deren Hintergrund hinaus. */}
+					<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2">
 						{combatStats.map(({ type, key }) => {
 							const Icon = combatIcons[type];
 							return (
@@ -320,15 +336,6 @@ const Combat = () => {
 		/>
 	);
 
-	const modifierBar = (sticky: boolean) => (
-		<RollBar
-			sticky={sticky}
-			modifier={modifier}
-			onModifierChange={(value) => dispatch(setCombatModifier(value))}
-			note="Gilt für den nächsten Kampfwurf."
-		/>
-	);
-
 	return (
 		<div className="mx-auto w-full max-w-6xl lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
 			<div aria-live="polite" className="sr-only">
@@ -349,10 +356,7 @@ const Combat = () => {
 
 			<div className="mt-4 flex flex-col gap-4 lg:mt-0 lg:order-1">
 				{setup}
-				<div className="hidden lg:block">{modifierBar(false)}</div>
 			</div>
-
-			<div className="lg:hidden">{modifierBar(true)}</div>
 		</div>
 	);
 };

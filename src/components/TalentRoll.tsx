@@ -262,8 +262,9 @@ const TalentRoll = () => {
 		</div>
 	);
 
-	const rollBar = (
+	const rollBar = (sticky: boolean) => (
 		<RollBar
+			sticky={sticky}
 			modifier={probe.modifier}
 			onModifierChange={(value) => dispatch(setProbeModifier(value))}
 			onRoll={rollProbe}
@@ -297,20 +298,14 @@ const TalentRoll = () => {
 
 			<div className="mt-4 flex flex-col gap-4 lg:mt-0 lg:order-1">
 				{setup}
-				{/* Desktop: die Leiste sitzt am Fuß der Eingabespalte … */}
-				<div className="hidden lg:block">{rollBar}</div>
+				{/* Desktop: die Leiste sitzt am Fuß der Eingabespalte und klebt dort … */}
+				{rollBar(false)}
 			</div>
 
-			{/* … auf dem Handy klebt sie stattdessen in der Daumenzone. */}
-			<div className="lg:hidden">
-				<RollBar
-					sticky
-					modifier={probe.modifier}
-					onModifierChange={(value) => dispatch(setProbeModifier(value))}
-					onRoll={rollProbe}
-					disabled={!probe.talentName}
-				/>
-			</div>
+			{/* … auf dem Handy klebt sie stattdessen in der Daumenzone. Beide Leisten
+			    tragen ihren Breakpoint selbst — ein Wrapper-div würde das Sticky
+			    aushebeln, siehe RollBar. */}
+			{rollBar(true)}
 		</div>
 	);
 };

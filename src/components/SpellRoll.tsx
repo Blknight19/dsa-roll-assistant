@@ -412,10 +412,12 @@ const SpellRoll = () => {
 
 			<div className="mt-4 flex flex-col gap-4 lg:mt-0 lg:order-1">
 				{setup}
-				<div className="hidden lg:block">{rollBar(false)}</div>
+				{rollBar(false)}
 			</div>
 
-			<div className="lg:hidden">{rollBar(true)}</div>
+			{/* Kein Wrapper-div: der wäre der umschließende Block der Sticky-Leiste
+			    und exakt so hoch wie sie — siehe RollBar. */}
+			{rollBar(true)}
 		</div>
 	);
 };

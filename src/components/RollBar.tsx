@@ -1,24 +1,20 @@
-import PropertyNumber from './PropertyNumber';
+import ModifierControl from './ModifierControl';
 import { Button } from '@/components/ui/button';
 import { Dices } from 'lucide-react';
-
-export const MODIFIER_RANGE = 20;
+import { cn } from '@/lib/utils';
 
 type RollBarProps = {
 	modifier: number;
 	onModifierChange: (value: number) => void;
-	/**
-	 * Ohne `onRoll` trägt die Leiste nur den Modifikator — im Kampf sitzt der
-	 * Auslöser an den einzelnen Kampfwerten, nicht in der Leiste.
-	 */
-	onRoll?: () => void;
+	onRoll: () => void;
 	disabled?: boolean;
 	label?: string;
-	/** Text statt Knopf, wenn der Wurf woanders ausgelöst wird. */
-	note?: string;
 	/**
 	 * Auf dem Handy klebt die Leiste am unteren Rand (Daumenzone); auf dem Desktop
-	 * sitzt sie als Karte am Fuß der Eingabespalte.
+	 * sitzt sie als Karte am Fuß der Eingabespalte und klebt dort ebenfalls.
+	 * Die Leiste bringt ihren Breakpoint selbst mit, statt in einem Wrapper zu
+	 * stecken: ein Wrapper wäre der umschließende Block und exakt so hoch wie sie
+	 * — dann hat `position: sticky` keinen Weg und wirkt gar nicht.
 	 */
 	sticky?: boolean;
 	/**
@@ -28,18 +24,7 @@ type RollBarProps = {
 	 */
 	autoModifier?: number;
 	autoNote?: string;
-};
-
-/** Buch-Konvention: negativer Modifikator = Erschwernis, positiver = Erleichterung. */
-const ModifierHint = ({ modifier }: { modifier: number }) => {
-	if (modifier === 0) {
-		return <span className="text-xs text-muted-foreground">keine</span>;
-	}
-	return modifier < 0 ? (
-		<span className="text-xs font-semibold text-amber-700 dark:text-amber-400">Erschwernis</span>
-	) : (
-		<span className="text-xs font-semibold text-sky-700 dark:text-sky-400">Erleichterung</span>
-	);
+	className?: string;
 };
 
 const RollBar = ({
@@ -48,48 +33,37 @@ const RollBar = ({
 	onRoll,
 	disabled = false,
 	label = 'Würfeln',
-	note,
 	sticky = false,
 	autoModifier = 0,
-	autoNote
+	autoNote,
+	className
 }: RollBarProps) => {
 	const total = modifier + autoModifier;
 
 	return (
 		<div
-			className={
+			className={cn(
 				sticky
-					? 'sticky bottom-0 z-40 -mx-4 border-t border-aventurian-300 bg-background/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-sm dark:border-aventurian-700'
-					: 'rounded-lg border border-aventurian-300 bg-card p-4 dark:border-aventurian-700'
-			}
+					? 'sticky bottom-0 z-40 -mx-4 border-t border-aventurian-300 bg-background/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-sm lg:hidden dark:border-aventurian-700'
+					// Der Schatten trennt die klebende Leiste von der Karte, über der sie
+					// beim Scrollen liegt — sonst verschwimmen zwei gleiche Kartenränder.
+					: 'hidden rounded-lg border border-aventurian-300 bg-card p-4 shadow-lg lg:sticky lg:bottom-4 lg:block dark:border-aventurian-700',
+				className
+			)}
 		>
 			<div className="mx-auto flex max-w-3xl items-end gap-4">
-				<div className="flex flex-col items-center gap-1">
-					<PropertyNumber
-						label="Modifikator"
-						value={modifier}
-						min={-MODIFIER_RANGE}
-						max={MODIFIER_RANGE}
-						size="s"
-						onChange={onModifierChange}
-					/>
-					<ModifierHint modifier={total} />
-				</div>
+				<ModifierControl value={modifier} onChange={onModifierChange} hintValue={total} />
 
-				{onRoll ? (
-					<Button
-						onClick={onRoll}
-						size="xl"
-						variant="aventurian"
-						disabled={disabled}
-						className="mb-5 flex-1 shadow-lg hover:shadow-xl"
-					>
-						<Dices className="mr-2 h-6 w-6" />
-						{label}
-					</Button>
-				) : (
-					note && <p className="mb-7 flex-1 text-sm text-muted-foreground">{note}</p>
-				)}
+				<Button
+					onClick={onRoll}
+					size="xl"
+					variant="aventurian"
+					disabled={disabled}
+					className="mb-5 flex-1 shadow-lg hover:shadow-xl"
+				>
+					<Dices className="mr-2 h-6 w-6" />
+					{label}
+				</Button>
 			</div>
 
 			{autoModifier !== 0 && (
