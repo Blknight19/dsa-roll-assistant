@@ -13,6 +13,12 @@ interface PropertyNumberProps {
   min?: number;
   size?: 'm' | 's';
   className?: string;
+  /**
+   * Vorlesename, wenn kein sichtbares Label passt. Ohne ihn heißen alle Stepper
+   * einer Liste gleich („Wert erhöhen") und sind per Screenreader nicht zu
+   * unterscheiden.
+   */
+  ariaLabel?: string;
 }
 
 const REPEAT_DELAY_MS = 400;
@@ -25,9 +31,11 @@ const PropertyNumber: React.FC<PropertyNumberProps> = ({
   max,
   min = 0,
   size = 'm',
-  className
+  className,
+  ariaLabel
 }) => {
   const inputId = useId();
+  const spokenName = ariaLabel || label;
 
   // Während des Tippens darf das Feld leer sein — sonst lässt sich 8 nicht zu 15
   // ändern, ohne vorher alles zu markieren. Beim Verlassen wird normalisiert.
@@ -119,7 +127,7 @@ const PropertyNumber: React.FC<PropertyNumberProps> = ({
           size="icon"
           disabled={value <= min}
           className="h-11 w-11 rounded-full"
-          aria-label={`${label || 'Wert'} verringern`}
+          aria-label={`${spokenName || 'Wert'} verringern`}
           {...stepperProps(-1)}
         >
           <Minus className="h-4 w-4" />
@@ -134,7 +142,7 @@ const PropertyNumber: React.FC<PropertyNumberProps> = ({
           onBlur={handleBlur}
           min={min}
           max={max}
-          aria-label={label || undefined}
+          aria-label={spokenName || undefined}
           className={cn(
             'text-center font-heading font-bold border-2 border-aventurian-400 dark:border-aventurian-600',
             'focus:border-aventurian-600 dark:focus:border-aventurian-400',
@@ -149,7 +157,7 @@ const PropertyNumber: React.FC<PropertyNumberProps> = ({
           size="icon"
           disabled={value >= max}
           className="h-11 w-11 rounded-full"
-          aria-label={`${label || 'Wert'} erhöhen`}
+          aria-label={`${spokenName || 'Wert'} erhöhen`}
           {...stepperProps(1)}
         >
           <Plus className="h-4 w-4" />

@@ -87,7 +87,73 @@ const Spellbook = () => {
 							Noch keine Zauber. Lege unten einen eigenen an.
 						</p>
 					) : (
-						<div className="overflow-x-auto">
+						<>
+						{/* Schmale Screens bekommen Karten: sechs Spalten schieben AsP, FW und
+						    Notiz sonst aus dem Bild. */}
+						<div className="space-y-3 sm:hidden">
+							{spells.map(spell => (
+								<div
+									key={spell.id}
+									className="space-y-3 rounded-lg border border-aventurian-200 bg-aventurian-50/50 p-3 dark:border-aventurian-700 dark:bg-aventurian-900/30"
+								>
+									<div className="flex items-start justify-between gap-2">
+										<div className="min-w-0">
+											<div className="font-heading">{spell.name}</div>
+											<div className="font-heading text-sm text-muted-foreground">
+												{spell.attributes.join('/')}
+												{spell.probeNote && (
+													<span className="font-body text-magic-dark dark:text-magic-light"> {spell.probeNote}</span>
+												)}
+											</div>
+											{spell.costText && (
+												<div className="text-xs text-muted-foreground">{spell.costText}</div>
+											)}
+										</div>
+										<Button
+											variant="ghost"
+											size="icon"
+											onClick={() => setPendingDelete({ id: spell.id, name: spell.name })}
+											aria-label={`${spell.name} entfernen`}
+										>
+											<Trash2 className="h-4 w-4" />
+										</Button>
+									</div>
+
+									<div className="flex flex-wrap items-end gap-3">
+										<PropertyNumber
+											label="AsP"
+											value={spell.cost}
+											max={SPELL_COST_MAX}
+											size="s"
+											ariaLabel={`AsP für ${spell.name}`}
+											onChange={(value) => dispatch(updateSpell({ id: spell.id, changes: { cost: value } }))}
+										/>
+										<PropertyNumber
+											label="FW"
+											value={spell.value}
+											max={TALENT_VALUE_MAX}
+											size="s"
+											ariaLabel={`Fertigkeitswert für ${spell.name}`}
+											onChange={(value) => dispatch(updateSpell({ id: spell.id, changes: { value } }))}
+										/>
+									</div>
+
+									<Input
+										value={spell.note ?? ''}
+										maxLength={SPELL_NOTE_MAX}
+										placeholder="Notiz"
+										aria-label={`Notiz zu ${spell.name}`}
+										onChange={(event) => dispatch(updateSpell({
+											id: spell.id,
+											changes: { note: event.target.value }
+										}))}
+										className="font-body"
+									/>
+								</div>
+							))}
+						</div>
+
+						<div className="hidden overflow-x-auto sm:block">
 							<table className="min-w-full text-sm">
 								<thead className="sticky top-0 z-10 bg-aventurian-100 dark:bg-aventurian-800">
 									<tr className="border-b-2 border-aventurian-400 dark:border-aventurian-600">
@@ -165,6 +231,7 @@ const Spellbook = () => {
 								</tbody>
 							</table>
 						</div>
+						</>
 					)}
 				</CardContent>
 			</Card>
