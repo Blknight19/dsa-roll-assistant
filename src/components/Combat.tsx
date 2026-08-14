@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import PropertyNumber from './PropertyNumber';
 import ModifierControl from './ModifierControl';
 import RollResultCard from './RollResultCard';
+import CombatResultBar from './CombatResultBar';
 import { Button } from './ui/button';
 import type { RootState } from '@/store';
 import {
@@ -23,7 +24,7 @@ import {
 import { addRoll } from '@/store/rollSlice';
 import { rollDie } from '@/utils/dice';
 import { evaluateCombatRoll } from '@/utils/rules';
-import { modifierTerm } from '@/utils/format';
+import { combatTone, consequenceText, derivationText, statusText } from '@/utils/combatText';
 import { Swords, Shield, Footprints, Target, Clock, Heart, Sparkles, Skull, Check, X } from 'lucide-react';
 
 const combatLabels: Record<CombatType, string> = {
@@ -50,42 +51,10 @@ const combatStats: { type: CombatType; key: CombatStatKey }[] = [
 	{ type: 'INI', key: 'initiative' }
 ];
 
-const statusText = (roll: CombatRoll): string => {
-	if (!roll.result) return String(roll.initiative ?? '');
-	const { special, d20, success } = roll.result;
-	if (special === 'krit') return 'Kritischer Erfolg!';
-	if (special === 'patzer') return 'Patzer!';
-	if (d20 === 1) return 'Gelungen (Krit nicht bestätigt)';
-	if (d20 === 20) return 'Misslungen (Patzer nicht bestätigt)';
-	return success ? 'Gelungen' : 'Misslungen';
-};
+/** Ohne `id`: die vergibt erst der Aufrufer, damit die Würfel zuerst fallen. */
+type CombatRollDraft = Omit<CombatRoll, 'id'>;
 
-/**
- * Regelfolge zum Wurf. Nur für Attacke und Fernkampf belegt — für Parade und
- * Ausweichen behandelt das Regelwerk kritische Erfolge gesondert, teils optional.
- */
-const consequenceText = (roll: CombatRoll): string | undefined => {
-	if (roll.type !== 'AT' && roll.type !== 'FK') return undefined;
-	if (!roll.result) return undefined;
-	const { special, d20 } = roll.result;
-	if (special === 'krit') return 'Verteidigung des Ziels halbiert, Schaden verdoppelt';
-	if (special === 'patzer') return 'Patzer-Tabelle auswerten';
-	if (d20 === 1) return 'Verteidigung des Ziels halbiert';
-	return undefined;
-};
-
-const derivationText = (roll: CombatRoll): string => {
-	if (!roll.result) {
-		return `${roll.base} + ${roll.dice[0]}${modifierTerm(roll.modifier)} = ${roll.initiative}`;
-	}
-	const { d20, target, confirmation } = roll.result;
-	const base = roll.modifier === 0
-		? `Wurf: ${d20}, Zielwert: ${target}`
-		: `Wurf: ${d20}, Basis: ${roll.base}${modifierTerm(roll.modifier)} → ${target}`;
-	return confirmation ? `${base} | Bestätigung: ${confirmation.roll}` : base;
-};
-
-const buildInitiativeRoll = (base: number, modifier: number): CombatRoll => {
+const buildInitiativeRoll = (base: number, modifier: number): CombatRollDraft => {
 	const w6 = rollDie(6);
 	return { type: 'INI', base, modifier, initiative: base + w6 + modifier, dice: [w6] };
 };
@@ -95,7 +64,7 @@ const buildCheckRoll = (
 	base: number,
 	modifier: number,
 	confirmCriticals: boolean
-): CombatRoll => {
+): CombatRollDraft => {
 	const d20 = rollDie(20);
 	const needsConfirmation = confirmCriticals && (d20 === 1 || d20 === 20);
 	const result = evaluateCombatRoll(base, modifier, d20, needsConfirmation ? rollDie(20) : undefined);
@@ -115,13 +84,14 @@ const Combat = () => {
 	const { modifier, lastRoll } = useSelector((state: RootState) => state.combatRoll);
 
 	const roll = (type: CombatType, base: number) => {
-		const snapshot = type === 'INI'
+		const draft = type === 'INI'
 			? buildInitiativeRoll(base, modifier)
 			: buildCheckRoll(type, base, modifier, confirmCriticals);
+		const snapshot = { ...draft, id: nanoid() };
 
 		dispatch(setCombatLastRoll(snapshot));
 		dispatch(addRoll({
-			id: nanoid(),
+			id: snapshot.id,
 			type: 'Kampf',
 			values: snapshot.dice,
 			result: `${combatLabels[type]}: ${statusText(snapshot)} (${derivationText(snapshot)})`,
@@ -138,59 +108,6 @@ const Combat = () => {
 
 	const setup = (
 		<>
-			<Card variant="parchment">
-				<CardHeader>
-					<CardTitle className="text-lg">Kampfwerte</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-4">
-					{/* Der Modifikator steht bewusst in derselben Karte wie die Auslöser:
-					    als eigene Leiste am Fuß der Spalte lag er 776 px unter dem ersten
-					    Würfeln-Button und war nie mit ihm zusammen im Bild. */}
-					<div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
-						<ModifierControl
-							value={modifier}
-							onChange={(value) => dispatch(setCombatModifier(value))}
-							orientation="row"
-						/>
-						<p className="text-sm text-muted-foreground">Gilt für den nächsten Kampfwurf.</p>
-					</div>
-
-					{/* Drei Spalten nur, solange die Karte die volle Breite hat. Im
-					    Desktop-Layout steht sie in einer halbbreiten Spalte — dort passen
-					    drei Stepper (je 160 px) nicht mehr in die Zellen und ragen über
-					    deren Hintergrund hinaus. */}
-					<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2">
-						{combatStats.map(({ type, key }) => {
-							const Icon = combatIcons[type];
-							return (
-								<div
-									key={key}
-									className="flex flex-col items-center gap-2 rounded-lg bg-aventurian-100/50 p-3 transition-colors hover:bg-aventurian-200/50 dark:bg-aventurian-800/50 dark:hover:bg-aventurian-700/50"
-								>
-									<Icon className="h-5 w-5 text-aventurian-600 dark:text-aventurian-400" />
-									<PropertyNumber
-										label={type}
-										value={combat[key]}
-										max={COMBAT_STAT_MAX}
-										size="s"
-										onChange={(value) => dispatch(updateCombatStat({ key, value }))}
-									/>
-									<Button
-										size="sm"
-										variant="aventurian"
-										onClick={() => roll(type, combat[key])}
-										className="w-full"
-										aria-label={`${combatLabels[type]} würfeln`}
-									>
-										Würfeln
-									</Button>
-								</div>
-							);
-						})}
-					</div>
-				</CardContent>
-			</Card>
-
 			<Card variant="parchment">
 				<CardHeader className="pb-3">
 					<CardTitle className="flex items-center gap-2 text-lg">
@@ -286,6 +203,56 @@ const Combat = () => {
 					</div>
 				</CardContent>
 			</Card>
+
+			<Card variant="parchment">
+				<CardHeader>
+					<CardTitle className="text-lg">Kampfwerte</CardTitle>
+				</CardHeader>
+				<CardContent>
+					{/* Drei Spalten nur, solange die Karte die volle Breite hat. Im
+					    Desktop-Layout steht sie in einer halbbreiten Spalte — dort passen
+					    drei Stepper (je 160 px) nicht mehr in die Zellen und ragen über
+					    deren Hintergrund hinaus. */}
+					<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2">
+						{combatStats.map(({ type, key }) => {
+							const Icon = combatIcons[type];
+							return (
+								<div
+									key={key}
+									className="flex flex-col items-center gap-2 rounded-lg bg-aventurian-100/50 p-3 transition-colors hover:bg-aventurian-200/50 dark:bg-aventurian-800/50 dark:hover:bg-aventurian-700/50"
+								>
+									<Icon className="h-5 w-5 text-aventurian-600 dark:text-aventurian-400" />
+									<PropertyNumber
+										label={type}
+										value={combat[key]}
+										max={COMBAT_STAT_MAX}
+										size="s"
+										onChange={(value) => dispatch(updateCombatStat({ key, value }))}
+									/>
+									<Button
+										size="sm"
+										variant="aventurian"
+										onClick={() => roll(type, combat[key])}
+										className="w-full"
+										aria-label={`${combatLabels[type]} würfeln`}
+									>
+										Würfeln
+									</Button>
+								</div>
+							);
+						})}
+
+						<div className="flex flex-col items-center gap-2 p-3">
+							{/* Platzhalter in Icon-Höhe — hält den Stepper auf einer Linie mit den Nachbarkacheln. */}
+							<div aria-hidden className="h-5" />
+							<ModifierControl
+								value={modifier}
+								onChange={(value) => dispatch(setCombatModifier(value))}
+							/>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
 		</>
 	);
 
@@ -293,10 +260,7 @@ const Combat = () => {
 
 	const result = lastRoll && (
 		<RollResultCard
-			tone={
-				lastRoll.result?.special === 'krit' ? 'critical' :
-				lastRoll.result && !lastRoll.result.success ? 'failure' : 'success'
-			}
+			tone={combatTone(lastRoll)}
 			title={`${combatLabels[lastRoll.type]}${lastRoll.result ? ` — ${statusText(lastRoll)}` : ''}`}
 			icon={
 				lastRoll.result?.special === 'krit' ? <Sparkles className="h-6 w-6 animate-glow" /> :
@@ -342,10 +306,12 @@ const Combat = () => {
 				{lastRoll ? `${combatLabels[lastRoll.type]}: ${statusText(lastRoll)}` : ''}
 			</div>
 
-			<div className="lg:sticky lg:top-24 lg:order-2">
+			{/* Auf dem Handy übernimmt die klebende Leiste unten — die Auslöser sitzen
+			    in den Kacheln, ein Ergebnis am Seitenanfang bliebe ungesehen. */}
+			<div className="hidden lg:sticky lg:top-24 lg:order-2 lg:block">
 				{result}
 				{!result && (
-					<Card variant="parchment" className="hidden border-dashed lg:block">
+					<Card variant="parchment" className="border-dashed">
 						<CardContent className="flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
 							<Swords className="h-8 w-8 opacity-50" />
 							<p className="text-sm">Das Ergebnis erscheint hier.</p>
@@ -354,9 +320,13 @@ const Combat = () => {
 				)}
 			</div>
 
-			<div className="mt-4 flex flex-col gap-4 lg:mt-0 lg:order-1">
+			<div className="flex flex-col gap-4 lg:order-1">
 				{setup}
 			</div>
+
+			{lastRoll && (
+				<CombatResultBar key={lastRoll.id} roll={lastRoll} label={combatLabels[lastRoll.type]} />
+			)}
 		</div>
 	);
 };

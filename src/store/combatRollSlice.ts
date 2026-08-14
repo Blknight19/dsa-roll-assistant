@@ -6,6 +6,8 @@ export type CombatType = 'AT' | 'PA' | 'AW' | 'FK' | 'INI';
 
 /** Vollständiger Schnappschuss eines Kampfwurfs — die Anzeige rechnet nur hieraus. */
 export type CombatRoll = {
+	/** Identisch mit dem Historieneintrag; die Anzeige erkennt daran einen neuen Wurf. */
+	id: string;
 	type: CombatType;
 	/** Kampfwert vor dem Modifikator, für die Herleitung in der Anzeige. */
 	base: number;
