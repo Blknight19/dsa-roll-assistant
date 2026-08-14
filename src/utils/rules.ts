@@ -90,3 +90,31 @@ export const evaluateCombatRoll = (
 
   return { d20, target, success: d20 <= target, special: null };
 };
+
+/**
+ * Fällige AsP nach Ausgang der Zauberprobe. Volle Kosten nur beim schlichten Erfolg;
+ * misslungene Proben kosten laut Regelwerk „die Hälfte der Astralenergie", ein
+ * kritischer Erfolg ebenfalls. Ohne Rundungsregel im Buch wird aufgerundet — das ist
+ * die verbreitete Auslegung und für den Helden die teurere, also die sichere.
+ */
+export const spellAspCost = (cost: number, result: TalentCheckResult): number => {
+  const base = Math.max(0, Math.round(cost));
+  const halved = result.special === 'krit' || !result.success;
+  return halved ? Math.ceil(base / 2) : base;
+};
+
+/** Jeder aufrechterhaltene Zauber erschwert alle weiteren Zauberproben um 1. */
+export const upkeepModifier = (activeCount: number): number =>
+  // `|| 0` normalisiert -0 zu +0, da `toBe` in Tests mit Object.is vergleicht.
+  -Math.max(0, Math.trunc(activeCount)) || 0;
+
+/**
+ * Ob ein Zauber Konzentration bindet und damit aufrechterhalten werden kann.
+ * Nur die Wirkungsdauer „aufrechterhaltend" tut das. Ein Zauber mit fester Dauer
+ * („QS x 3 Minuten", „5 Kampfrunden", …) läuft von allein weiter — niemand
+ * konzentriert sich darauf, also erschwert er auch keine weitere Zauberprobe.
+ * Fehlt die Angabe ganz (selbst eingetragener Zauber), bleibt der Knopf erlaubt:
+ * die App weiß es dort nicht besser als der Spieler.
+ */
+export const canSustain = (duration?: string): boolean =>
+  duration === undefined || /^\s*aufrechterhaltend\s*$/i.test(duration);

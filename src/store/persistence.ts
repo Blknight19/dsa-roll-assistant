@@ -2,6 +2,7 @@ import {
 	ATTRIBUTE_KEYS,
 	clampAttribute,
 	initialAttributeState,
+	type AttributeKey,
 	type AttributeState
 } from './attributesSlice';
 import {
@@ -19,11 +20,26 @@ import {
 } from './profileSlice';
 import { HISTORY_LIMIT, type RollHistoryEntry } from './rollSlice';
 import { initialSettingsState, type SettingsState } from './settingsSlice';
+import {
+	ASP_MAX,
+	SPELL_COST_TEXT_MAX,
+	SPELL_DURATION_MAX,
+	SPELL_LIMIT,
+	SPELL_NOTE_MAX,
+	SPELL_PROBE_NOTE_MAX,
+	clampAsp,
+	clampSpellCost,
+	clampSpellText,
+	initialSpellbookState,
+	sanitizeSpellName,
+	type Spell,
+	type SpellbookState
+} from './spellbookSlice';
 import { clampTalentValue, initialTalentState, type Talent, type TalentState } from './talentsSlice';
 
 const STORAGE_KEY = 'dsa-app-state';
 
-export const PERSISTED_VERSION = 3;
+export const PERSISTED_VERSION = 4;
 
 /**
  * Ein Charakter im Dateiformat. Die App verwaltet heute genau einen, das Format trägt
@@ -35,6 +51,7 @@ export type PersistedCharacter = {
 	attributes: AttributeState;
 	talents: Pick<Talent, 'id' | 'value'>[];
 	combat: CombatState;
+	spellbook: SpellbookState;
 };
 
 /** Format des localStorage-Blobs ab Version 3. */
@@ -53,6 +70,7 @@ export type PersistedSlices = {
 	attributes: AttributeState;
 	talents: TalentState;
 	combat: CombatState;
+	spellbook: SpellbookState;
 	roll: { history: RollHistoryEntry[] };
 	settings: SettingsState;
 };
@@ -104,7 +122,7 @@ export const sanitizeCombat = (raw: unknown): CombatState => {
 	return combat;
 };
 
-const ROLL_TYPES = ['Einzel', 'Talent', 'Kampf'];
+const ROLL_TYPES = ['Einzel', 'Talent', 'Kampf', 'Zauber'];
 
 export const sanitizeHistory = (raw: unknown): RollHistoryEntry[] => {
 	if (!Array.isArray(raw)) return [];
@@ -126,6 +144,80 @@ export const sanitizeSettings = (raw: unknown): SettingsState => {
 		settings.confirmCriticals = raw.confirmCriticals;
 	}
 	return settings;
+};
+
+const isAttributeKey = (value: unknown): value is AttributeKey =>
+	typeof value === 'string' && (ATTRIBUTE_KEYS as readonly string[]).includes(value);
+
+/**
+ * Strenger als `sanitizeTalents`: Talente werden per id in eine Code-Liste gemerged,
+ * fremde Werte können dort nur Zahlen sein. Zauber tragen freie Namen und freie
+ * Eigenschaften — jeder davon kommt aus einer Datei, der man nicht traut.
+ */
+const sanitizeSpell = (raw: unknown): Spell | undefined => {
+	if (!isRecord(raw)) return undefined;
+	if (typeof raw.id !== 'string' || !raw.id) return undefined;
+	if (typeof raw.name !== 'string') return undefined;
+	if (!Array.isArray(raw.attributes) || raw.attributes.length !== 3) return undefined;
+	if (!raw.attributes.every(isAttributeKey)) return undefined;
+	if (!isFiniteNumber(raw.cost) || !isFiniteNumber(raw.value)) return undefined;
+
+	return {
+		id: raw.id,
+		catalogId: typeof raw.catalogId === 'string' ? raw.catalogId : undefined,
+		name: sanitizeSpellName(raw.name),
+		attributes: raw.attributes as [AttributeKey, AttributeKey, AttributeKey],
+		cost: clampSpellCost(raw.cost),
+		costText: clampSpellText(raw.costText, SPELL_COST_TEXT_MAX),
+		probeNote: clampSpellText(raw.probeNote, SPELL_PROBE_NOTE_MAX),
+		duration: clampSpellText(raw.duration, SPELL_DURATION_MAX),
+		value: clampTalentValue(raw.value),
+		note: clampSpellText(raw.note, SPELL_NOTE_MAX)
+	};
+};
+
+export const sanitizeSpellbook = (raw: unknown): SpellbookState => {
+	if (!isRecord(raw)) return { ...initialSpellbookState, asp: { ...initialSpellbookState.asp } };
+
+	const spells: Spell[] = [];
+	if (Array.isArray(raw.spells)) {
+		for (const entry of raw.spells.slice(0, SPELL_LIMIT)) {
+			const spell = sanitizeSpell(entry);
+			if (spell) spells.push(spell);
+		}
+	}
+
+	// Wie bei `spells` gedeckelt auf SPELL_LIMIT: mehr laufende Zauber, als man
+	// überhaupt kennen kann, gehören nicht in eine ehrliche Importdatei.
+	const upkeep = Array.isArray(raw.upkeep)
+		? raw.upkeep
+			.filter((entry): entry is SpellbookState['upkeep'][number] =>
+				isRecord(entry) &&
+				typeof entry.id === 'string' &&
+				typeof entry.spellName === 'string' &&
+				isFiniteNumber(entry.qs) &&
+				entry.qs >= 1 && entry.qs <= 6)
+			.slice(0, SPELL_LIMIT)
+		: [];
+
+	// Bewusst nur `clampAsp`, ohne die Ersteinrichtungs-Auffüllung von `setAsp`: eine
+	// gespeicherte AsP von 0/30 ist ein legitimer Zustand (leergezauberter Magier), nicht
+	// erkennbar vom ursprünglichen Ersteinrichtungsfehler unterscheidbar. Automatisches
+	// Auffüllen beim Laden würde einem tatsächlich erschöpften Magier bei jedem Neustart
+	// die Kraft zurückschenken — Persistenz muss exakt wiederherstellen, was gespeichert wurde.
+	const asp = isRecord(raw.asp)
+		? clampAsp({
+			current: isFiniteNumber(raw.asp.current) ? raw.asp.current : 0,
+			max: isFiniteNumber(raw.asp.max) ? Math.min(ASP_MAX, raw.asp.max) : 0
+		})
+		: { current: 0, max: 0 };
+
+	return {
+		isSpellcaster: raw.isSpellcaster === true,
+		asp,
+		spells,
+		upkeep
+	};
 };
 
 export const sanitizeProfile = (raw: unknown): ProfileState => {
@@ -176,6 +268,7 @@ export const migratePersisted = (raw: unknown): PersistedSlices | undefined => {
 		attributes: sanitizeAttributes(source.attributes),
 		talents: { talents: sanitizeTalents(talents) },
 		combat: sanitizeCombat(source.combat),
+		spellbook: sanitizeSpellbook(source.spellbook),
 		roll: { history: sanitizeHistory(history) },
 		settings: sanitizeSettings(legacy ? undefined : raw.settings)
 	};
@@ -189,7 +282,8 @@ export const toPersisted = (state: PersistedSlices): PersistedState => ({
 		name: state.profile.name,
 		attributes: state.attributes,
 		talents: state.talents.talents.map(({ id, value }) => ({ id, value })),
-		combat: state.combat
+		combat: state.combat,
+		spellbook: state.spellbook
 	}],
 	history: state.roll.history.slice(0, HISTORY_LIMIT),
 	settings: state.settings

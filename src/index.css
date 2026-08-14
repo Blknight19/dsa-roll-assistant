@@ -25,7 +25,9 @@
     --secondary: 40 15% 88%;           /* Helles Beige */
     --secondary-foreground: 30 15% 15%;
     --muted: 40 15% 92%;
-    --muted-foreground: 30 10% 45%;
+    /* 45% ergab nur 4,12:1 gegen --card und den Verlauf — unter der AA-Schwelle
+       von 4,5:1, und das trifft jeden Erklaertext der App. */
+    --muted-foreground: 30 10% 40%;
     --accent: 30 55% 50%;              /* Gold-Akzent */
     --accent-foreground: 45 20% 96%;
     --destructive: 0 84% 60%;

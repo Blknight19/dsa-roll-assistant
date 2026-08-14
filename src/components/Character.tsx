@@ -1,20 +1,29 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import PropertyNumber from './PropertyNumber';
-import ImportExportSettings from './ImportExportSettings';
-import RulesSettings from './RulesSettings';
-import TalentRow from './TalentRow';
+import TalentRow, { TalentListItem } from './TalentRow';
+import Spellbook from './Spellbook';
 import type { RootState } from '@/store';
 import { ATTRIBUTE_KEYS, ATTRIBUTE_MAX, ATTRIBUTE_MIN, setAttribute } from '@/store/attributesSlice';
 import { updateTalent } from '@/store/talentsSlice';
-import { User, Sparkles, Settings } from 'lucide-react';
+import { User, Sparkles, BookOpen } from 'lucide-react';
 
 const Character = () => {
 	const dispatch = useDispatch();
 	const attributes = useSelector((state: RootState) => state.attributes);
 	const talents = useSelector((state: RootState) => state.talents.talents);
+	const isSpellcaster = useSelector((state: RootState) => state.spellbook.isSpellcaster);
+
+	// Über dreißig Zeilen sind ohne Suche nicht zu überblicken — der Wurf-Tab hat
+	// sie längst, der Charakterbogen bisher nicht.
+	const [filter, setFilter] = useState('');
+	const visibleTalents = useMemo(() => {
+		const needle = filter.trim().toLowerCase();
+		return needle ? talents.filter(talent => talent.name.toLowerCase().includes(needle)) : talents;
+	}, [talents, filter]);
 
 	const handleTalentChange = useCallback(
 		(id: string, value: number) => { dispatch(updateTalent({ id, value })); },
@@ -24,19 +33,21 @@ const Character = () => {
 	return (
 		<div className="w-full max-w-6xl mx-auto">
 			<Tabs defaultValue="attributes" className="w-full">
-				<TabsList className="grid w-full grid-cols-3 h-auto mb-6">
+				<TabsList className={`grid w-full ${isSpellcaster ? 'grid-cols-3' : 'grid-cols-2'} h-auto mb-6`}>
 					<TabsTrigger value="attributes" className="font-heading flex flex-col items-center gap-1 py-2" aria-label="Eigenschaften">
 						<User className="w-4 h-4" />
-						<span className="text-[10px] sm:text-xs leading-none">Eigenschaften</span>
+						<span className="text-[11px] sm:text-xs leading-none">Eigenschaften</span>
 					</TabsTrigger>
 					<TabsTrigger value="talents" className="font-heading flex flex-col items-center gap-1 py-2" aria-label="Talente">
 						<Sparkles className="w-4 h-4" />
-						<span className="text-[10px] sm:text-xs leading-none">Talente</span>
+						<span className="text-[11px] sm:text-xs leading-none">Talente</span>
 					</TabsTrigger>
-					<TabsTrigger value="settings" className="font-heading flex flex-col items-center gap-1 py-2" aria-label="Einstellungen">
-						<Settings className="w-4 h-4" />
-						<span className="text-[10px] sm:text-xs leading-none">Einstellungen</span>
-					</TabsTrigger>
+					{isSpellcaster && (
+						<TabsTrigger value="spellbook" className="font-heading flex flex-col items-center gap-1 py-2" aria-label="Zauberbuch">
+							<BookOpen className="w-4 h-4" />
+							<span className="text-[11px] sm:text-xs leading-none">Zauberbuch</span>
+						</TabsTrigger>
+					)}
 				</TabsList>
 
 				{/* Eigenschaften */}
@@ -79,8 +90,30 @@ const Character = () => {
 								Talente
 							</CardTitle>
 						</CardHeader>
-						<CardContent>
-							<div className="overflow-x-auto">
+						<CardContent className="space-y-4">
+							<Input
+								value={filter}
+								placeholder="Talent filtern…"
+								aria-label="Talente filtern"
+								onChange={(event) => setFilter(event.target.value)}
+								className="max-w-xs font-body"
+							/>
+
+							{visibleTalents.length === 0 ? (
+								<p className="py-8 text-center text-sm text-muted-foreground">
+									Kein Talent gefunden
+								</p>
+							) : (
+							<>
+							{/* Schmale Screens bekommen eine Liste: die Tabelle ist 544 px breit und
+							    schiebt den Wert-Stepper aus dem Bild. */}
+							<div className="space-y-2 sm:hidden">
+								{visibleTalents.map((talent) => (
+									<TalentListItem key={talent.id} talent={talent} onChange={handleTalentChange} />
+								))}
+							</div>
+
+							<div className="hidden overflow-x-auto sm:block">
 								<table className="min-w-full text-sm">
 									<thead className="sticky top-0 bg-aventurian-100 dark:bg-aventurian-800 z-10">
 										<tr className="border-b-2 border-aventurian-400 dark:border-aventurian-600">
@@ -92,7 +125,7 @@ const Character = () => {
 										</tr>
 									</thead>
 									<tbody>
-										{talents.map((talent, index) => (
+										{visibleTalents.map((talent, index) => (
 											<TalentRow
 												key={talent.id}
 												talent={talent}
@@ -103,17 +136,18 @@ const Character = () => {
 									</tbody>
 								</table>
 							</div>
+							</>
+							)}
 						</CardContent>
 					</Card>
 				</TabsContent>
 
-				{/* Einstellungen */}
-				<TabsContent value='settings'>
-					<div className="space-y-6 max-w-2xl mx-auto">
-						<RulesSettings />
-						<ImportExportSettings />
-					</div>
-				</TabsContent>
+				{isSpellcaster && (
+					<TabsContent value="spellbook">
+						<Spellbook />
+					</TabsContent>
+				)}
+
 			</Tabs>
 		</div>
 	);

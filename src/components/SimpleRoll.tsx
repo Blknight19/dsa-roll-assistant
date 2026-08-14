@@ -84,6 +84,15 @@ const SimpleRoll = () => {
 		</Card>
 	);
 
+	const rollBar = (sticky: boolean) => (
+		<RollBar
+			sticky={sticky}
+			modifier={modifier}
+			onModifierChange={(value) => dispatch(setSimpleModifier(value))}
+			onRoll={handleRoll}
+		/>
+	);
+
 	const result = lastRoll && (
 		<RollResultCard
 			tone="success"
@@ -123,23 +132,12 @@ const SimpleRoll = () => {
 
 			<div className="mt-4 flex flex-col gap-4 lg:mt-0 lg:order-1">
 				{setup}
-				<div className="hidden lg:block">
-					<RollBar
-						modifier={modifier}
-						onModifierChange={(value) => dispatch(setSimpleModifier(value))}
-						onRoll={handleRoll}
-					/>
-				</div>
+				{rollBar(false)}
 			</div>
 
-			<div className="lg:hidden">
-				<RollBar
-					sticky
-					modifier={modifier}
-					onModifierChange={(value) => dispatch(setSimpleModifier(value))}
-					onRoll={handleRoll}
-				/>
-			</div>
+			{/* Kein Wrapper-div: der wäre der umschließende Block der Sticky-Leiste
+			    und exakt so hoch wie sie — siehe RollBar. */}
+			{rollBar(true)}
 		</div>
 	);
 };

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { evaluateCombatRoll, evaluateTalentCheck } from './rules';
+import {
+  canSustain,
+  evaluateCombatRoll,
+  evaluateTalentCheck,
+  spellAspCost,
+  upkeepModifier
+} from './rules';
 
 describe('evaluateTalentCheck', () => {
   it('gelingt ohne FP-Verlust, wenn alle Würfel unter den Eigenschaften liegen', () => {
@@ -156,5 +162,89 @@ describe('evaluateCombatRoll', () => {
         confirmation: { roll: 20, confirmed: false },
       });
     });
+  });
+});
+
+describe('spellAspCost', () => {
+  // Hilfswürfe: [10,10,10] bei Eigenschaften 15 gelingt, [20,20,5] ist ein Patzer.
+  const erfolg = () => evaluateTalentCheck([15, 15, 15], 10, 0, [10, 10, 10]);
+  const misserfolg = () => evaluateTalentCheck([10, 10, 10], 0, 0, [18, 18, 10]);
+  const krit = () => evaluateTalentCheck([15, 15, 15], 10, 0, [1, 1, 10]);
+  const patzer = () => evaluateTalentCheck([15, 15, 15], 10, 0, [20, 20, 10]);
+
+  it('bucht bei Erfolg die vollen Kosten', () => {
+    expect(spellAspCost(8, erfolg())).toBe(8);
+  });
+
+  it('bucht bei Misserfolg die halben Kosten', () => {
+    expect(spellAspCost(8, misserfolg())).toBe(4);
+  });
+
+  it('rundet halbe Kosten auf', () => {
+    expect(spellAspCost(7, misserfolg())).toBe(4);
+    expect(spellAspCost(1, misserfolg())).toBe(1);
+  });
+
+  it('bucht beim kritischen Erfolg die halben Kosten', () => {
+    expect(spellAspCost(8, krit())).toBe(4);
+  });
+
+  it('bucht beim Patzer die halben Kosten', () => {
+    expect(spellAspCost(8, patzer())).toBe(4);
+  });
+
+  it('bleibt bei Kosten 0 bei 0', () => {
+    expect(spellAspCost(0, erfolg())).toBe(0);
+    expect(spellAspCost(0, misserfolg())).toBe(0);
+  });
+
+  it('behandelt negative Kosten wie 0', () => {
+    expect(spellAspCost(-5, erfolg())).toBe(0);
+  });
+});
+
+describe('upkeepModifier', () => {
+  it('ist ohne laufende Zauber 0', () => {
+    expect(upkeepModifier(0)).toBe(0);
+  });
+
+  it('gibt −1 pro laufendem Zauber', () => {
+    expect(upkeepModifier(1)).toBe(-1);
+    expect(upkeepModifier(3)).toBe(-3);
+  });
+
+  it('ignoriert negative Eingaben', () => {
+    expect(upkeepModifier(-2)).toBe(0);
+  });
+});
+
+describe('canSustain', () => {
+  it('erlaubt genau die Wirkungsdauer „aufrechterhaltend"', () => {
+    expect(canSustain('aufrechterhaltend')).toBe(true);
+  });
+
+  it('ignoriert Groß-/Kleinschreibung und umgebende Leerzeichen', () => {
+    expect(canSustain('  Aufrechterhaltend ')).toBe(true);
+    expect(canSustain('AUFRECHTERHALTEND')).toBe(true);
+  });
+
+  it('schließt „sofort" aus', () => {
+    expect(canSustain('sofort')).toBe(false);
+  });
+
+  it('schließt feste Wirkungsdauern aus — sie laufen ohne Konzentration weiter', () => {
+    expect(canSustain('QS x 3 Minuten')).toBe(false);
+    expect(canSustain('1 Minute')).toBe(false);
+    expect(canSustain('5 Kampfrunden')).toBe(false);
+    expect(canSustain('QS x 15 Minuten, danach verweht der Nebel')).toBe(false);
+    expect(canSustain('Bis zum nächsten Schuss, maximal QS x 2 Kampfrunden')).toBe(false);
+  });
+
+  it('erlaubt den Knopf ohne Angabe — ein selbst eingetragener Zauber', () => {
+    expect(canSustain(undefined)).toBe(true);
+  });
+
+  it('lässt einen leeren String nicht durch — eine Angabe ist da, sie sagt nur nichts', () => {
+    expect(canSustain('')).toBe(false);
   });
 });

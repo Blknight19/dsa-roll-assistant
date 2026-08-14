@@ -1,0 +1,531 @@
+import type { AttributeKey } from '@/store/attributesSlice';
+
+/**
+ * Regelwissen, nicht Charakterdaten: unveränderlich, nicht persistiert, nicht
+ * exportiert. Beim Übernehmen ins Zauberbuch wird ein Eintrag kopiert — der Spieler
+ * darf danach alles überschreiben, und eine .dsa-Datei bleibt lesbar, auch wenn sich
+ * dieser Katalog später ändert.
+ */
+export type SpellCatalogEntry = {
+	id: string;
+	name: string;
+	attributes: [AttributeKey, AttributeKey, AttributeKey];
+	/** Zusatz zur Probe, z. B. „modifiziert durch ZK". Reine Anzeige. */
+	probeNote?: string;
+	/** Kosten als Zahl — null, wenn das Regelwerk eine Formel angibt. */
+	cost: number | null;
+	/** Kostenangabe im Wortlaut. Bleibt im Zauberbuch als Erinnerung stehen. */
+	costText: string;
+	castTime: string;
+	range: string;
+	/** Nur „aufrechterhaltend" lässt sich aufrechterhalten; jede feste Dauer läuft von selbst ab. */
+	duration: string;
+	target: string;
+	merkmal: string;
+};
+
+export const SPELL_CATALOG: SpellCatalogEntry[] = [
+	{
+		id: 'adlerschwinge',
+		name: 'Adlerschwinge',
+		attributes: ['MU', 'IN', 'GE'],
+		cost: null,
+		costText: '8 AsP (Aktivierung des Zaubers) + 4 AsP pro Stunde',
+		castTime: '8 Aktionen',
+		range: 'selbst',
+		duration: 'aufrechterhaltend',
+		target: 'Kulturschaffende',
+		merkmal: 'Verwandlung'
+	},
+	{
+		id: 'analys-arkanstruktur',
+		name: 'Analys Arkanstruktur',
+		attributes: ['KL', 'KL', 'IN'],
+		cost: 16,
+		costText: '16 AsP',
+		castTime: '32 Aktionen',
+		range: 'Berührung',
+		duration: 'sofort',
+		target: 'Objekte, Wesen',
+		merkmal: 'Hellsicht'
+	},
+	{
+		id: 'armatrutz',
+		name: 'Armatrutz',
+		attributes: ['KL', 'IN', 'FF'],
+		cost: null,
+		costText: '4 AsP für RS 1, 8 AsP für RS 2, 16 AsP für RS 3 (nicht modifizierbar)',
+		castTime: '1 Aktion',
+		range: 'selbst',
+		duration: 'QS x 3 Minuten',
+		target: 'Wesen',
+		merkmal: 'Heilung'
+	},
+	{
+		id: 'axxeleratus',
+		name: 'Axxeleratus',
+		attributes: ['KL', 'IN', 'FF'],
+		cost: 8,
+		costText: '8 AsP',
+		castTime: '1 Aktion',
+		range: 'Berührung',
+		duration: 'QS x 5 Kampfrunden',
+		target: 'Lebewesen',
+		merkmal: 'Heilung'
+	},
+	{
+		id: 'balsam-salabunde',
+		name: 'Balsam Salabunde',
+		attributes: ['KL', 'IN', 'FF'],
+		cost: null,
+		costText: '1 AsP pro LeP, mindestens 4 AsP (nicht modifizierbar)',
+		castTime: '16 Aktionen',
+		range: 'Berührung',
+		duration: 'sofort',
+		target: 'Kulturschaffende',
+		merkmal: 'Heilung'
+	},
+	{
+		id: 'bannbaladin',
+		name: 'Bannbaladin',
+		attributes: ['MU', 'IN', 'CH'],
+		probeNote: 'modifiziert durch SK',
+		cost: 8,
+		costText: '8 AsP',
+		castTime: '4 Aktionen',
+		range: '4 Schritt',
+		duration: 'QS x 3 Minuten',
+		target: 'Kulturschaffende, übernatürliche Wesen',
+		merkmal: 'Einfluss'
+	},
+	{
+		id: 'blitz-dich-find',
+		name: 'Blitz dich find',
+		attributes: ['MU', 'IN', 'CH'],
+		probeNote: 'modifiziert durch SK',
+		cost: 4,
+		costText: '4 AsP',
+		castTime: '1 Aktion',
+		range: '8 Schritt',
+		duration: 'QS KR',
+		target: 'Lebewesen',
+		merkmal: 'Einfluss'
+	},
+	{
+		id: 'corpofesso',
+		name: 'Corpofesso',
+		attributes: ['KL', 'IN', 'KO'],
+		probeNote: 'modifiziert durch ZK',
+		cost: 8,
+		costText: '8 AsP',
+		castTime: '2 Aktionen',
+		range: '8 Schritt',
+		duration: 'QS x 3 in KR',
+		target: 'Lebewesen',
+		merkmal: 'Verwandlung'
+	},
+	{
+		id: 'duplicatus',
+		name: 'Duplicatus',
+		attributes: ['KL', 'IN', 'CH'],
+		cost: null,
+		costText: '4 AsP pro Doppelgänger (bei Misslingen entsprechend 2 AsP)',
+		castTime: '2 Aktionen',
+		range: 'Berührung',
+		duration: 'QS x 3 Kampfrunden',
+		target: 'Lebewesen',
+		merkmal: 'Illusion'
+	},
+	{
+		id: 'falkenauge',
+		name: 'Falkenauge',
+		attributes: ['MU', 'KL', 'IN'],
+		cost: 4,
+		costText: '4 AsP',
+		castTime: '2 Aktionen',
+		range: 'Berührung',
+		duration: 'Bis zum nächsten Schuss, maximal QS x 2 Kampfrunden',
+		target: 'Lebewesen',
+		merkmal: 'Hellsicht'
+	},
+	{
+		id: 'flim-flam',
+		name: 'Flim Flam',
+		attributes: ['MU', 'KL', 'CH'],
+		cost: null,
+		costText: '2 AsP (Aktivierung des Zaubers) + 1 AsP pro Stunde',
+		castTime: '1 Aktion',
+		range: '8 Schritt',
+		duration: 'aufrechterhaltend',
+		target: 'Zone',
+		merkmal: 'Elementar'
+	},
+	{
+		id: 'foramen',
+		name: 'Foramen',
+		attributes: ['KL', 'IN', 'FF'],
+		cost: 8,
+		costText: '8 AsP',
+		castTime: '2 Aktionen',
+		range: 'Berührung',
+		duration: '5 Minuten',
+		target: 'Objekte (Schlösser)',
+		merkmal: 'Objekt'
+	},
+	{
+		id: 'fulminictus',
+		name: 'Fulminictus',
+		attributes: ['KL', 'IN', 'KO'],
+		probeNote: 'modifiziert durch ZK',
+		cost: 8,
+		costText: '8 AsP (nicht modifizierbar)',
+		castTime: '1 Aktion',
+		range: '8 Schritt',
+		duration: 'sofort',
+		target: 'Lebewesen',
+		merkmal: 'Verwandlung'
+	},
+	{
+		id: 'gardianum',
+		name: 'Gardianum',
+		attributes: ['MU', 'KL', 'CH'],
+		cost: null,
+		costText: 'mindestens 4 AsP (nicht modifizierbar)',
+		castTime: '1 Aktion',
+		range: 'selbst',
+		duration: '5 Minuten',
+		target: 'Zone',
+		merkmal: 'Antimagie'
+	},
+	{
+		id: 'grosse-gier',
+		name: 'Große Gier',
+		attributes: ['MU', 'IN', 'CH'],
+		probeNote: 'modifiziert durch SK',
+		cost: 8,
+		costText: '8 AsP',
+		castTime: '2 Aktionen',
+		range: 'Berührung (Reichweite nicht modifizierbar)',
+		duration: 'QS x 15 Minuten',
+		target: 'Lebewesen',
+		merkmal: 'Einfluss'
+	},
+	{
+		id: 'harmlose-gestalt',
+		name: 'Harmlose Gestalt',
+		attributes: ['KL', 'IN', 'CH'],
+		cost: null,
+		costText: '8 AsP (Aktivierung) + 4 AsP pro 5 Minuten',
+		castTime: '4 Aktionen',
+		range: 'selbst',
+		duration: 'aufrechterhaltend',
+		target: 'Wesen',
+		merkmal: 'Illusion'
+	},
+	{
+		id: 'horriphobus',
+		name: 'Horriphobus',
+		attributes: ['MU', 'IN', 'CH'],
+		probeNote: 'modifiziert durch SK',
+		cost: 8,
+		costText: '8 AsP',
+		castTime: '2 Aktionen',
+		range: '8 Schritt',
+		duration: 'QS x 3 Minuten',
+		target: 'Lebewesen',
+		merkmal: 'Einfluss'
+	},
+	{
+		id: 'ignifaxius',
+		name: 'Ignifaxius',
+		attributes: ['MU', 'KL', 'CH'],
+		cost: 8,
+		costText: '8 AsP (nicht modifizierbar)',
+		castTime: '2 Aktionen',
+		range: '16 Schritt',
+		duration: 'sofort',
+		target: 'alle',
+		merkmal: 'Elementar'
+	},
+	{
+		id: 'ignisphaero',
+		name: 'Ignisphaero',
+		attributes: ['MU', 'KL', 'KO'],
+		cost: 32,
+		costText: '32 AsP (nicht modifizierbar)',
+		castTime: '4 Aktionen',
+		range: '32 Schritt',
+		duration: 'sofort',
+		target: 'Zone',
+		merkmal: 'Elementar'
+	},
+	{
+		id: 'invercano',
+		name: 'Invercano',
+		attributes: ['MU', 'IN', 'FF'],
+		cost: 8,
+		costText: '8 AsP (nicht modifizierbar)',
+		castTime: '1 Aktion',
+		range: 'selbst',
+		duration: 'QS KR',
+		target: 'Kulturschaffende',
+		merkmal: 'Antimagie'
+	},
+	{
+		id: 'katzenaugen',
+		name: 'Katzenaugen',
+		attributes: ['KL', 'IN', 'KO'],
+		cost: null,
+		costText: '2 AsP (Aktivierung) + 1 AsP pro 10 Minuten',
+		castTime: '4 Aktionen',
+		range: 'selbst',
+		duration: 'aufrechterhaltend',
+		target: 'Wesen',
+		merkmal: 'Verwandlung'
+	},
+	{
+		id: 'klarum-purum',
+		name: 'Klarum Purum',
+		attributes: ['KL', 'IN', 'CH'],
+		cost: 8,
+		costText: '8 AsP',
+		castTime: '4 Aktionen',
+		range: '4 Schritt',
+		duration: 'sofort',
+		target: 'Lebewesen',
+		merkmal: 'Heilung'
+	},
+	{
+		id: 'manifesto',
+		name: 'Manifesto',
+		attributes: ['MU', 'KL', 'CH'],
+		cost: 4,
+		costText: '4 AsP',
+		castTime: '4 Aktionen',
+		range: '1 Schritt',
+		duration: 'sofort',
+		target: 'Objekte',
+		merkmal: 'Sphären'
+	},
+	{
+		id: 'motoricus',
+		name: 'Motoricus',
+		attributes: ['KL', 'FF', 'KK'],
+		cost: null,
+		costText: 'mindestens 4 AsP (Aktivierung) + Hälfte der notwendigen AsP pro 5 Minuten',
+		castTime: '2 Aktionen',
+		range: '8 Schritt',
+		duration: 'aufrechterhaltend',
+		target: 'Objekte',
+		merkmal: 'Telekinese'
+	},
+	{
+		id: 'nebelwand',
+		name: 'Nebelwand',
+		attributes: ['MU', 'KL', 'CH'],
+		cost: null,
+		costText: 'mindestens 4 AsP (nicht modifizierbar)',
+		castTime: '2 Aktionen',
+		range: '16 Schritt',
+		duration: 'QS x 15 Minuten, danach verweht der Nebel',
+		target: 'Zone',
+		merkmal: 'Elementar'
+	},
+	{
+		id: 'oculus-illusionis',
+		name: 'Oculus Illusionis',
+		attributes: ['KL', 'IN', 'CH'],
+		cost: null,
+		costText: '4 AsP (Aktivierung) + 2 AsP pro 5 Minuten',
+		castTime: '4 Aktionen',
+		range: '8 Schritt',
+		duration: 'aufrechterhaltend',
+		target: 'Zone (Radius von 3 Schritt)',
+		merkmal: 'Illusion'
+	},
+	{
+		id: 'odem-arcanum',
+		name: 'Odem Arcanum',
+		attributes: ['KL', 'IN', 'IN'],
+		cost: 4,
+		costText: '4 AsP',
+		castTime: '2 Aktionen',
+		range: '8 Schritt',
+		duration: '1 Minute',
+		target: 'Objekte, Wesen',
+		merkmal: 'Hellsicht'
+	},
+	{
+		id: 'paralysis',
+		name: 'Paralysis',
+		attributes: ['KL', 'IN', 'KO'],
+		probeNote: 'modifiziert durch ZK',
+		cost: 8,
+		costText: '8 AsP',
+		castTime: '2 Aktionen',
+		range: '8 Schritt',
+		duration: 'QS x 3 in Minuten',
+		target: 'Lebewesen',
+		merkmal: 'Verwandlung'
+	},
+	{
+		id: 'penetrizzel',
+		name: 'Penetrizzel',
+		attributes: ['MU', 'KL', 'IN'],
+		cost: null,
+		costText: '4 AsP (Aktivierung) + 2 AsP pro Minute',
+		castTime: '2 Aktionen',
+		range: 'selbst',
+		duration: 'aufrechterhaltend',
+		target: 'alle',
+		merkmal: 'Hellsicht'
+	},
+	{
+		id: 'plumbumbarum',
+		name: 'Plumbumbarum',
+		attributes: ['MU', 'CH', 'GE'],
+		probeNote: 'modifiziert durch SK',
+		cost: 8,
+		costText: '8 AsP (nicht modifizierbar)',
+		castTime: '2 Aktionen (nicht modifizierbar)',
+		range: '8 Schritt',
+		duration: '5 Kampfrunden',
+		target: 'Kulturschaffende',
+		merkmal: 'Einfluss'
+	},
+	{
+		id: 'psychostabilis',
+		name: 'Psychostabilis',
+		attributes: ['KL', 'IN', 'FF'],
+		cost: null,
+		costText: '4 AsP (Aktivierung) + 2 AsP pro 10 Minuten',
+		castTime: '8 Aktionen',
+		range: 'Berührung',
+		duration: 'aufrechterhaltend',
+		target: 'Lebewesen',
+		merkmal: 'Heilung'
+	},
+	{
+		id: 'radau',
+		name: 'Radau',
+		attributes: ['KL', 'FF', 'KK'],
+		cost: null,
+		costText: '4 AsP (Aktivierung des Zaubers) + 2 AsP pro Kampfrunde',
+		castTime: '2 Aktionen',
+		range: '16 Schritt',
+		duration: 'aufrechterhaltend',
+		target: 'Objekte',
+		merkmal: 'Telekinese'
+	},
+	{
+		id: 'respondami',
+		name: 'Respondami',
+		attributes: ['MU', 'IN', 'CH'],
+		probeNote: 'modifiziert durch SK',
+		cost: 8,
+		costText: '8 AsP',
+		castTime: '2 Aktionen',
+		range: 'Berührung',
+		duration: 'QS x 15 Minuten',
+		target: 'Lebewesen',
+		merkmal: 'Einfluss'
+	},
+	{
+		id: 'sanftmut',
+		name: 'Sanftmut',
+		attributes: ['MU', 'IN', 'CH'],
+		probeNote: 'modifiziert durch SK',
+		cost: 4,
+		costText: '4 AsP',
+		castTime: '2 Aktionen',
+		range: '8 Schritt',
+		duration: 'QS x 3 Minuten',
+		target: 'Tiere',
+		merkmal: 'Einfluss'
+	},
+	{
+		id: 'satuarias-herrlichkeit',
+		name: 'Satuarias Herrlichkeit',
+		attributes: ['KL', 'IN', 'KO'],
+		cost: 8,
+		costText: '8 AsP',
+		castTime: '4 Aktionen',
+		range: 'selbst',
+		duration: 'QS x 3 Stunden',
+		target: 'Wesen',
+		merkmal: 'Verwandlung'
+	},
+	{
+		id: 'silentium',
+		name: 'Silentium',
+		attributes: ['KL', 'FF', 'KK'],
+		cost: null,
+		costText: '4 AsP (Aktivierung des Zaubers) + 2 AsP pro 5 Minuten',
+		castTime: '8 Aktionen',
+		range: 'selbst',
+		duration: 'aufrechterhaltend',
+		target: 'Zone',
+		merkmal: 'Telekinese'
+	},
+	{
+		id: 'somnigravis',
+		name: 'Somnigravis',
+		attributes: ['MU', 'IN', 'CH'],
+		probeNote: 'modifiziert durch SK',
+		cost: 8,
+		costText: '8 AsP',
+		castTime: '2 Aktionen',
+		range: '8 Schritt',
+		duration: 'QS x 3 Minuten',
+		target: 'Lebewesen',
+		merkmal: 'Einfluss'
+	},
+	{
+		id: 'spurlos',
+		name: 'Spurlos',
+		attributes: ['KL', 'FF', 'KK'],
+		cost: null,
+		costText: '4 AsP (Aktivierung des Zaubers) + 2 AsP pro 5 Minuten',
+		castTime: '4 Aktionen',
+		range: 'selbst',
+		duration: 'aufrechterhaltend',
+		target: 'Wesen',
+		merkmal: 'Telekinese'
+	},
+	{
+		id: 'standfest',
+		name: 'Standfest',
+		attributes: ['MU', 'IN', 'GE'],
+		cost: 4,
+		costText: '4 AsP',
+		castTime: '1 Aktion',
+		range: 'selbst',
+		duration: 'QS x 2 KR',
+		target: 'Kulturschaffende',
+		merkmal: 'Heilung'
+	},
+	{
+		id: 'transversalis',
+		name: 'Transversalis',
+		attributes: ['MU', 'CH', 'KO'],
+		cost: null,
+		costText: '8 AsP + 1 AsP pro Meile (nicht modifizierbar)',
+		castTime: '8 Aktionen',
+		range: 'selbst',
+		duration: 'sofort',
+		target: 'Objekte, Wesen',
+		merkmal: 'Sphären'
+	},
+	{
+		id: 'visibili',
+		name: 'Visibili',
+		attributes: ['KL', 'IN', 'KO'],
+		cost: null,
+		costText: '8 AsP (Aktivierung des Zaubers) + 4 AsP pro 5 Minuten',
+		castTime: '4 Aktionen',
+		range: 'Berührung',
+		duration: 'aufrechterhaltend',
+		target: 'Lebewesen',
+		merkmal: 'Verwandlung'
+	}
+];

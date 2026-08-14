@@ -1,8 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { migratePersisted, toPersisted, sanitizeHistory, PERSISTED_VERSION } from './persistence';
+import { migratePersisted, toPersisted, sanitizeHistory, sanitizeSpellbook, PERSISTED_VERSION } from './persistence';
 import { initialTalentState } from './talentsSlice';
 import { initialSettingsState } from './settingsSlice';
 import { HISTORY_LIMIT, type RollHistoryEntry } from './rollSlice';
+import {
+	SPELL_COST_TEXT_MAX,
+	SPELL_DURATION_MAX,
+	SPELL_NOTE_MAX,
+	SPELL_PROBE_NOTE_MAX,
+	initialSpellbookState
+} from './spellbookSlice';
 
 const historyEntry = (id: string): RollHistoryEntry => ({
 	id,
@@ -127,6 +134,150 @@ describe('Wertgrenzen beim Laden', () => {
 		expect(state!.attributes.KL).toBe(1);
 		expect(state!.talents.talents.find(t => t.id === '1')!.value).toBe(25);
 		expect(state!.talents.talents.find(t => t.id === '2')!.value).toBe(0);
+	});
+});
+
+describe('sanitizeSpellbook', () => {
+	it('liefert ein leeres Buch für Unsinn', () => {
+		expect(sanitizeSpellbook(null)).toEqual(initialSpellbookState);
+		expect(sanitizeSpellbook('kaputt')).toEqual(initialSpellbookState);
+	});
+
+	it('nimmt isSpellcaster nur als echten Boolean', () => {
+		expect(sanitizeSpellbook({ isSpellcaster: 'ja' }).isSpellcaster).toBe(false);
+		expect(sanitizeSpellbook({ isSpellcaster: true }).isSpellcaster).toBe(true);
+	});
+
+	it('verwirft Zauber mit unbekannter Eigenschaft', () => {
+		const book = sanitizeSpellbook({
+			spells: [
+				{ id: 'a', name: 'Gut', attributes: ['KL', 'IN', 'IN'], cost: 4, value: 8 },
+				{ id: 'b', name: 'Böse', attributes: ['KL', 'XX', 'IN'], cost: 4, value: 8 }
+			]
+		});
+		expect(book.spells.map(s => s.id)).toEqual(['a']);
+	});
+
+	it('kappt überlange Namen und clampt Werte', () => {
+		const book = sanitizeSpellbook({
+			spells: [{ id: 'a', name: 'x'.repeat(300), attributes: ['KL', 'IN', 'IN'], cost: 5000, value: 99 }]
+		});
+		expect(book.spells[0].name).toHaveLength(60);
+		expect(book.spells[0].cost).toBe(99);
+		expect(book.spells[0].value).toBe(25);
+	});
+
+	it('übernimmt die Freitextfelder und kappt sie auf die Slice-Grenzen', () => {
+		const book = sanitizeSpellbook({
+			spells: [{
+				id: 'a', name: 'Blitz', attributes: ['KL', 'IN', 'IN'], cost: 4, value: 8,
+				costText: 'k'.repeat(200),
+				probeNote: 'p'.repeat(200),
+				duration: 'd'.repeat(200),
+				note: 'n'.repeat(900)
+			}]
+		});
+		expect(book.spells[0].costText).toHaveLength(SPELL_COST_TEXT_MAX);
+		expect(book.spells[0].probeNote).toHaveLength(SPELL_PROBE_NOTE_MAX);
+		expect(book.spells[0].duration).toHaveLength(SPELL_DURATION_MAX);
+		expect(book.spells[0].note).toHaveLength(SPELL_NOTE_MAX);
+	});
+
+	it('trägt probeNote unverändert durch — der Hinweis auf ZK/SK überlebt den Export', () => {
+		const book = sanitizeSpellbook({
+			spells: [{
+				id: 'a', name: 'Horriphobus', attributes: ['MU', 'CH', 'CH'], cost: 8, value: 8,
+				probeNote: 'modifiziert durch SK'
+			}]
+		});
+		expect(book.spells[0].probeNote).toBe('modifiziert durch SK');
+	});
+
+	it('verwirft nicht-textliche Freitextfelder, statt sie zu übernehmen', () => {
+		const book = sanitizeSpellbook({
+			spells: [{
+				id: 'a', name: 'Blitz', attributes: ['KL', 'IN', 'IN'], cost: 4, value: 8,
+				probeNote: { boese: true }, note: 42
+			}]
+		});
+		expect(book.spells[0].probeNote).toBeUndefined();
+		expect(book.spells[0].note).toBeUndefined();
+	});
+
+	it('deckelt die Zahl der Zauber', () => {
+		const spells = Array.from({ length: 150 }, (_, i) => ({
+			id: `z${i}`, name: `Z${i}`, attributes: ['KL', 'IN', 'IN'], cost: 1, value: 1
+		}));
+		expect(sanitizeSpellbook({ spells }).spells).toHaveLength(100);
+	});
+
+	it('clampt current am max', () => {
+		expect(sanitizeSpellbook({ asp: { current: 99, max: 20 } }).asp).toEqual({ current: 20, max: 20 });
+	});
+
+	it('übernimmt eine gespeicherte AsP von 0/30 unverändert — kein automatisches Auffüllen beim Laden', () => {
+		// 0/30 ist ein legitim leergezauberter Magier, nicht vom ursprünglichen
+		// Ersteinrichtungsfehler unterscheidbar. Auto-Auffüllen beim Laden würde einem
+		// tatsächlich erschöpften Magier bei jedem Neustart die Kraft zurückschenken.
+		expect(sanitizeSpellbook({ asp: { current: 0, max: 30 } }).asp).toEqual({ current: 0, max: 30 });
+	});
+
+	it('übernimmt laufende Zauber nur mit gültiger QS', () => {
+		const book = sanitizeSpellbook({
+			upkeep: [
+				{ id: 'u1', spellName: 'Odem', qs: 3 },
+				{ id: 'u2', spellName: 'Kaputt', qs: 9 },
+				{ id: 'u3', spellName: 'Kaputt', qs: 'drei' }
+			]
+		});
+		expect(book.upkeep.map(e => e.id)).toEqual(['u1']);
+	});
+
+	it('deckelt die Zahl der laufenden Zauber wie das Zauberbuch', () => {
+		const upkeep = Array.from({ length: 150 }, (_, i) => ({ id: `u${i}`, spellName: 'Odem', qs: 3 }));
+		expect(sanitizeSpellbook({ upkeep }).upkeep).toHaveLength(100);
+	});
+
+	it('behält ein gefülltes Buch bei isSpellcaster false', () => {
+		const book = sanitizeSpellbook({
+			isSpellcaster: false,
+			spells: [{ id: 'a', name: 'Gut', attributes: ['KL', 'IN', 'IN'], cost: 4, value: 8 }]
+		});
+		expect(book.isSpellcaster).toBe(false);
+		expect(book.spells).toHaveLength(1);
+	});
+});
+
+describe('Migration auf v4', () => {
+	it('gibt einem v3-Blob ohne Zauberbuch ein leeres', () => {
+		const state = migratePersisted({
+			version: 3,
+			activeCharacterId: 'held-1',
+			characters: [{ id: 'held-1', name: 'Gerbald' }]
+		});
+		expect(state!.spellbook).toEqual(initialSpellbookState);
+	});
+
+	it('schreibt das Zauberbuch in den Charakter zurück', () => {
+		const slices = migratePersisted({
+			version: 4,
+			activeCharacterId: 'held-1',
+			characters: [{
+				id: 'held-1',
+				name: 'Gerbald',
+				spellbook: { isSpellcaster: true, asp: { current: 12, max: 30 }, spells: [], upkeep: [] }
+			}]
+		})!;
+		const persisted = toPersisted(slices);
+		expect(persisted.version).toBe(PERSISTED_VERSION);
+		expect(persisted.characters[0].spellbook.asp).toEqual({ current: 12, max: 30 });
+	});
+});
+
+describe('sanitizeHistory mit Zauberwürfen', () => {
+	it('behält Einträge vom Typ Zauber', () => {
+		const entry = { ...historyEntry('z'), type: 'Zauber' as const };
+		expect(sanitizeHistory([entry])).toHaveLength(1);
 	});
 });
 

@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
 	COMBAT_STAT_MAX,
 	LIFE_MAX,
-	LIFE_MIN_FILL_PERCENT,
+	MIN_FILL_PERCENT,
 	clampCombatStat,
 	clampLife,
-	lifeFillPercent,
+	fillPercent,
 	combatReducer,
 	initialCombatState,
 	updateCombatStat,
@@ -33,27 +33,27 @@ describe('clampLife', () => {
 	});
 });
 
-describe('lifeFillPercent', () => {
-	it('zeigt bei 0 LeP gar keine Füllung', () => {
-		expect(lifeFillPercent({ current: 0, max: 40 })).toBe(0);
+describe('fillPercent', () => {
+	it('zeigt bei 0 Punkten gar keine Füllung', () => {
+		expect(fillPercent(0, 40)).toBe(0);
 	});
 
-	it('zeigt bei 1 LeP einen sichtbaren Streifen statt fast nichts', () => {
+	it('zeigt bei 1 Punkt einen sichtbaren Streifen statt fast nichts', () => {
 		// 1/40 wären 2,5 % — auf einem Handy-Balken unsichtbar und von 0 nicht zu unterscheiden.
-		expect(lifeFillPercent({ current: 1, max: 40 })).toBe(LIFE_MIN_FILL_PERCENT);
+		expect(fillPercent(1, 40)).toBe(MIN_FILL_PERCENT);
 	});
 
 	it('rechnet oberhalb des Mindest-Streifens exakt', () => {
-		expect(lifeFillPercent({ current: 20, max: 40 })).toBe(50);
-		expect(lifeFillPercent({ current: 40, max: 40 })).toBe(100);
+		expect(fillPercent(20, 40)).toBe(50);
+		expect(fillPercent(40, 40)).toBe(100);
 	});
 
 	it('läuft nicht über 100 Prozent', () => {
-		expect(lifeFillPercent({ current: 99, max: 40 })).toBe(100);
+		expect(fillPercent(99, 40)).toBe(100);
 	});
 
 	it('bleibt bei einem Maximum von 0 endlich', () => {
-		expect(lifeFillPercent({ current: 5, max: 0 })).toBe(0);
+		expect(fillPercent(5, 0)).toBe(0);
 	});
 });
 

@@ -23,6 +23,8 @@ type RollResultCardProps = {
 	/** Herleitung, eingeklappt: am Tisch zählt das Ergebnis, nicht der Weg dorthin. */
 	details?: ReactNode;
 	detailsLabel?: string;
+	/** Eine Folgeaktion zum Ergebnis, z. B. „Aufrechterhalten" oder „Rückgängig". */
+	action?: ReactNode;
 };
 
 const toneClasses: Record<ResultTone, { text: string; card: ResultTone }> = {
@@ -39,7 +41,8 @@ const RollResultCard = ({
 	dice,
 	consequence,
 	details,
-	detailsLabel = 'Rechenweg'
+	detailsLabel = 'Rechenweg',
+	action
 }: RollResultCardProps) => {
 	const [showDetails, setShowDetails] = useState(false);
 	const { text } = toneClasses[tone];
@@ -85,6 +88,8 @@ const RollResultCard = ({
 				{consequence && (
 					<p className="text-center text-sm text-muted-foreground">{consequence}</p>
 				)}
+
+				{action && <div className="flex flex-wrap justify-center gap-2">{action}</div>}
 
 				{details && (
 					<div className="border-t border-border pt-3">

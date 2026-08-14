@@ -30,6 +30,7 @@ const TalentRow = memo(({ talent, striped, onChange }: TalentRowProps) => (
 				value={talent.value}
 				max={TALENT_VALUE_MAX}
 				size="s"
+				ariaLabel={talent.name}
 				onChange={(value) => onChange(talent.id, value)}
 			/>
 		</td>
@@ -37,5 +38,39 @@ const TalentRow = memo(({ talent, striped, onChange }: TalentRowProps) => (
 ));
 
 TalentRow.displayName = 'TalentRow';
+
+/**
+ * Dieselbe Zeile für schmale Screens. Die Tabelle braucht 544 px und schob den
+ * Stepper — das einzige Bedienelement des Screens — aus dem Bild; hier steht er
+ * neben dem Namen, die Eigenschaften rutschen darunter.
+ */
+export const TalentListItem = memo(({ talent, onChange }: Omit<TalentRowProps, 'striped'>) => (
+	<div className="flex items-center justify-between gap-3 rounded-lg border border-aventurian-200 bg-aventurian-50/30 p-3 dark:border-aventurian-700 dark:bg-aventurian-900/30">
+		<div className="min-w-0">
+			{/* Umbrechen statt abschneiden: „Körperbeherrschung" wäre sonst nicht mehr
+			    von „Körperkraft" zu unterscheiden. */}
+			<div className="break-words text-base">{talent.name}</div>
+			<div className="mt-1 flex flex-wrap gap-1">
+				{[talent.attribute1, talent.attribute2, talent.attribute3].map((attribute, index) => (
+					<span
+						key={index}
+						className="rounded bg-aventurian-200 px-2 py-0.5 font-heading text-xs dark:bg-aventurian-700"
+					>
+						{attribute}
+					</span>
+				))}
+			</div>
+		</div>
+		<PropertyNumber
+			value={talent.value}
+			max={TALENT_VALUE_MAX}
+			size="s"
+			ariaLabel={talent.name}
+			onChange={(value) => onChange(talent.id, value)}
+		/>
+	</div>
+));
+
+TalentListItem.displayName = 'TalentListItem';
 
 export default TalentRow;
