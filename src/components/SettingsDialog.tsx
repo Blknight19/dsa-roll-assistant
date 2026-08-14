@@ -8,12 +8,6 @@ import RulesSettings from './RulesSettings';
 import ImportExportSettings from './ImportExportSettings';
 import { Settings } from 'lucide-react';
 
-/**
- * Einstellungen lagen als vierter Unterreiter unter dem sechsten Haupt-Tab — zwei
- * Verschachtelungsebenen für etwas, das man einmal einstellt. Als Dialog sind sie
- * von jedem Tab aus erreichbar, und der Import, der den ganzen Charakter ersetzt,
- * steht nicht mehr neben den Würfeln.
- */
 const SettingsDialog = () => {
 	const [open, setOpen] = useState(false);
 
