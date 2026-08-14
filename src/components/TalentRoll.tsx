@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { nanoid } from '@reduxjs/toolkit';
 import { useDispatch, useSelector } from 'react-redux';
 import { roll3D20 } from '@/utils/dice';
@@ -42,6 +42,7 @@ import {
 	ATTRIBUTE_MIN,
 	type AttributeKey
 } from '@/store/attributesSlice';
+import { useResultScroll } from '@/hooks/useResultScroll';
 import { ChevronDown, Dices, Pencil, Check } from 'lucide-react';
 
 const TalentRoll = () => {
@@ -55,16 +56,7 @@ const TalentRoll = () => {
 
 	const lastRoll = probe.lastRoll;
 
-	// Nach einem neuen Wurf das Ergebnis in den Blick holen — nicht beim bloßen
-	// Zurückwechseln auf den Tab.
-	const resultRef = useRef<HTMLDivElement>(null);
-	const previousRoll = useRef(lastRoll);
-	useEffect(() => {
-		if (lastRoll && lastRoll !== previousRoll.current) {
-			resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-		}
-		previousRoll.current = lastRoll;
-	}, [lastRoll]);
+	const resultRef = useResultScroll(lastRoll);
 
 	const sheetTalent = probe.talentId
 		? talents.find(talent => talent.id === probe.talentId)
@@ -250,7 +242,7 @@ const TalentRoll = () => {
 	);
 
 	const result = lastRoll && (
-		<div ref={resultRef}>
+		<div ref={resultRef} className="scroll-mt-24">
 			<CheckResultCard
 				name={lastRoll.talentName}
 				entries={lastRoll.entries}

@@ -50,7 +50,7 @@ const RollResultCard = ({
 	return (
 		<Card
 			variant={tone}
-			className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500 scroll-mt-24"
+			className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500"
 		>
 			<CardHeader className="pb-4">
 				<CardTitle className={`flex items-center justify-center gap-3 text-center text-xl ${text}`}>

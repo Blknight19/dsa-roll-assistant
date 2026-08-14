@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { nanoid } from '@reduxjs/toolkit';
 import { roll3D20 } from '@/utils/dice';
@@ -24,6 +24,7 @@ import {
 	type SpellRoll as SpellRollSnapshot
 } from '@/store/spellRollSlice';
 import type { RootState } from '@/store';
+import { useResultScroll } from '@/hooks/useResultScroll';
 import { ChevronDown, Info, RotateCcw, Sparkle, StickyNote, Timer, Wand2, X } from 'lucide-react';
 
 /** Begründung der Buchung — die halbe Zahl allein wirkt sonst wie ein Fehler. */
@@ -73,14 +74,7 @@ const SpellRoll = () => {
 	const canAfford = cost <= asp.current;
 	const ready = spell !== undefined && canAfford;
 
-	const resultRef = useRef<HTMLDivElement>(null);
-	const previousRoll = useRef(lastRoll);
-	useEffect(() => {
-		if (lastRoll && lastRoll !== previousRoll.current) {
-			resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-		}
-		previousRoll.current = lastRoll;
-	}, [lastRoll]);
+	const resultRef = useResultScroll(lastRoll);
 
 	const pick = (spellId: string) => {
 		dispatch(selectSpell(spellId));
@@ -333,7 +327,7 @@ const SpellRoll = () => {
 	);
 
 	const result = lastRoll && (
-		<div ref={resultRef}>
+		<div ref={resultRef} className="scroll-mt-24">
 			<CheckResultCard
 				name={lastRoll.spellName}
 				entries={lastRoll.entries}
