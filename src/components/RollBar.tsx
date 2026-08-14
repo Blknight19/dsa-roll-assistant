@@ -16,8 +16,8 @@ type RollBarProps = {
 	disabledReason?: string;
 	label?: string;
 	/**
-	 * Auf dem Handy klebt die Leiste am unteren Rand (Daumenzone); auf dem Desktop
-	 * sitzt sie als Karte am Fuß der Eingabespalte und klebt dort ebenfalls.
+	 * `true` rendert die Handy-Fassung (klebt in der Daumenzone), `false` die
+	 * Desktop-Fassung am Fuß der Eingabespalte — gleiche Karte, andere Position.
 	 * Die Leiste bringt ihren Breakpoint selbst mit, statt in einem Wrapper zu
 	 * stecken: ein Wrapper wäre der umschließende Block und exakt so hoch wie sie
 	 * — dann hat `position: sticky` keinen Weg und wirkt gar nicht.
@@ -50,15 +50,14 @@ const RollBar = ({
 	return (
 		<div
 			className={cn(
+				'rounded-lg border border-aventurian-300 bg-card p-4 shadow-lg dark:border-aventurian-700',
 				sticky
-					? 'sticky bottom-0 z-40 -mx-4 border-t border-aventurian-300 bg-background/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-sm lg:hidden dark:border-aventurian-700'
-					// Der Schatten trennt die klebende Leiste von der Karte, über der sie
-					// beim Scrollen liegt — sonst verschwimmen zwei gleiche Kartenränder.
-					: 'hidden rounded-lg border border-aventurian-300 bg-card p-4 shadow-lg lg:sticky lg:bottom-4 lg:block dark:border-aventurian-700',
+					? 'sticky bottom-4 z-40 mt-4 lg:hidden'
+					: 'hidden lg:sticky lg:bottom-4 lg:block',
 				className
 			)}
 		>
-			<div className="mx-auto flex max-w-3xl items-end gap-4">
+			<div className="mx-auto flex max-w-3xl flex-col items-center gap-3 sm:flex-row sm:items-end sm:gap-4">
 				<ModifierControl value={modifier} onChange={onModifierChange} hintValue={total} />
 
 				<Button
@@ -66,7 +65,7 @@ const RollBar = ({
 					size="xl"
 					variant="aventurian"
 					disabled={disabled}
-					className="mb-5 flex-1 shadow-lg hover:shadow-xl"
+					className="w-full shadow-lg hover:shadow-xl sm:mb-5 sm:w-auto sm:flex-1"
 				>
 					<Dices className="mr-2 h-6 w-6" />
 					{label}
