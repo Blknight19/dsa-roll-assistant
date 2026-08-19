@@ -75,8 +75,21 @@ export type PersistedSlices = {
 	settings: SettingsState;
 };
 
+/**
+ * Grenzen für die Felder, die nicht schon durch eine Sachlogik gedeckelt sind. Eine
+ * Charakterdatei kommt von außen — ohne diese Grenzen trägt ein einziger Eintrag so
+ * viel Text, wie die Datei groß sein darf, und verstopft Anzeige und localStorage.
+ */
+export const ID_MAX = 64;
+export const HISTORY_RESULT_MAX = 200;
+/** Entspricht MAX_DICE in SimpleRoll — mehr Würfel kann kein Wurf erzeugt haben. */
+export const ROLL_VALUES_MAX = 20;
+
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
 	typeof value === 'object' && value !== null;
+
+const isId = (value: unknown): value is string =>
+	typeof value === 'string' && value.length > 0 && value.length <= ID_MAX;
 
 /** Schließt NaN und Infinity aus — `typeof NaN === 'number'` allein reicht nicht. */
 export const isFiniteNumber = (value: unknown): value is number =>
@@ -129,13 +142,16 @@ export const sanitizeHistory = (raw: unknown): RollHistoryEntry[] => {
 	return raw
 		.filter((entry): entry is RollHistoryEntry =>
 			isRecord(entry) &&
-			typeof entry.id === 'string' &&
+			isId(entry.id) &&
 			typeof entry.result === 'string' &&
 			typeof entry.date === 'string' &&
+			entry.date.length <= 40 &&
 			ROLL_TYPES.includes(entry.type as string) &&
 			Array.isArray(entry.values) &&
-			entry.values.every(value => typeof value === 'number'))
-		.slice(0, HISTORY_LIMIT);
+			entry.values.length <= ROLL_VALUES_MAX &&
+			entry.values.every(value => isFiniteNumber(value)))
+		.slice(0, HISTORY_LIMIT)
+		.map(entry => ({ ...entry, result: entry.result.slice(0, HISTORY_RESULT_MAX) }));
 };
 
 export const sanitizeSettings = (raw: unknown): SettingsState => {
@@ -156,7 +172,7 @@ const isAttributeKey = (value: unknown): value is AttributeKey =>
  */
 const sanitizeSpell = (raw: unknown): Spell | undefined => {
 	if (!isRecord(raw)) return undefined;
-	if (typeof raw.id !== 'string' || !raw.id) return undefined;
+	if (!isId(raw.id)) return undefined;
 	if (typeof raw.name !== 'string') return undefined;
 	if (!Array.isArray(raw.attributes) || raw.attributes.length !== 3) return undefined;
 	if (!raw.attributes.every(isAttributeKey)) return undefined;
@@ -164,7 +180,7 @@ const sanitizeSpell = (raw: unknown): Spell | undefined => {
 
 	return {
 		id: raw.id,
-		catalogId: typeof raw.catalogId === 'string' ? raw.catalogId : undefined,
+		catalogId: isId(raw.catalogId) ? raw.catalogId : undefined,
 		name: sanitizeSpellName(raw.name),
 		attributes: raw.attributes as [AttributeKey, AttributeKey, AttributeKey],
 		cost: clampSpellCost(raw.cost),
@@ -193,11 +209,12 @@ export const sanitizeSpellbook = (raw: unknown): SpellbookState => {
 		? raw.upkeep
 			.filter((entry): entry is SpellbookState['upkeep'][number] =>
 				isRecord(entry) &&
-				typeof entry.id === 'string' &&
+				isId(entry.id) &&
 				typeof entry.spellName === 'string' &&
 				isFiniteNumber(entry.qs) &&
 				entry.qs >= 1 && entry.qs <= 6)
 			.slice(0, SPELL_LIMIT)
+			.map(entry => ({ ...entry, spellName: sanitizeSpellName(entry.spellName) }))
 		: [];
 
 	// Bewusst nur `clampAsp`, ohne die Ersteinrichtungs-Auffüllung von `setAsp`: eine

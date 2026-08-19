@@ -1,11 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { migratePersisted, toPersisted, sanitizeHistory, sanitizeSpellbook, PERSISTED_VERSION } from './persistence';
+import {
+	HISTORY_RESULT_MAX,
+	PERSISTED_VERSION,
+	migratePersisted,
+	sanitizeHistory,
+	sanitizeSpellbook,
+	toPersisted
+} from './persistence';
 import { initialTalentState } from './talentsSlice';
 import { initialSettingsState } from './settingsSlice';
 import { HISTORY_LIMIT, type RollHistoryEntry } from './rollSlice';
 import {
 	SPELL_COST_TEXT_MAX,
 	SPELL_DURATION_MAX,
+	SPELL_NAME_MAX,
 	SPELL_NOTE_MAX,
 	SPELL_PROBE_NOTE_MAX,
 	initialSpellbookState
@@ -341,5 +349,74 @@ describe('toPersisted / Roundtrip', () => {
 			characters: [{ id: 'a', name: 'Alrik', attributes: { MU: 9 }, talents: [], combat: {} }]
 		})!;
 		expect(state.profile.name).toBe('Alrik');
+	});
+});
+
+describe('Längengrenzen der Kennungen und Restfelder', () => {
+	it('verwirft einen Zauber mit überlanger id', () => {
+		const book = sanitizeSpellbook({
+			spells: [{ id: 'a'.repeat(500), name: 'Blitz', attributes: ['KL', 'IN', 'IN'], cost: 4, value: 8 }]
+		});
+		expect(book.spells).toHaveLength(0);
+	});
+
+	it('verwirft eine überlange catalogId, behält aber den Zauber', () => {
+		const book = sanitizeSpellbook({
+			spells: [{
+				id: 'a', name: 'Blitz', attributes: ['KL', 'IN', 'IN'], cost: 4, value: 8,
+				catalogId: 'c'.repeat(500)
+			}]
+		});
+		expect(book.spells).toHaveLength(1);
+		expect(book.spells[0].catalogId).toBeUndefined();
+	});
+
+	it('kappt den Zaubernamen eines laufenden Zaubers', () => {
+		const book = sanitizeSpellbook({
+			upkeep: [{ id: 'u', spellName: 's'.repeat(300), qs: 3 }]
+		});
+		expect(book.upkeep[0].spellName).toHaveLength(SPELL_NAME_MAX);
+	});
+
+	it('verwirft einen laufenden Zauber mit überlanger id', () => {
+		const book = sanitizeSpellbook({
+			upkeep: [{ id: 'u'.repeat(500), spellName: 'Blitz', qs: 3 }]
+		});
+		expect(book.upkeep).toHaveLength(0);
+	});
+
+	it('kappt einen überlangen Ergebnistext der Historie', () => {
+		const history = sanitizeHistory([
+			{ id: 'h', type: 'Talent', values: [1, 2, 3], result: 'r'.repeat(5000), date: '2026-08-19' }
+		]);
+		expect(history[0].result).toHaveLength(HISTORY_RESULT_MAX);
+	});
+
+	it('verwirft einen Historieneintrag mit überlanger id', () => {
+		const history = sanitizeHistory([
+			{ id: 'h'.repeat(500), type: 'Talent', values: [1, 2, 3], result: 'ok', date: '2026-08-19' }
+		]);
+		expect(history).toHaveLength(0);
+	});
+
+	it('begrenzt die Anzahl der Würfelwerte eines Historieneintrags', () => {
+		const history = sanitizeHistory([
+			{ id: 'h', type: 'Talent', values: Array(5000).fill(1), result: 'ok', date: '2026-08-19' }
+		]);
+		expect(history).toHaveLength(0);
+	});
+
+	it('verwirft NaN und Infinity unter den Würfelwerten', () => {
+		const history = sanitizeHistory([
+			{ id: 'h', type: 'Talent', values: [1, NaN, 3], result: 'ok', date: '2026-08-19' }
+		]);
+		expect(history).toHaveLength(0);
+	});
+
+	it('verwirft einen Historieneintrag mit überlangem Datum', () => {
+		const history = sanitizeHistory([
+			{ id: 'h', type: 'Talent', values: [1, 2, 3], result: 'ok', date: 'd'.repeat(500) }
+		]);
+		expect(history).toHaveLength(0);
 	});
 });
