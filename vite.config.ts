@@ -4,22 +4,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
-/**
- * Die App lädt nichts aus fremden Quellen: Skripte, Stile, Schriften und Bilder liegen
- * alle im Build. Die Policy schreibt genau das fest, damit eine eingeschleuste Zeile
- * Code weder nachladen noch etwas nach außen senden kann.
- *
- * `style-src` braucht `unsafe-inline`, weil Radix Positionen als Inline-Style setzt.
- *
- * Ohne `require-trusted-types-for 'script'`, obwohl es der schärfste Schutz gegen
- * DOM-XSS wäre: React DOM setzt intern `innerHTML` und die Service-Worker-Anmeldung
- * eine Skript-URL — mit der Direktive startet die App nicht und wäre offline tot.
- * Gegen `dangerouslySetInnerHTML` im eigenen Code steht stattdessen `react/no-danger`
- * in eslint.config.js.
- *
- * `frame-ancestors` fehlt notgedrungen: als <meta> ist es wirkungslos und GitHub Pages
- * setzt keine Header — gegen Clickjacking schützt das hier also nicht.
- */
+/** `unsafe-inline` für Stile, weil Radix Positionen als Inline-Style setzt. */
 const CSP = [
   "default-src 'self'",
   "script-src 'self'",
@@ -36,7 +21,6 @@ const CSP = [
 const cspPlugin = {
   name: 'csp-meta',
   apply: 'build' as const,
-  // Hinter das Charset gehängt: das muss als Erstes im head stehen.
   transformIndexHtml: (html: string) =>
     html.replace(
       '<meta charset="UTF-8" />',

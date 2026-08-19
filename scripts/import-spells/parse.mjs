@@ -154,11 +154,7 @@ const pflicht = (roh, schluessel) => {
 	return wert;
 };
 
-/**
- * Bildet einen Rohdatensatz der Quelle auf einen Katalogeintrag ab. Wirft bei allem,
- * was nicht sauber lesbar ist — ein halb verstandener Zauber ist schlechter als
- * keiner, weil niemand am Spieltisch merkt, dass die Zahl daneben liegt.
- */
+/** Bildet einen Rohdatensatz auf einen Katalogeintrag ab. Wirft bei allem Unlesbaren. */
 export const toCatalogEntry = roh => {
 	const klasse = pflicht(roh, 'Klasse');
 	if (!KLASSEN.includes(klasse)) throw new Error(`Unbekannte Klasse: ${klasse}`);
@@ -221,10 +217,6 @@ const FELD_REIHENFOLGE = [
 	'verbreitung'
 ];
 
-/**
- * Jeder Wert geht durch JSON.stringify. Damit kann kein Zeichen aus der Quelle die
- * Zeichenkette verlassen und zu Code werden, egal was in den Rohdaten steht.
- */
 const alsLiteral = wert => {
 	if (wert === null) return 'null';
 	if (typeof wert === 'number') return String(wert);

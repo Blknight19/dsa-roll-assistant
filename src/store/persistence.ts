@@ -75,11 +75,7 @@ export type PersistedSlices = {
 	settings: SettingsState;
 };
 
-/**
- * Grenzen für die Felder, die nicht schon durch eine Sachlogik gedeckelt sind. Eine
- * Charakterdatei kommt von außen — ohne diese Grenzen trägt ein einziger Eintrag so
- * viel Text, wie die Datei groß sein darf, und verstopft Anzeige und localStorage.
- */
+/** Grenzen der Felder, die keine Sachlogik schon deckelt. */
 export const ID_MAX = 64;
 export const HISTORY_RESULT_MAX = 200;
 /** Entspricht MAX_DICE in SimpleRoll — mehr Würfel kann kein Wurf erzeugt haben. */

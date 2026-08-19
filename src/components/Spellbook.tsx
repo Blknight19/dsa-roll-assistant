@@ -54,8 +54,6 @@ const Spellbook = () => {
 	const full = spells.length >= SPELL_LIMIT;
 	const owned = new Set(spells.map(spell => spell.catalogId).filter(Boolean));
 
-	// Der Katalog zählt 348 Einträge; ohne Vorauswahl ist die Liste nur noch über die
-	// Suche zu bedienen.
 	const catalog = useMemo(
 		() =>
 			SPELL_CATALOG.filter(

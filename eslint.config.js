@@ -21,9 +21,6 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      // Die App rendert nirgends HTML aus Daten. Als Regel statt als Gewohnheit:
-      // sonst wäre der erste Ausrutscher hier eine XSS-Lücke, und im localStorage
-      // liegt der Text einer importierten Charakterdatei schon bereit.
       'react/no-danger': 'error',
       'react/no-danger-with-children': 'error',
       'react-refresh/only-export-components': [

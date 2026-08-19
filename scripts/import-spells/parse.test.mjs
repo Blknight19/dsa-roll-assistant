@@ -181,8 +181,6 @@ describe('toCatalogEntry', () => {
 		expect(() => toCatalogEntry({ ...IGNIFAXIUS, Klasse: 'liturgie' })).toThrow(/Klasse/);
 	});
 
-	// Als Codepoint gebaut statt literal geschrieben: unsichtbare Zeichen im Quelltext
-	// sind genau das, was diese Prüfung verhindern soll.
 	const BEL = String.fromCodePoint(0x0007);
 	const BIDI_UMKEHR = String.fromCodePoint(0x202e);
 

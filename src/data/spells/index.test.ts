@@ -70,8 +70,6 @@ describe('SPELL_CATALOG', () => {
 	});
 
 	it('trägt probeNote nur als bekannten Hinweis', () => {
-		// Die Menge bleibt klein und geschlossen. Wächst sie beim nächsten Import, ist
-		// das ein Grund hinzusehen: probeNote steht ungefiltert in der Zaubertabelle.
 		const bekannt = [
 			'modifiziert durch SK',
 			'modifiziert durch ZK',
