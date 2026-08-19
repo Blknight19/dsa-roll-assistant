@@ -10,7 +10,7 @@ export type Spell = {
 	catalogId?: string;
 	name: string;
 	attributes: [AttributeKey, AttributeKey, AttributeKey];
-	/** Im Zauberbuch immer eine Zahl — Formeln aus dem Katalog löst der Spieler auf. */
+	/** Im Zauberbuch immer eine Zahl – Formeln aus dem Katalog löst der Spieler auf. */
 	cost: number;
 	/** Wortlaut aus dem Katalog, z. B. „1 AsP pro LeP". Nur Erinnerung. */
 	costText?: string;
@@ -18,7 +18,7 @@ export type Spell = {
 	probeNote?: string;
 	duration?: string;
 	value: number;
-	/** Freie Notiz des Spielers — Merkhilfe, keine Regelmechanik. */
+	/** Freie Notiz des Spielers – Merkhilfe, keine Regelmechanik. */
 	note?: string;
 };
 
@@ -35,14 +35,14 @@ export type SpellbookState = {
 };
 
 export const SPELL_NAME_MAX = 60;
-/** Weit über jedem gespielten Magier — Grenze gegen präparierte Importdateien. */
+/** Weit über jedem gespielten Magier – Grenze gegen präparierte Importdateien. */
 export const SPELL_LIMIT = 100;
 export const SPELL_COST_MAX = 99;
 export const ASP_MAX = 999;
 
 /**
  * Grenzen der Freitextfelder eines Zaubers. Reducer und Import ziehen sie über
- * `clampSpellText` gemeinsam — sonst überlebt ein zu langer Wert die Sitzung und
+ * `clampSpellText` gemeinsam – sonst überlebt ein zu langer Wert die Sitzung und
  * ändert sich still beim nächsten Laden.
  */
 export const SPELL_COST_TEXT_MAX = 160;
@@ -98,28 +98,28 @@ const spellbookSlice = createSlice({
 	initialState: initialSpellbookState,
 	reducers: {
 		setSpellcaster: (state, action: PayloadAction<boolean>) => {
-			// Ausschalten versteckt nur — Zauberbuch, AsP und laufende Zauber bleiben.
+			// Ausschalten versteckt nur – Zauberbuch, AsP und laufende Zauber bleiben.
 			state.isSpellcaster = action.payload;
 		},
 		setAsp: (state, action: PayloadAction<Partial<AspState>>) => {
 			const nextMax = action.payload.max ?? state.asp.max;
 			// Ersteinrichtung: ein frisch zauberkundig geschalteter Held startet bei 0/0 AsP.
-			// Trägt er nun ein Maximum ein, bliebe current sonst bei 0 hängen — der
+			// Trägt er nun ein Maximum ein, bliebe current sonst bei 0 hängen – der
 			// „Zaubern"-Knopf wäre gesperrt, ohne dass ersichtlich ist, warum. Diese eine
 			// Übergangskante (max von 0 auf > 0) füllt current einmalig auf max auf.
 			// Bewusst NICHT verallgemeinert auf „current an max nachziehen, wenn max steigt":
 			// ein Spieler, der gezielt auf 2/10 heruntergezaubert hat und dann max auf 15
-			// anhebt, muss bei 2/15 bleiben — stilles Auffüllen wäre schlimmer als der
+			// anhebt, muss bei 2/15 bleiben – stilles Auffüllen wäre schlimmer als der
 			// ursprüngliche Fehler. Die Kante kann im UI erneut greifen (das Maximum-Feld lässt
-			// sich auf 0 zurückstellen und neu hochsetzen) — das ist unbedenklich, weil
+			// sich auf 0 zurückstellen und neu hochsetzen) – das ist unbedenklich, weil
 			// `clampAsp` current schon beim Erreichen von max === 0 auf 0 zieht: ein gezielt
 			// heruntergezaubertes current existiert dann nicht mehr, es gibt nichts zu verlieren.
-			// Ein explizit mitgegebenes current gewinnt immer — der Aufrufer hat gesagt, was er will.
+			// Ein explizit mitgegebenes current gewinnt immer – der Aufrufer hat gesagt, was er will.
 			const isFirstSetup = state.asp.max === 0 && nextMax > 0;
 			const nextCurrent = action.payload.current ?? (isFirstSetup ? nextMax : state.asp.current);
 			state.asp = clampAsp({ current: nextCurrent, max: nextMax });
 		},
-		/** Relative Buchung — der Rückgängig-Knopf bucht denselben Betrag positiv zurück. */
+		/** Relative Buchung – der Rückgängig-Knopf bucht denselben Betrag positiv zurück. */
 		changeAsp: (state, action: PayloadAction<number>) => {
 			state.asp = clampAsp({ current: state.asp.current + action.payload, max: state.asp.max });
 		},
@@ -142,10 +142,10 @@ const spellbookSlice = createSlice({
 			state.upkeep = state.upkeep.filter(entry => entry.id !== action.payload);
 		},
 		/**
-		 * Ersetzt das Buch am Stück — für den Import.
+		 * Ersetzt das Buch am Stück – für den Import.
 		 * Teilt bewusst NICHT die Ersteinrichtungs-Auffüllung aus `setAsp`: eine importierte
 		 * AsP von 0/30 ist ein legitimer Zustand (ein leergezauberter Magier), kein Zeichen für
-		 * den ursprünglichen Fehler. Die App kann beides nicht unterscheiden — automatisches
+		 * den ursprünglichen Fehler. Die App kann beides nicht unterscheiden – automatisches
 		 * Auffüllen beim Laden würde also einem tatsächlich erschöpften Magier bei jedem
 		 * Neustart die Kraft zurückschenken. Persistenz muss exakt wiederherstellen, was
 		 * gespeichert wurde; die Auffüllung gehört ausschließlich in den interaktiven

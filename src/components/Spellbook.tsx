@@ -28,7 +28,7 @@ const DEFAULT_ATTRIBUTES: [AttributeKey, AttributeKey, AttributeKey] = ['KL', 'K
 const ALLE = 'alle';
 
 /**
- * Hexenflüche führen keine Verbreitung, weil sie ausschließlich Hexen offenstehen —
+ * Hexenflüche führen keine Verbreitung, weil sie ausschließlich Hexen offenstehen –
  * unter dem Filter „Hexen" gehören sie trotzdem dazu.
  */
 const passtZurVerbreitung = (entry: SpellCatalogEntry, verbreitung: string) => {
@@ -47,7 +47,7 @@ const Spellbook = () => {
 	const [catalogOpen, setCatalogOpen] = useState(false);
 	const [verbreitung, setVerbreitung] = useState(ALLE);
 	const [merkmal, setMerkmal] = useState(ALLE);
-	// Löschen ist der einzige Weg, einen Zauber samt Notiz zu verlieren — wie in der
+	// Löschen ist der einzige Weg, einen Zauber samt Notiz zu verlieren – wie in der
 	// Historie fragt die App vorher nach.
 	const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
 
@@ -70,7 +70,7 @@ const Spellbook = () => {
 			catalogId: entry.id,
 			name: entry.name,
 			attributes: [...entry.attributes] as [AttributeKey, AttributeKey, AttributeKey],
-			// Formelzauber starten bei 0 — die Zahl trägt der Spieler ein, der Wortlaut
+			// Formelzauber starten bei 0 – die Zahl trägt der Spieler ein, der Wortlaut
 			// steht als Erinnerung daneben.
 			cost: entry.cost ?? 0,
 			costText: entry.costText,

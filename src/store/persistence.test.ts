@@ -99,7 +99,7 @@ describe('migratePersisted', () => {
 });
 
 describe('Wertgrenzen beim Laden', () => {
-	// Die Persistenz setzt preloadedState und umgeht damit die Reducer — sie muss
+	// Die Persistenz setzt preloadedState und umgeht damit die Reducer – sie muss
 	// dieselben Grenzen selbst durchsetzen.
 	it('repariert ein LeP-Maximum von 0, statt den Balken durch null teilen zu lassen', () => {
 		const state = migratePersisted({ version: 2, combat: { life: { current: 5, max: 0 } } });
@@ -191,7 +191,7 @@ describe('sanitizeSpellbook', () => {
 		expect(book.spells[0].note).toHaveLength(SPELL_NOTE_MAX);
 	});
 
-	it('trägt probeNote unverändert durch — der Hinweis auf ZK/SK überlebt den Export', () => {
+	it('trägt probeNote unverändert durch – der Hinweis auf ZK/SK überlebt den Export', () => {
 		const book = sanitizeSpellbook({
 			spells: [{
 				id: 'a', name: 'Horriphobus', attributes: ['MU', 'CH', 'CH'], cost: 8, value: 8,
@@ -223,7 +223,7 @@ describe('sanitizeSpellbook', () => {
 		expect(sanitizeSpellbook({ asp: { current: 99, max: 20 } }).asp).toEqual({ current: 20, max: 20 });
 	});
 
-	it('übernimmt eine gespeicherte AsP von 0/30 unverändert — kein automatisches Auffüllen beim Laden', () => {
+	it('übernimmt eine gespeicherte AsP von 0/30 unverändert – kein automatisches Auffüllen beim Laden', () => {
 		// 0/30 ist ein legitim leergezauberter Magier, nicht vom ursprünglichen
 		// Ersteinrichtungsfehler unterscheidbar. Auto-Auffüllen beim Laden würde einem
 		// tatsächlich erschöpften Magier bei jedem Neustart die Kraft zurückschenken.

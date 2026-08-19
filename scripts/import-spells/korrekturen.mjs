@@ -1,6 +1,6 @@
 /**
  * Stellen, an denen die Quelle von den Werten des Regelwerks abweicht. Diese Einträge
- * sind am Spieltisch bestätigt — sie zu entfernen holt die falschen Werte der Quelle
+ * sind am Spieltisch bestätigt – sie zu entfernen holt die falschen Werte der Quelle
  * zurück, der Import überschreibt die erzeugten Dateien bei jedem Lauf vollständig.
  */
 export const KORREKTUREN = {

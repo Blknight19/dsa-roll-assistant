@@ -14,7 +14,7 @@ export const exportCharacter = () => {
 	const { profile, attributes, talents, combat, spellbook, roll, settings } = store.getState();
 	const snapshot = toPersisted({ profile, attributes, talents, combat, spellbook, roll, settings });
 
-	// `toPersisted` trägt die Version schon — Datei und localStorage teilen ein Format.
+	// `toPersisted` trägt die Version schon – Datei und localStorage teilen ein Format.
 	const payload = JSON.stringify(snapshot, null, 2);
 	const blob = new Blob([btoa(encodeURIComponent(payload))], { type: 'application/octet-stream' });
 	const url = URL.createObjectURL(blob);
@@ -26,7 +26,7 @@ export const exportCharacter = () => {
 	link.click();
 	link.remove();
 
-	// Erst freigeben, wenn der Download angestoßen ist — sofortiges revoke bricht
+	// Erst freigeben, wenn der Download angestoßen ist – sofortiges revoke bricht
 	// den Download in manchen Browsern ab.
 	setTimeout(() => URL.revokeObjectURL(url), 0);
 };

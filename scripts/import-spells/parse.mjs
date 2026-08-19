@@ -49,7 +49,7 @@ const FESTE_KOSTEN = /^(\d+)(?:\s*AsP)?(?:\s*\(([^()]*)\))?$/;
 /**
  * Gibt die Zahl nur zurück, wenn der Wortlaut genau einen festen Betrag nennt.
  * Formeln („+ 4 AsP pro Stunde"), Alternativen („bzw.") und Untergrenzen
- * („mindestens") bleiben null — die löst der Spieler beim Übernehmen selbst auf.
+ * („mindestens") bleiben null – die löst der Spieler beim Übernehmen selbst auf.
  */
 export const parseCost = kosten => {
 	if (kosten === undefined || kosten.trim() === '') return null;
@@ -72,7 +72,7 @@ export const parseCost = kosten => {
  */
 export const KLASSEN = ['zauber', 'ritual', 'hexenfluch'];
 
-/** Geschlossene Liste des Regelwerks — alles andere ist ein Lesefehler. */
+/** Geschlossene Liste des Regelwerks – alles andere ist ein Lesefehler. */
 export const MERKMALE = [
 	'Antimagie',
 	'Dämonisch',
@@ -93,7 +93,7 @@ const DAUER_FELD = { zauber: 'Zauberdauer', ritual: 'Ritualdauer', hexenfluch: n
 
 /**
  * Obergrenzen der Textfelder. Sie spiegeln die Konstanten aus
- * src/store/spellbookSlice.ts — der Katalog darf nichts tragen, was das Zauberbuch
+ * src/store/spellbookSlice.ts – der Katalog darf nichts tragen, was das Zauberbuch
  * beim Übernehmen abschneiden würde.
  */
 const LAENGEN = {
@@ -109,7 +109,7 @@ const LAENGEN = {
 
 /**
  * C0-Steuerzeichen, Zero-Width- und Bidi-Zeichen. Letztere lassen Text anders
- * erscheinen, als er gespeichert ist — in Daten aus fremder Quelle haben sie nichts
+ * erscheinen, als er gespeichert ist – in Daten aus fremder Quelle haben sie nichts
  * zu suchen.
  */
 const istSteuerzeichen = codePoint =>
@@ -200,7 +200,7 @@ export const toCatalogEntry = roh => {
 	return eintrag;
 };
 
-/** Reihenfolge der Felder in den erzeugten Dateien — hält die Diffs ruhig. */
+/** Reihenfolge der Felder in den erzeugten Dateien – hält die Diffs ruhig. */
 const FELD_REIHENFOLGE = [
 	'id',
 	'klasse',
@@ -277,6 +277,6 @@ export const normalisiereCastTime = castTime =>
 
 /**
  * In sechs Wirkungsdauern der Quelle steht „OS" statt „QS" (Qualitätsstufe). „OS" ist
- * kein Begriff des Regelwerks — ohne diese Korrektur stünde am Spieltisch Unsinn.
+ * kein Begriff des Regelwerks – ohne diese Korrektur stünde am Spieltisch Unsinn.
  */
 export const normalisiereDuration = duration => duration.replace(/\bOS\b/g, 'QS');

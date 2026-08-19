@@ -8,12 +8,12 @@ import { Skull, Sparkles } from 'lucide-react';
 export type CheckEntry = { attribute: AttributeKey; value: number };
 
 type CheckResultCardProps = {
-	/** Name der Probe — Talent oder Zauber. */
+	/** Name der Probe – Talent oder Zauber. */
 	name: string;
 	entries: CheckEntry[];
 	modifier: number;
 	taw: number;
-	/** „Talentwert" oder „Fertigkeitswert" — die Rechnung ist dieselbe. */
+	/** „Talentwert" oder „Fertigkeitswert" – die Rechnung ist dieselbe. */
 	tawLabel: string;
 	result: TalentCheckResult;
 	/** Regelfolge in einem Satz. Überschreibt den Krit-Standardtext. */
@@ -27,7 +27,7 @@ const dieTone = (value: number): ResultDie['tone'] => {
 	return 'default';
 };
 
-/** Ergebnis in einem Satz — für die `aria-live`-Region. */
+/** Ergebnis in einem Satz – für die `aria-live`-Region. */
 export const checkSummary = (result: TalentCheckResult): string => {
 	if (result.special === 'krit') return `Kritischer Erfolg, Qualitätsstufe ${result.qs}`;
 	if (result.special === 'patzer') return 'Patzer';
@@ -61,7 +61,7 @@ const CheckResultCard = ({
 				? {
 					value: result.qs,
 					caption: 'Qualitätsstufe',
-					// Ein Krit gelingt auch mit negativen FP — „−2 FP übrig" unter
+					// Ein Krit gelingt auch mit negativen FP – „−2 FP übrig" unter
 					// einem Erfolg zu zeigen wäre irreführend.
 					note: result.fp >= 0 ? `${result.fp} FP übrig` : 'ohne FP-Reserve gelungen'
 				}

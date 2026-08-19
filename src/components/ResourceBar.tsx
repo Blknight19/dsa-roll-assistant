@@ -9,7 +9,7 @@ type ResourceBarProps = {
 	className?: string;
 };
 
-/** Geteilte Ressourcenleiste für LeP und AsP — gleiche Form, unterschiedliche Bedeutung. */
+/** Geteilte Ressourcenleiste für LeP und AsP – gleiche Form, unterschiedliche Bedeutung. */
 const ResourceBar = ({ label, current, max, tone, className = '' }: ResourceBarProps) => {
 	const ratio = max > 0 ? (current / max) * 100 : 0;
 	const width = fillPercent(current, max);
@@ -28,7 +28,7 @@ const ResourceBar = ({ label, current, max, tone, className = '' }: ResourceBarP
 				aria-label={`${label} ${current} von ${max}`}
 			>
 				<div className={`h-full ${fill} transition-all duration-500`} style={{ width: `${width}%` }} />
-				{/* Schwellen der Schmerzstufen bei ¼, ½ und ¾ — nur bei LeP, AsP kennen keine. */}
+				{/* Schwellen der Schmerzstufen bei ¼, ½ und ¾ – nur bei LeP, AsP kennen keine. */}
 				{tone === 'life' && [25, 50, 75].map((mark) => (
 					<div
 						key={mark}

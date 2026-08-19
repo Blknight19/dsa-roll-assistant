@@ -61,7 +61,7 @@ describe('SPELL_CATALOG', () => {
 	it('lässt genau die „aufrechterhaltend"-Zauber aufrechterhalten', () => {
 		// Gegen die echten Daten geprüft, nicht nach Augenmaß: die Vorgängerfassung
 		// schloss nur „sofort" aus und erlaubte damit auch jeden Zauber mit fester
-		// Wirkungsdauer („QS x 3 Minuten", …) — der hätte fälschlich −1 gekostet.
+		// Wirkungsdauer („QS x 3 Minuten", …) – der hätte fälschlich −1 gekostet.
 		const sustainable = SPELL_CATALOG.filter(entry => canSustain(entry.duration));
 		const declared = SPELL_CATALOG.filter(entry => entry.duration === 'aufrechterhaltend');
 

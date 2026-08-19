@@ -232,7 +232,7 @@ describe('canSustain', () => {
     expect(canSustain('sofort')).toBe(false);
   });
 
-  it('schließt feste Wirkungsdauern aus — sie laufen ohne Konzentration weiter', () => {
+  it('schließt feste Wirkungsdauern aus – sie laufen ohne Konzentration weiter', () => {
     expect(canSustain('QS x 3 Minuten')).toBe(false);
     expect(canSustain('1 Minute')).toBe(false);
     expect(canSustain('5 Kampfrunden')).toBe(false);
@@ -240,11 +240,11 @@ describe('canSustain', () => {
     expect(canSustain('Bis zum nächsten Schuss, maximal QS x 2 Kampfrunden')).toBe(false);
   });
 
-  it('erlaubt den Knopf ohne Angabe — ein selbst eingetragener Zauber', () => {
+  it('erlaubt den Knopf ohne Angabe – ein selbst eingetragener Zauber', () => {
     expect(canSustain(undefined)).toBe(true);
   });
 
-  it('lässt einen leeren String nicht durch — eine Angabe ist da, sie sagt nur nichts', () => {
+  it('lässt einen leeren String nicht durch – eine Angabe ist da, sie sagt nur nichts', () => {
     expect(canSustain('')).toBe(false);
   });
 });

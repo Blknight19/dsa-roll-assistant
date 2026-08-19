@@ -136,7 +136,7 @@ const SimpleRoll = () => {
 			</div>
 
 			{/* Kein Wrapper-div: der wäre der umschließende Block der Sticky-Leiste
-			    und exakt so hoch wie sie — siehe RollBar. */}
+			    und exakt so hoch wie sie – siehe RollBar. */}
 			{rollBar(true)}
 		</div>
 	);

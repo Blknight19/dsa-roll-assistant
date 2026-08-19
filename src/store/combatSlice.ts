@@ -41,7 +41,7 @@ export const clampCombatStat = (value: number): number =>
 	Math.min(COMBAT_STAT_MAX, Math.max(0, Math.round(value)));
 
 /**
- * Einzige Quelle der LeP-Grenzen — Reducer und Persistenz teilen sie sich, damit ein
+ * Einzige Quelle der LeP-Grenzen – Reducer und Persistenz teilen sie sich, damit ein
  * geladener Blob nicht an den Reducern vorbei ein `max` von 0 einschleusen kann.
  */
 export const clampLife = ({ current, max }: LifeState): LifeState => {
@@ -57,7 +57,7 @@ export const MIN_FILL_PERCENT = 4;
 
 /**
  * Breite eines Ressourcenbalkens in Prozent. Bei wenigen Punkten bliebe der Balken
- * sonst unsichtbar — 1 LeP und 0 LeP sähen gleich aus. Nur für die Darstellung; die
+ * sonst unsichtbar – 1 LeP und 0 LeP sähen gleich aus. Nur für die Darstellung; die
  * Farbschwellen richten sich weiter nach dem exakten Verhältnis.
  */
 export const fillPercent = (current: number, max: number): number => {

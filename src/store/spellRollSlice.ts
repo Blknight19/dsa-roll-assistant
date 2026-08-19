@@ -5,14 +5,14 @@ import type { TalentCheckResult } from '@/utils/rules';
 
 export type SpellEntry = { attribute: AttributeKey; value: number };
 
-/** Vollständiger Schnappschuss eines Zauberwurfs — die Anzeige rechnet nur hieraus. */
+/** Vollständiger Schnappschuss eines Zauberwurfs – die Anzeige rechnet nur hieraus. */
 export type SpellRoll = {
 	spellId: string;
 	spellName: string;
 	entries: SpellEntry[];
 	modifier: number;
 	taw: number;
-	/** Tatsächlich gebuchte AsP — der Rückgängig-Knopf bucht genau diese zurück. */
+	/** Tatsächlich gebuchte AsP – der Rückgängig-Knopf bucht genau diese zurück. */
 	aspSpent: number;
 	/** Wirkungsdauer zum Zeitpunkt des Wurfs; nur „aufrechterhaltend" bindet Konzentration. */
 	duration?: string;
@@ -29,7 +29,7 @@ export type SpellRollState = {
 	spellId: string | null;
 	modifier: number;
 	lastRoll: SpellRoll | null;
-	/** Ob die AsP des letzten Wurfs noch gebucht sind — schaltet den Rückgängig-Knopf. */
+	/** Ob die AsP des letzten Wurfs noch gebucht sind – schaltet den Rückgängig-Knopf. */
 	lastRollBooked: boolean;
 };
 

@@ -14,7 +14,7 @@ import HeroBar from './components/HeroBar';
 import type { RootState } from '@/store';
 import { Scroll, Dices, History, User, Swords, Wand2 } from 'lucide-react';
 
-// Talent und Kampf stehen bewusst nebeneinander — dazwischen wird am Tisch am
+// Talent und Kampf stehen bewusst nebeneinander – dazwischen wird am Tisch am
 // häufigsten gewechselt. Magie sitzt daneben, weil ein Magier zwischen Zauber und
 // Kampf genauso oft springt.
 const allTabs = [

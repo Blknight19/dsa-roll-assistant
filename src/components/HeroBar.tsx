@@ -7,7 +7,7 @@ import { Pencil, User } from 'lucide-react';
 import ResourceBar from './ResourceBar';
 
 /**
- * Name und Lebensenergie auf jedem Tab. Die LeP lag früher am Ende des Kampf-Tabs —
+ * Name und Lebensenergie auf jedem Tab. Die LeP lag früher am Ende des Kampf-Tabs –
  * also genau dort, wo man mitten im Kampf am wenigsten hinsieht.
  */
 const HeroBar = () => {

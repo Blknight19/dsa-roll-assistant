@@ -11,7 +11,7 @@ const toneText: Record<ResultTone, string> = {
 	critical: 'text-critical-dark dark:text-critical-light'
 };
 
-/** Kein Icon bei Initiative — die kennt kein Gelingen, der Titel trägt die Aussage. */
+/** Kein Icon bei Initiative – die kennt kein Gelingen, der Titel trägt die Aussage. */
 const StatusIcon = ({ roll }: { roll: CombatRoll }) => {
 	if (!roll.result) return null;
 	if (roll.result.special === 'krit') return <Sparkles className="h-5 w-5 shrink-0 animate-glow" />;
@@ -25,7 +25,7 @@ const StatusIcon = ({ roll }: { roll: CombatRoll }) => {
  * Das Kampfergebnis in Kurzform, auf dem Handy am unteren Rand klebend.
  *
  * Ohne Wrapper-div einsetzen und als direktes Kind des Spalten-Containers
- * rendern — ein Wrapper wäre der umschließende Block und exakt so hoch wie die
+ * rendern – ein Wrapper wäre der umschließende Block und exakt so hoch wie die
  * Leiste, dann hat `position: sticky` keinen Verschiebeweg (siehe RollBar).
  */
 const CombatResultBar = ({ roll, label }: { roll: CombatRoll; label: string }) => {

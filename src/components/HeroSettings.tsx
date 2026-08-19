@@ -6,7 +6,7 @@ import { setSpellcaster } from '@/store/spellbookSlice';
 import { User } from 'lucide-react';
 
 /**
- * Charakterbezogene Schalter — bewusst getrennt von `RulesSettings`: die dortigen
+ * Charakterbezogene Schalter – bewusst getrennt von `RulesSettings`: die dortigen
  * Einstellungen gehören der App, dieser hier wandert mit in die .dsa-Datei.
  */
 const HeroSettings = () => {

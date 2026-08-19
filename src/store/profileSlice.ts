@@ -4,7 +4,7 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 export const CHARACTER_NAME_MAX = 40;
 
 export type ProfileState = {
-	/** Id des Charakters — heute immer genau einer, das Dateiformat trägt aber eine Liste. */
+	/** Id des Charakters – heute immer genau einer, das Dateiformat trägt aber eine Liste. */
 	id: string;
 	name: string;
 };

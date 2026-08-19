@@ -29,7 +29,7 @@ const zauber = (overrides: Partial<Spell> = {}): Spell => ({
 });
 
 describe('clampAsp', () => {
-	it('lässt ein Maximum von 0 zu — anders als LeP', () => {
+	it('lässt ein Maximum von 0 zu – anders als LeP', () => {
 		expect(clampAsp({ current: 0, max: 0 })).toEqual({ current: 0, max: 0 });
 	});
 
@@ -94,19 +94,19 @@ describe('spellbookReducer', () => {
 		expect(state.asp).toEqual({ current: 0, max: 0 });
 	});
 
-	it('greift die Ersteinrichtung erneut, wenn max im UI auf 0 zurück- und wieder hochgesetzt wird — unbedenklich, weil dabei nichts Ausgegebenes verloren geht', () => {
+	it('greift die Ersteinrichtung erneut, wenn max im UI auf 0 zurück- und wieder hochgesetzt wird – unbedenklich, weil dabei nichts Ausgegebenes verloren geht', () => {
 		let state = spellbookReducer(initialSpellbookState, setAsp({ current: 10, max: 10 }));
 		state = spellbookReducer(state, changeAsp(-8));
 		expect(state.asp.current).toBe(2);
 		state = spellbookReducer(state, setAsp({ max: 0 }));
-		// clampAsp zieht current schon hier auf 0 — das gezielt heruntergezauberte current
+		// clampAsp zieht current schon hier auf 0 – das gezielt heruntergezauberte current
 		// existiert danach nicht mehr, es gibt nichts mehr zu verlieren.
 		expect(state.asp).toEqual({ current: 0, max: 0 });
 		state = spellbookReducer(state, setAsp({ max: 15 }));
 		expect(state.asp).toEqual({ current: 15, max: 15 });
 	});
 
-	it('setSpellbook übernimmt eine importierte AsP von 0/30 unverändert — kein automatisches Auffüllen beim Import', () => {
+	it('setSpellbook übernimmt eine importierte AsP von 0/30 unverändert – kein automatisches Auffüllen beim Import', () => {
 		const state = spellbookReducer(
 			initialSpellbookState,
 			setSpellbook({ ...initialSpellbookState, isSpellcaster: true, asp: { current: 0, max: 30 } })
@@ -125,7 +125,7 @@ describe('spellbookReducer', () => {
 
 	it('kappt die Freitextfelder auf dieselben Grenzen wie der Import', () => {
 		// Sonst hält ein überlanger Wert die Sitzung durch und ändert sich still beim
-		// nächsten Laden — und `duration` steuert, ob aufrechterhalten werden darf.
+		// nächsten Laden – und `duration` steuert, ob aufrechterhalten werden darf.
 		const state = spellbookReducer(initialSpellbookState, addSpell(zauber({
 			costText: 'k'.repeat(200),
 			probeNote: 'p'.repeat(200),

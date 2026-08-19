@@ -5,12 +5,12 @@ export type SpellClass = 'zauber' | 'ritual' | 'hexenfluch';
 
 /**
  * Regelwissen, nicht Charakterdaten: unveränderlich, nicht persistiert, nicht
- * exportiert. Beim Übernehmen ins Zauberbuch wird ein Eintrag kopiert — der Spieler
+ * exportiert. Beim Übernehmen ins Zauberbuch wird ein Eintrag kopiert – der Spieler
  * darf danach alles überschreiben, und eine .dsa-Datei bleibt lesbar, auch wenn sich
  * dieser Katalog später ändert.
  *
  * Die Dateien neben dieser erzeugt `scripts/import-spells`. Änderungen von Hand gehen
- * beim nächsten Lauf verloren — dauerhafte Abweichungen gehören in dessen
+ * beim nächsten Lauf verloren – dauerhafte Abweichungen gehören in dessen
  * `korrekturen.mjs`.
  */
 export type SpellCatalogEntry = {
@@ -20,7 +20,7 @@ export type SpellCatalogEntry = {
 	attributes: [AttributeKey, AttributeKey, AttributeKey];
 	/** Zusatz zur Probe, z. B. „modifiziert durch ZK". Reine Anzeige. */
 	probeNote?: string;
-	/** Kosten als Zahl — null, wenn das Regelwerk eine Formel angibt. */
+	/** Kosten als Zahl – null, wenn das Regelwerk eine Formel angibt. */
 	cost: number | null;
 	/** Kostenangabe im Wortlaut. Bleibt im Zauberbuch als Erinnerung stehen. */
 	costText: string;
@@ -34,7 +34,7 @@ export type SpellCatalogEntry = {
 	target?: string;
 	merkmal: string;
 	/**
-	 * Traditionen, denen der Zauber offensteht — Filter der Katalogsuche. Hexenflüche
+	 * Traditionen, denen der Zauber offensteht – Filter der Katalogsuche. Hexenflüche
 	 * führen keine, weil sie ausschließlich Hexen offenstehen.
 	 */
 	verbreitung?: string[];

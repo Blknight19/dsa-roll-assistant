@@ -27,7 +27,7 @@ import type { RootState } from '@/store';
 import { useResultScroll } from '@/hooks/useResultScroll';
 import { ChevronDown, Info, RotateCcw, Sparkle, StickyNote, Timer, Wand2, X } from 'lucide-react';
 
-/** Begründung der Buchung — die halbe Zahl allein wirkt sonst wie ein Fehler. */
+/** Begründung der Buchung – die halbe Zahl allein wirkt sonst wie ein Fehler. */
 const costNote = (roll: SpellRollSnapshot): string => {
 	// Formelzauber stehen im Zauberbuch bei 0 AsP, bis der Spieler die Zahl einträgt.
 	// „−0 AsP" sähe nach einem Fehler aus, obwohl schlicht nichts gebucht wurde.
@@ -37,7 +37,7 @@ const costNote = (roll: SpellRollSnapshot): string => {
 	return `−${roll.aspSpent} AsP`;
 };
 
-/** Dieselbe Aussage in Worten — die Vorlesehilfe spricht kein „−". */
+/** Dieselbe Aussage in Worten – die Vorlesehilfe spricht kein „−". */
 const spokenBooking = (roll: SpellRollSnapshot, booked: boolean): string => {
 	if (!booked) return `Buchung zurückgenommen, ${roll.aspSpent} AsP erstattet`;
 	if (roll.aspSpent === 0) return 'keine AsP gebucht';
@@ -106,7 +106,7 @@ const SpellRoll = () => {
 		const special = result.special === 'krit'
 			? 'Kritischer Erfolg! '
 			: result.special === 'patzer' ? 'Patzer! ' : '';
-		// Formelzauber stehen bei 0 AsP, bis der Spieler die Zahl einträgt — „−0 AsP"
+		// Formelzauber stehen bei 0 AsP, bis der Spieler die Zahl einträgt – „−0 AsP"
 		// sähe nach einem Fehler aus, siehe costNote().
 		const aspBooking = aspSpent === 0 ? 'keine AsP gebucht' : `−${aspSpent} AsP`;
 
@@ -350,7 +350,7 @@ const SpellRoll = () => {
 								AsP zurückbuchen
 							</Button>
 						)}
-						{/* Nach einer zurückgenommenen Buchung gilt der Zauber als nicht gewirkt —
+						{/* Nach einer zurückgenommenen Buchung gilt der Zauber als nicht gewirkt –
 						    dann darf er auch nicht in die laufenden Zauber wandern. */}
 						{spellRoll.lastRollBooked && lastRoll.result.success
 							&& canSustain(lastRoll.duration) && !alreadySustained && (
@@ -415,7 +415,7 @@ const SpellRoll = () => {
 			</div>
 
 			{/* Kein Wrapper-div: der wäre der umschließende Block der Sticky-Leiste
-			    und exakt so hoch wie sie — siehe RollBar. */}
+			    und exakt so hoch wie sie – siehe RollBar. */}
 			{rollBar(true)}
 		</div>
 	);

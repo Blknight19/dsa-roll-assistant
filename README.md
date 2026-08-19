@@ -7,7 +7,7 @@ Ein digitaler Würfelassistent und Charakterbogen.
 - **Talentproben** mit 3W20-Mechanik (DSA 5)
 - **Einfache Würfelwürfe** (W4, W6, W8, W10, W12, W20)
 - **Kampfwürfe** (Attacke, Parade, Ausweichen, Fernkampf, Initiative)
-- **Zauberproben** (3W20) mit automatischer AsP-Buchung — halbe Kosten bei misslungener Probe und bei kritischem Erfolg
+- **Zauberproben** (3W20) mit automatischer AsP-Buchung, halbe Kosten bei misslungener Probe und bei kritischem Erfolg
 - **Zauberbuch** mit durchsuchbarem Zauberkatalog und eigenen Zaubern
 - **Laufende Zauber** mit automatischer Erschwernis (−1 je aufrechterhaltenem Zauber)
 - **Charakterverwaltung**
@@ -19,7 +19,7 @@ Ein digitaler Würfelassistent und Charakterbogen.
 - **Import/Export** von Charakterdaten (.dsa-Datei)
 - **Dark/Light Mode** mit automatischer Systemerkennung
 - **Mobile-optimiert** & Responsive
-- **Offline-fähig & installierbar** (PWA) — funktioniert auch ohne Netz am Spieltisch
+- **Offline-fähig & installierbar** (PWA), funktioniert auch ohne Netz am Spieltisch
 
 ## 🚀 Quick Start
 ```bash

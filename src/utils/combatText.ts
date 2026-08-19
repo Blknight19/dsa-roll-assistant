@@ -2,7 +2,7 @@ import type { CombatRoll } from '@/store/combatRollSlice';
 import type { ResultTone } from '@/components/RollResultCard';
 import { modifierTerm } from '@/utils/format';
 
-/** Ergebnis in einem Wort — für Karte, Leiste, Historie und die aria-live-Region. */
+/** Ergebnis in einem Wort – für Karte, Leiste, Historie und die aria-live-Region. */
 export const statusText = (roll: CombatRoll): string => {
 	if (!roll.result) return String(roll.initiative ?? '');
 	const { special, d20, success } = roll.result;
@@ -14,7 +14,7 @@ export const statusText = (roll: CombatRoll): string => {
 };
 
 /**
- * Regelfolge zum Wurf. Nur für Attacke und Fernkampf belegt — für Parade und
+ * Regelfolge zum Wurf. Nur für Attacke und Fernkampf belegt – für Parade und
  * Ausweichen behandelt das Regelwerk kritische Erfolge gesondert, teils optional.
  */
 export const consequenceText = (roll: CombatRoll): string | undefined => {

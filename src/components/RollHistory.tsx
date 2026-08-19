@@ -8,7 +8,7 @@ import ConfirmDialog from './ConfirmDialog';
 import { Trash2, Dices, Swords, Scroll, Wand2, type LucideIcon } from 'lucide-react';
 
 /**
- * Icon, Farbe und Zählername je Wurfart — an einer Stelle, damit eine neue Art nicht
+ * Icon, Farbe und Zählername je Wurfart – an einer Stelle, damit eine neue Art nicht
  * wieder nur zur Hälfte ankommt. Die Magie-Farbe gehört seit dem Magie-Modul dem
  * Zauber; die Talentprobe trägt jetzt den Bronzeton der App.
  */
@@ -42,7 +42,7 @@ const ROLL_TYPE_ORDER = Object.keys(ROLL_TYPE_STYLES) as RollType[];
 const styleFor = (type: string) =>
 	ROLL_TYPE_STYLES[type as RollType] ?? { icon: Dices, color: 'text-foreground', plural: type };
 
-/** Uhrzeit reicht nur für heute — 100 Einträge können mehrere Spielabende umfassen. */
+/** Uhrzeit reicht nur für heute – 100 Einträge können mehrere Spielabende umfassen. */
 const formatRollDate = (iso: string): string => {
 	const date = new Date(iso);
 	if (Number.isNaN(date.getTime())) return '';
@@ -62,7 +62,7 @@ const RollHistory = () => {
 
 	const countOf = (type: RollType) => rollHistory.filter(entry => entry.type === type).length;
 
-	// „Zauber" erscheint für Zauberkundige — und auch sonst, solange noch Zauberwürfe
+	// „Zauber" erscheint für Zauberkundige – und auch sonst, solange noch Zauberwürfe
 	// in der Historie stehen (der Schalter versteckt nur, er löscht nichts).
 	const shownTypes = ROLL_TYPE_ORDER.filter(
 		type => type !== 'Zauber' || isSpellcaster || countOf('Zauber') > 0

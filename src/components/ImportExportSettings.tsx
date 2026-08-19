@@ -14,7 +14,7 @@ const ImportExportSettings = () => {
 
 	const handleFileSelected = async (input: HTMLInputElement) => {
 		const file = input.files?.[0];
-		// Zurücksetzen, damit dieselbe Datei erneut gewählt werden kann — sonst
+		// Zurücksetzen, damit dieselbe Datei erneut gewählt werden kann – sonst
 		// feuert `change` beim zweiten Mal nicht.
 		input.value = '';
 		if (!file) return;

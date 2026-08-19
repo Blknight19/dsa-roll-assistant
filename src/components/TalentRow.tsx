@@ -41,7 +41,7 @@ TalentRow.displayName = 'TalentRow';
 
 /**
  * Dieselbe Zeile für schmale Screens. Die Tabelle braucht 544 px und schob den
- * Stepper — das einzige Bedienelement des Screens — aus dem Bild; hier steht er
+ * Stepper – das einzige Bedienelement des Screens – aus dem Bild; hier steht er
  * neben dem Namen, die Eigenschaften rutschen darunter.
  */
 export const TalentListItem = memo(({ talent, onChange }: Omit<TalentRowProps, 'striped'>) => (

@@ -3,7 +3,7 @@
  * f-space.de. Aufruf: `node scripts/import-spells`.
  *
  * Die Quelle ist eine JS-Datei mit einer Objektliste. Sie wird geparst, nie
- * ausgeführt — ein Skript aus fremder Hand darf beim Bauen keinen Code beisteuern.
+ * ausgeführt – ein Skript aus fremder Hand darf beim Bauen keinen Code beisteuern.
  * Übernommen werden ausschließlich Werteangaben; Wirkungstexte, Zaubererweiterungen
  * und Publikationsangaben des Regelwerks bleiben draußen.
  */
@@ -16,7 +16,7 @@ import { KLASSEN, applyKorrektur, renderModule, toCatalogEntry } from './parse.m
 const QUELLE = 'https://www.f-space.de/dsa5/tools/spells/spells-data.js';
 const ZIEL = 'src/data/spells';
 
-/** Ein Export je Klasse — die Dateien bleiben so klein genug, um sie zu lesen. */
+/** Ein Export je Klasse – die Dateien bleiben so klein genug, um sie zu lesen. */
 const DATEIEN = {
 	zauber: { datei: 'zauber.ts', exportName: 'ZAUBER' },
 	ritual: { datei: 'rituale.ts', exportName: 'RITUALE' },
@@ -50,7 +50,7 @@ for (const datensatz of roh) {
 	}
 }
 
-for (const zeile of abgelehnt) console.error(`abgelehnt — ${zeile}`);
+for (const zeile of abgelehnt) console.error(`abgelehnt – ${zeile}`);
 
 const unbenutzt = Object.keys(KORREKTUREN).filter(id => !eintraege.has(id));
 if (unbenutzt.length > 0) {
@@ -70,5 +70,5 @@ if (argv.includes('--dry-run')) {
 }
 
 if (abgelehnt.length > 0) {
-	throw new Error(`${abgelehnt.length} Einträge abgelehnt — siehe Meldungen oben`);
+	throw new Error(`${abgelehnt.length} Einträge abgelehnt – siehe Meldungen oben`);
 }

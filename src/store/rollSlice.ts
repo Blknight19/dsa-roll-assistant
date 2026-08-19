@@ -27,7 +27,7 @@ const rollSlice = createSlice({
 				state.history.length = HISTORY_LIMIT;
 			}
 		},
-		/** Ersetzt die Historie am Stück — `addRoll` in einer Schleife würde sie umkehren. */
+		/** Ersetzt die Historie am Stück – `addRoll` in einer Schleife würde sie umkehren. */
 		setHistory: (state, action: PayloadAction<RollHistoryEntry[]>) => {
 			state.history = action.payload.slice(0, HISTORY_LIMIT);
 		},

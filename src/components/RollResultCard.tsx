@@ -15,7 +15,7 @@ type RollResultCardProps = {
 	tone: ResultTone;
 	title: string;
 	icon?: ReactNode;
-	/** Die eine Zahl, die am Tisch gefragt wird — QS, Initiative oder Summe. */
+	/** Die eine Zahl, die am Tisch gefragt wird – QS, Initiative oder Summe. */
 	hero?: { value: ReactNode; caption: string; note?: string };
 	dice: ResultDie[];
 	/** Regelfolge in einem Satz, z. B. „Verteidigung des Ziels halbiert". */

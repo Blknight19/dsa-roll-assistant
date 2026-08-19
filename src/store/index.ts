@@ -40,7 +40,7 @@ const SAVE_DEBOUNCE_MS = 500;
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
 let hasUnsavedChanges = false;
 
-/** Verwirft einen ausstehenden Save — sonst schreibt er nach einem Reset alles zurück. */
+/** Verwirft einen ausstehenden Save – sonst schreibt er nach einem Reset alles zurück. */
 export const cancelPendingSave = () => {
 	clearTimeout(saveTimer);
 	saveTimer = undefined;
@@ -60,7 +60,7 @@ store.subscribe(() => {
 });
 
 // Der Debounce darf den letzten Wurf nicht verschlucken, wenn die App weggewischt
-// oder in den Hintergrund geschoben wird — auf dem Handy ist das der Normalfall.
+// oder in den Hintergrund geschoben wird – auf dem Handy ist das der Normalfall.
 window.addEventListener('pagehide', flushSave);
 document.addEventListener('visibilitychange', () => {
 	if (document.visibilityState === 'hidden') flushSave();

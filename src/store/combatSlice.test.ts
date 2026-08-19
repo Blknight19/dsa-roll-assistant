@@ -13,7 +13,7 @@ import {
 } from './combatSlice';
 
 describe('clampLife', () => {
-	it('erzwingt ein Maximum von mindestens 1 — sonst teilt der Lebensbalken durch null', () => {
+	it('erzwingt ein Maximum von mindestens 1 – sonst teilt der Lebensbalken durch null', () => {
 		expect(clampLife({ current: 0, max: 0 })).toEqual({ current: 0, max: 1 });
 		expect(clampLife({ current: 5, max: -12 })).toEqual({ current: 1, max: 1 });
 	});
@@ -39,7 +39,7 @@ describe('fillPercent', () => {
 	});
 
 	it('zeigt bei 1 Punkt einen sichtbaren Streifen statt fast nichts', () => {
-		// 1/40 wären 2,5 % — auf einem Handy-Balken unsichtbar und von 0 nicht zu unterscheiden.
+		// 1/40 wären 2,5 % – auf einem Handy-Balken unsichtbar und von 0 nicht zu unterscheiden.
 		expect(fillPercent(1, 40)).toBe(MIN_FILL_PERCENT);
 	});
 

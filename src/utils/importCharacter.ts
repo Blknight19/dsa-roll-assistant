@@ -17,7 +17,7 @@ import { updateTalent } from '@/store/talentsSlice';
 /** Eine Charakterdatei ist ein paar Kilobyte groß; alles darüber ist keine. */
 const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
 
-/** @returns ob der Import angewendet wurde — die UI meldet nur dann Erfolg. */
+/** @returns ob der Import angewendet wurde – die UI meldet nur dann Erfolg. */
 export const importCharacter = async (file: File): Promise<boolean> => {
 	if (file.size > MAX_IMPORT_BYTES) {
 		toast.error('Datei ist zu groß für eine Charakterdatei');

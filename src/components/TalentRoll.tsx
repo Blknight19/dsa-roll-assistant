@@ -272,7 +272,7 @@ const TalentRoll = () => {
 			</div>
 
 			{/* Ergebnis: auf dem Handy über der Eingabe, auf dem Desktop rechts daneben
-			    und mitlaufend. Nur einmal im DOM — sonst kollidiert die Ref. */}
+			    und mitlaufend. Nur einmal im DOM – sonst kollidiert die Ref. */}
 			<div className="lg:sticky lg:top-24 lg:order-2">
 				{result}
 				{!result && (
@@ -296,7 +296,7 @@ const TalentRoll = () => {
 			</div>
 
 			{/* … auf dem Handy klebt sie stattdessen in der Daumenzone. Beide Leisten
-			    tragen ihren Breakpoint selbst — ein Wrapper-div würde das Sticky
+			    tragen ihren Breakpoint selbst – ein Wrapper-div würde das Sticky
 			    aushebeln, siehe RollBar. */}
 			{rollBar(true)}
 		</div>

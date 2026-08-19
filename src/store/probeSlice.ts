@@ -8,7 +8,7 @@ export type ProbeEntry = {
 	value: number;
 };
 
-/** Vollständiger Schnappschuss eines Wurfs — Anzeige rechnet nur hieraus. */
+/** Vollständiger Schnappschuss eines Wurfs – Anzeige rechnet nur hieraus. */
 export type ProbeRoll = {
 	talentName: string;
 	entries: ProbeEntry[];

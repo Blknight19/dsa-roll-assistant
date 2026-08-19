@@ -17,7 +17,7 @@ const Character = () => {
 	const talents = useSelector((state: RootState) => state.talents.talents);
 	const isSpellcaster = useSelector((state: RootState) => state.spellbook.isSpellcaster);
 
-	// Über dreißig Zeilen sind ohne Suche nicht zu überblicken — der Wurf-Tab hat
+	// Über dreißig Zeilen sind ohne Suche nicht zu überblicken – der Wurf-Tab hat
 	// sie längst, der Charakterbogen bisher nicht.
 	const [filter, setFilter] = useState('');
 	const visibleTalents = useMemo(() => {

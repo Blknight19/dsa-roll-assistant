@@ -99,7 +99,7 @@ const Combat = () => {
 		}));
 	};
 
-	// Farbe nach dem exakten Verhältnis, Breite mit Mindest-Streifen — sonst
+	// Farbe nach dem exakten Verhältnis, Breite mit Mindest-Streifen – sonst
 	// würde der Streifen bei sehr wenig LeP die Farbschwelle verfälschen.
 	const lifeRatio = (combat.life.current / combat.life.max) * 100;
 	const lifeWidth = fillPercent(combat.life.current, combat.life.max);
@@ -210,7 +210,7 @@ const Combat = () => {
 				</CardHeader>
 				<CardContent>
 					{/* Drei Spalten nur, solange die Karte die volle Breite hat. Im
-					    Desktop-Layout steht sie in einer halbbreiten Spalte — dort passen
+					    Desktop-Layout steht sie in einer halbbreiten Spalte – dort passen
 					    drei Stepper (je 160 px) nicht mehr in die Zellen und ragen über
 					    deren Hintergrund hinaus. */}
 					<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2">
@@ -243,7 +243,7 @@ const Combat = () => {
 						})}
 
 						<div className="flex flex-col items-center gap-2 p-3">
-							{/* Platzhalter in Icon-Höhe — hält den Stepper auf einer Linie mit den Nachbarkacheln. */}
+							{/* Platzhalter in Icon-Höhe – hält den Stepper auf einer Linie mit den Nachbarkacheln. */}
 							<div aria-hidden className="h-5" />
 							<ModifierControl
 								value={modifier}
@@ -306,7 +306,7 @@ const Combat = () => {
 				{lastRoll ? `${combatLabels[lastRoll.type]}: ${statusText(lastRoll)}` : ''}
 			</div>
 
-			{/* Auf dem Handy übernimmt die klebende Leiste unten — die Auslöser sitzen
+			{/* Auf dem Handy übernimmt die klebende Leiste unten – die Auslöser sitzen
 			    in den Kacheln, ein Ergebnis am Seitenanfang bliebe ungesehen. */}
 			<div className="hidden lg:sticky lg:top-24 lg:order-2 lg:block">
 				{result}

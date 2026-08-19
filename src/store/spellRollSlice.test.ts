@@ -35,7 +35,7 @@ describe('spellRollReducer', () => {
 		const state = spellRollReducer(undefined, selectSpell('z1'));
 		expect(state.spellId).toBe('z1');
 		// Fertigkeitswert, Kosten und Wirkungsdauer liest die Ansicht live aus dem
-		// Zauberbuch — hier abgelegt würden sie beim nächsten Änderung veralten.
+		// Zauberbuch – hier abgelegt würden sie beim nächsten Änderung veralten.
 		expect(Object.keys(state).sort()).toEqual(
 			['lastRoll', 'lastRollBooked', 'modifier', 'spellId'].sort()
 		);
@@ -57,7 +57,7 @@ describe('spellRollReducer', () => {
 
 		state = spellRollReducer(state, markLastRollRefunded());
 		expect(state.lastRollBooked).toBe(false);
-		// Der Wurf bleibt sichtbar — nur die Buchung gilt als zurückgenommen.
+		// Der Wurf bleibt sichtbar – nur die Buchung gilt als zurückgenommen.
 		expect(state.lastRoll).not.toBeNull();
 	});
 

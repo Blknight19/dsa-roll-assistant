@@ -37,7 +37,7 @@ const PropertyNumber: React.FC<PropertyNumberProps> = ({
   const inputId = useId();
   const spokenName = ariaLabel || label;
 
-  // Während des Tippens darf das Feld leer sein — sonst lässt sich 8 nicht zu 15
+  // Während des Tippens darf das Feld leer sein – sonst lässt sich 8 nicht zu 15
   // ändern, ohne vorher alles zu markieren. Beim Verlassen wird normalisiert.
   const [draft, setDraft] = useState<string | null>(null);
 
@@ -48,7 +48,7 @@ const PropertyNumber: React.FC<PropertyNumberProps> = ({
   const repeatTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
   const repeatInterval = useRef<ReturnType<typeof setInterval>>(undefined);
 
-  // Breit genug für dreistellige Werte (LeP) — das schmale Feld schnitt die 10 ab.
+  // Breit genug für dreistellige Werte (LeP) – das schmale Feld schnitt die 10 ab.
   const inputSizes = {
     m: 'w-[4.5rem] h-16 text-3xl px-1',
     s: 'w-16 h-12 text-xl px-1',
@@ -70,7 +70,7 @@ const PropertyNumber: React.FC<PropertyNumberProps> = ({
     stopRepeat();
     step(delta);
     // Der Button kann am Limit disabled werden und feuert dann kein
-    // pointerup mehr — deshalb global auf das Loslassen hören.
+    // pointerup mehr – deshalb global auf das Loslassen hören.
     window.addEventListener('pointerup', stopRepeat, { once: true });
     repeatTimeout.current = setTimeout(() => {
       repeatInterval.current = setInterval(() => step(delta), REPEAT_INTERVAL_MS);

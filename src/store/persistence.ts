@@ -43,7 +43,7 @@ export const PERSISTED_VERSION = 4;
 
 /**
  * Ein Charakter im Dateiformat. Die App verwaltet heute genau einen, das Format trägt
- * aber bereits eine Liste — so kostet ein späterer Charakterwechsel keine Migration.
+ * aber bereits eine Liste – so kostet ein späterer Charakterwechsel keine Migration.
  */
 export type PersistedCharacter = {
 	id: string;
@@ -78,7 +78,7 @@ export type PersistedSlices = {
 /** Grenzen der Felder, die keine Sachlogik schon deckelt. */
 export const ID_MAX = 64;
 export const HISTORY_RESULT_MAX = 200;
-/** Entspricht MAX_DICE in SimpleRoll — mehr Würfel kann kein Wurf erzeugt haben. */
+/** Entspricht MAX_DICE in SimpleRoll – mehr Würfel kann kein Wurf erzeugt haben. */
 export const ROLL_VALUES_MAX = 20;
 
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -87,7 +87,7 @@ export const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isId = (value: unknown): value is string =>
 	typeof value === 'string' && value.length > 0 && value.length <= ID_MAX;
 
-/** Schließt NaN und Infinity aus — `typeof NaN === 'number'` allein reicht nicht. */
+/** Schließt NaN und Infinity aus – `typeof NaN === 'number'` allein reicht nicht. */
 export const isFiniteNumber = (value: unknown): value is number =>
 	typeof value === 'number' && Number.isFinite(value);
 
@@ -164,7 +164,7 @@ const isAttributeKey = (value: unknown): value is AttributeKey =>
 /**
  * Strenger als `sanitizeTalents`: Talente werden per id in eine Code-Liste gemerged,
  * fremde Werte können dort nur Zahlen sein. Zauber tragen freie Namen und freie
- * Eigenschaften — jeder davon kommt aus einer Datei, der man nicht traut.
+ * Eigenschaften – jeder davon kommt aus einer Datei, der man nicht traut.
  */
 const sanitizeSpell = (raw: unknown): Spell | undefined => {
 	if (!isRecord(raw)) return undefined;
@@ -217,7 +217,7 @@ export const sanitizeSpellbook = (raw: unknown): SpellbookState => {
 	// gespeicherte AsP von 0/30 ist ein legitimer Zustand (leergezauberter Magier), nicht
 	// erkennbar vom ursprünglichen Ersteinrichtungsfehler unterscheidbar. Automatisches
 	// Auffüllen beim Laden würde einem tatsächlich erschöpften Magier bei jedem Neustart
-	// die Kraft zurückschenken — Persistenz muss exakt wiederherstellen, was gespeichert wurde.
+	// die Kraft zurückschenken – Persistenz muss exakt wiederherstellen, was gespeichert wurde.
 	const asp = isRecord(raw.asp)
 		? clampAsp({
 			current: isFiniteNumber(raw.asp.current) ? raw.asp.current : 0,
@@ -308,7 +308,7 @@ export const loadState = (): PersistedSlices | undefined => {
 		if (!serialized) return undefined;
 		return migratePersisted(JSON.parse(serialized));
 	} catch {
-		// Ein unlesbarer Blob darf den Start nicht verhindern — dann eben Defaults.
+		// Ein unlesbarer Blob darf den Start nicht verhindern – dann eben Defaults.
 		return undefined;
 	}
 };

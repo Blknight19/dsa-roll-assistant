@@ -18,10 +18,10 @@ type RollBarProps = {
 	label?: string;
 	/**
 	 * `true` rendert die Handy-Fassung (klebt in der Daumenzone), `false` die
-	 * Desktop-Fassung am Fuß der Eingabespalte — gleiche Karte, andere Position.
+	 * Desktop-Fassung am Fuß der Eingabespalte – gleiche Karte, andere Position.
 	 * Die Leiste bringt ihren Breakpoint selbst mit, statt in einem Wrapper zu
 	 * stecken: ein Wrapper wäre der umschließende Block und exakt so hoch wie sie
-	 * — dann hat `position: sticky` keinen Weg und wirkt gar nicht.
+	 * – dann hat `position: sticky` keinen Weg und wirkt gar nicht.
 	 */
 	sticky?: boolean;
 	/**
