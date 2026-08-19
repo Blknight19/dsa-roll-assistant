@@ -29,7 +29,7 @@ const HeroSettings = () => {
 						</label>
 						<p className="text-sm text-muted-foreground">
 							Blendet den Magie-Tab, die AsP-Leiste und das Zauberbuch ein.
-							Ausschalten versteckt nur — Zauber und AsP bleiben erhalten.
+							Ausschalten blendet sie nur aus. Zauber und AsP bleiben erhalten.
 						</p>
 					</div>
 					<Switch

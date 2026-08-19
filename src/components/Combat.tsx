@@ -261,7 +261,7 @@ const Combat = () => {
 	const result = lastRoll && (
 		<RollResultCard
 			tone={combatTone(lastRoll)}
-			title={`${combatLabels[lastRoll.type]}${lastRoll.result ? ` — ${statusText(lastRoll)}` : ''}`}
+			title={`${combatLabels[lastRoll.type]}${lastRoll.result ? ` – ${statusText(lastRoll)}` : ''}`}
 			icon={
 				lastRoll.result?.special === 'krit' ? <Sparkles className="h-6 w-6 animate-glow" /> :
 				lastRoll.result?.special === 'patzer' ? <Skull className="h-6 w-6 shake-error" /> :

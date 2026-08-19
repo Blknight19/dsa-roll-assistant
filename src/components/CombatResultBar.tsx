@@ -43,7 +43,7 @@ const CombatResultBar = ({ roll, label }: { roll: CombatRoll; label: string }) =
 		>
 			<p className={`flex items-center gap-2 font-heading font-semibold ${toneText[tone]}`}>
 				<StatusIcon roll={roll} />
-				{label}{roll.result ? ' — ' : ' '}{statusText(roll)}
+				{label}{roll.result ? ' – ' : ' '}{statusText(roll)}
 			</p>
 
 			<div className="mt-2 flex items-center gap-3">

@@ -34,7 +34,7 @@ const ImportExportSettings = () => {
 					</CardTitle>
 					<CardDescription>
 						Sichere deinen Charakter als .dsa-Datei. Der Inhalt ist nur kodiert,
-						nicht verschlüsselt — wer die Datei hat, kann sie lesen.
+						nicht verschlüsselt. Wer die Datei hat, kann sie lesen.
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -87,7 +87,7 @@ const ImportExportSettings = () => {
 								<span className="font-semibold text-success-dark dark:text-success-light">
 									Import erfolgreich
 								</span>
-								{' — '}{importedName}
+								{' – '}{importedName}
 							</span>
 						</div>
 					)}

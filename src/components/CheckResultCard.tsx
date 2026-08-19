@@ -49,7 +49,7 @@ const CheckResultCard = ({
 		title={
 			result.special === 'krit' ? 'Kritischer Erfolg!' :
 			result.special === 'patzer' ? 'Patzer!' :
-			`${name}${result.success ? ' — Erfolg' : ' — Misslungen'}`
+			`${name}${result.success ? ' – Erfolg' : ' – Misslungen'}`
 		}
 		icon={
 			result.special === 'krit' ? <Sparkles className="h-6 w-6 animate-glow" /> :
@@ -69,7 +69,7 @@ const CheckResultCard = ({
 					value: result.fp,
 					caption: 'Fertigkeitspunkte',
 					note: result.special === 'patzer'
-						? 'Zwei Zwanzigen — die Probe misslingt unabhängig von den FP.'
+						? 'Zwei Zwanzigen. Die Probe misslingt unabhängig von den FP.'
 						: undefined
 				}
 		}
@@ -77,7 +77,7 @@ const CheckResultCard = ({
 		consequence={
 			consequence ??
 			(result.special === 'krit'
-				? 'Zwei Einsen — die Probe gelingt unabhängig von den FP.'
+				? 'Zwei Einsen. Die Probe gelingt unabhängig von den FP.'
 				: undefined)
 		}
 		action={action}

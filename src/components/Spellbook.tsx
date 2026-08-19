@@ -338,7 +338,7 @@ const Spellbook = () => {
 
 					<p className="text-xs text-muted-foreground">
 						Übernommene Zauber lassen sich frei überschreiben. Bei Zaubern mit
-						Kostenformel steht der Wortlaut in der Tabelle — trage die Zahl ein,
+						Kostenformel steht der Wortlaut in der Tabelle. Trage die Zahl ein,
 						mit der du rechnest.
 					</p>
 				</CardContent>

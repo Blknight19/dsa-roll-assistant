@@ -81,7 +81,7 @@ const RollBar = ({
 			{autoModifier !== 0 && (
 				<p className="mx-auto mt-2 max-w-3xl text-center text-xs text-muted-foreground">
 					Gesamt {total >= 0 ? `+${total}` : total}
-					{autoNote && <> — {autoNote}</>}
+					{autoNote && <> – {autoNote}</>}
 				</p>
 			)}
 		</div>
