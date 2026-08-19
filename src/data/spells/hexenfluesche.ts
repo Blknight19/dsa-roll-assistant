@@ -1,0 +1,266 @@
+import type { SpellCatalogEntry } from './types';
+
+export const HEXENFLUESCHE: SpellCatalogEntry[] = [
+	{
+		id: 'aengste-mehren',
+		klasse: 'hexenfluch',
+		name: 'Ängste mehren',
+		attributes: ['MU', 'IN', 'CH'],
+		probeNote: 'modifiziert durch SK',
+		cost: 14,
+		costText: '14 AsP',
+		duration: 'QS x 3 Tage',
+		merkmal: 'Einfluss'
+	},
+	{
+		id: 'beiss-auf-granit',
+		klasse: 'hexenfluch',
+		name: 'Beiss auf Granit !',
+		attributes: ['KL', 'IN', 'FF'],
+		probeNote: 'modifiziert durch ZK',
+		cost: 14,
+		costText: '14 AsP',
+		duration: 'QS x 3 in Tagen',
+		merkmal: 'Objekt'
+	},
+	{
+		id: 'beute',
+		klasse: 'hexenfluch',
+		name: 'Beute!',
+		attributes: ['KL', 'IN', 'CH'],
+		probeNote: 'modifiziert durch SK',
+		cost: 14,
+		costText: '14 AsP',
+		duration: 'QS x 3 in Tagen',
+		merkmal: 'Einfluss'
+	},
+	{
+		id: 'fellwechsel',
+		klasse: 'hexenfluch',
+		name: 'Fellwechsel',
+		attributes: ['MU', 'IN', 'KO'],
+		probeNote: 'modifiziert durch ZK',
+		cost: 14,
+		costText: '14 AsP',
+		duration: 'QS x 3 Tage',
+		merkmal: 'Verwandlung'
+	},
+	{
+		id: 'geschmackssinn-nehmen',
+		klasse: 'hexenfluch',
+		name: 'Geschmackssinn nehmen',
+		attributes: ['IN', 'CH', 'KO'],
+		probeNote: 'modifiziert durch ZK',
+		cost: 7,
+		costText: '7 AsP',
+		duration: 'QS x 3 Wochen',
+		merkmal: 'Verwandlung'
+	},
+	{
+		id: 'gestank-anheften',
+		klasse: 'hexenfluch',
+		name: 'Gestank anheften',
+		attributes: ['MU', 'IN', 'CH'],
+		probeNote: 'modifiziert durch ZK',
+		cost: 14,
+		costText: '14 AsP',
+		duration: 'QS x 3 Tage',
+		merkmal: 'Dämonisch'
+	},
+	{
+		id: 'hagelschlag',
+		klasse: 'hexenfluch',
+		name: 'Hagelschlag',
+		attributes: ['MU', 'IN', 'CH'],
+		cost: 21,
+		costText: '21 AsP',
+		duration: 'QS x 15 Minuten',
+		merkmal: 'Elementar'
+	},
+	{
+		id: 'hexenschuss',
+		klasse: 'hexenfluch',
+		name: 'Hexenschuss',
+		attributes: ['IN', 'FF', 'KO'],
+		probeNote: 'modifiziert durch ZK',
+		cost: 14,
+		costText: '14 AsP',
+		duration: 'QS x 3 Stunden',
+		merkmal: 'Verwandlung'
+	},
+	{
+		id: 'hunger-wecken',
+		klasse: 'hexenfluch',
+		name: 'Hunger wecken',
+		attributes: ['MU', 'CH', 'KO'],
+		probeNote: 'modifiziert durch SK',
+		cost: 7,
+		costText: '7 AsP',
+		duration: 'QS x 3 Tage',
+		merkmal: 'Einfluss'
+	},
+	{
+		id: 'juckreiz-verursachen',
+		klasse: 'hexenfluch',
+		name: 'Juckreiz verursachen',
+		attributes: ['MU', 'KL', 'IN'],
+		probeNote: 'modifiziert durch SK',
+		cost: 14,
+		costText: '14 AsP',
+		duration: 'QS x 3 Stunden',
+		merkmal: 'Illusion'
+	},
+	{
+		id: 'kornfaeule',
+		klasse: 'hexenfluch',
+		name: 'Kornfäule',
+		attributes: ['KL', 'IN', 'KO'],
+		cost: 14,
+		costText: '14 AsP',
+		duration: 'sofort',
+		merkmal: 'Dämonisch'
+	},
+	{
+		id: 'kroetenkuss',
+		klasse: 'hexenfluch',
+		name: 'Krötenkuss',
+		attributes: ['MU', 'CH', 'CH'],
+		probeNote: 'modifiziert durch SK',
+		cost: 14,
+		costText: '14 AsP',
+		duration: 'QS x 3 Stunden',
+		merkmal: 'Dämonisch'
+	},
+	{
+		id: 'miese-laune',
+		klasse: 'hexenfluch',
+		name: 'Miese Laune',
+		attributes: ['MU', 'IN', 'CH'],
+		probeNote: 'modifiziert durch SK',
+		cost: 7,
+		costText: '7 AsP',
+		duration: 'QS x 3 Stunden',
+		merkmal: 'Einfluss'
+	},
+	{
+		id: 'mit-blindheit-schlagen',
+		klasse: 'hexenfluch',
+		name: 'Mit Blindheit schlagen',
+		attributes: ['KL', 'IN', 'CH'],
+		probeNote: 'modifiziert durch SK',
+		cost: 21,
+		costText: '21 AsP',
+		duration: 'QS x 30 Minuten',
+		merkmal: 'Einfluss'
+	},
+	{
+		id: 'pech-an-den-hals-wuenschen',
+		klasse: 'hexenfluch',
+		name: 'Pech an den Hals wünschen',
+		attributes: ['KL', 'IN', 'CH'],
+		probeNote: 'modifiziert durch SK',
+		cost: 7,
+		costText: '7 AsP',
+		duration: 'QS x 3 in Tagen',
+		merkmal: 'Einfluss'
+	},
+	{
+		id: 'pestilenz',
+		klasse: 'hexenfluch',
+		name: 'Pestilenz',
+		attributes: ['MU', 'CH', 'GE'],
+		probeNote: 'modifiziert durch ZK',
+		cost: null,
+		costText: 'Stufe der Krankheit in AsP',
+		duration: 'bis zum Ende der Krankheit, maximal aber QS x 3 in Tagen',
+		merkmal: 'Dämonisch'
+	},
+	{
+		id: 'schlaf-rauben',
+		klasse: 'hexenfluch',
+		name: 'Schlaf rauben',
+		attributes: ['KL', 'IN', 'CH'],
+		probeNote: 'modifiziert durch SK',
+		cost: 14,
+		costText: '14 AsP',
+		duration: 'QS x 3 in Tagen',
+		merkmal: 'Einfluss'
+	},
+	{
+		id: 'todesfluch',
+		klasse: 'hexenfluch',
+		name: 'Todesfluch',
+		attributes: ['MU', 'IN', 'CH'],
+		probeNote: 'modifiziert durch SK',
+		cost: 21,
+		costText: '21 AsP',
+		duration: 'QS x 3 Tage',
+		merkmal: 'Dämonisch'
+	},
+	{
+		id: 'unfruchtbarkeit',
+		klasse: 'hexenfluch',
+		name: 'Unfruchtbarkeit',
+		attributes: ['IN', 'FF', 'KO'],
+		probeNote: 'modifiziert durch ZK',
+		cost: 14,
+		costText: '14 AsP',
+		duration: 'QS x 3 in Wochen',
+		merkmal: 'Verwandlung'
+	},
+	{
+		id: 'viehverstuemmelung',
+		klasse: 'hexenfluch',
+		name: 'Viehverstümmelung',
+		attributes: ['IN', 'IN', 'KO'],
+		probeNote: 'modifiziert durch SK',
+		cost: 7,
+		costText: '7 AsP',
+		duration: 'QS Tage',
+		merkmal: 'Dämonisch'
+	},
+	{
+		id: 'warzen-spriessen',
+		klasse: 'hexenfluch',
+		name: 'Warzen spriessen',
+		attributes: ['IN', 'FF', 'KO'],
+		probeNote: 'modifiziert durch ZK',
+		cost: 7,
+		costText: '7 AsP',
+		duration: 'QS x 3 in Tagen',
+		merkmal: 'Verwandlung'
+	},
+	{
+		id: 'wollust-verursachen',
+		klasse: 'hexenfluch',
+		name: 'Wollust verursachen',
+		attributes: ['IN', 'CH', 'KO'],
+		probeNote: 'modifiziert durch SK',
+		cost: 14,
+		costText: '14 AsP',
+		duration: 'QS x 3 Stunden',
+		merkmal: 'Einfluss'
+	},
+	{
+		id: 'zunge-laehmen',
+		klasse: 'hexenfluch',
+		name: 'Zunge lähmen',
+		attributes: ['KL', 'IN', 'CH'],
+		probeNote: 'modifiziert durch ZK',
+		cost: 14,
+		costText: '14 AsP',
+		duration: 'QS x 3 in Stunden',
+		merkmal: 'Einfluss'
+	},
+	{
+		id: 'zwei-linke-haende',
+		klasse: 'hexenfluch',
+		name: 'Zwei linke Hände',
+		attributes: ['MU', 'IN', 'FF'],
+		probeNote: 'modifiziert durch ZK',
+		cost: 7,
+		costText: '7 AsP',
+		duration: 'QS x 3 Stunden',
+		merkmal: 'Verwandlung'
+	}
+];

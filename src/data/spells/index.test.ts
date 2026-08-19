@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ATTRIBUTE_KEYS } from '@/store/attributesSlice';
 import { canSustain } from '@/utils/rules';
-import { SPELL_CATALOG } from './spells';
+import { SPELL_CATALOG } from './index';
 
 describe('SPELL_CATALOG', () => {
 	it('ist nicht leer', () => {
@@ -40,8 +40,22 @@ describe('SPELL_CATALOG', () => {
 		}
 	});
 
-	it('umfasst mindestens 41 geprüfte Zauber', () => {
-		expect(SPELL_CATALOG.length).toBeGreaterThanOrEqual(41);
+	it('umfasst den vollständigen Bestand aus Zaubern, Ritualen und Hexenflüchen', () => {
+		expect(SPELL_CATALOG).toHaveLength(348);
+	});
+
+	it('führt jeden Eintrag unter einer der drei würfelbaren Klassen', () => {
+		for (const entry of SPELL_CATALOG) {
+			expect(['zauber', 'ritual', 'hexenfluch'], entry.name).toContain(entry.klasse);
+		}
+	});
+
+	it('nennt für jeden Zauber und jedes Ritual eine Verbreitung', () => {
+		// Hexenflüche führen keine: sie stehen ausschließlich Hexen offen.
+		for (const entry of SPELL_CATALOG) {
+			if (entry.klasse === 'hexenfluch') continue;
+			expect(entry.verbreitung, entry.name).not.toHaveLength(0);
+		}
 	});
 
 	it('lässt genau die „aufrechterhaltend"-Zauber aufrechterhalten', () => {
@@ -52,14 +66,22 @@ describe('SPELL_CATALOG', () => {
 		const declared = SPELL_CATALOG.filter(entry => entry.duration === 'aufrechterhaltend');
 
 		expect(sustainable.map(entry => entry.id)).toEqual(declared.map(entry => entry.id));
-		expect(sustainable).toHaveLength(12);
+		expect(sustainable).toHaveLength(45);
 	});
 
-	it('trägt probeNote nur als bekannten Hinweis auf ZK oder SK', () => {
+	it('trägt probeNote nur als bekannten Hinweis', () => {
+		// Die Menge bleibt klein und geschlossen. Wächst sie beim nächsten Import, ist
+		// das ein Grund hinzusehen: probeNote steht ungefiltert in der Zaubertabelle.
+		const bekannt = [
+			'modifiziert durch SK',
+			'modifiziert durch ZK',
+			'modifiziert durch SK oder ZK, je nachdem, welcher Wert höher ist',
+			'modifiziert durch SK modifiziert die Probe nur bei einem unfreiwilligen Ziel'
+		];
 		const notes = SPELL_CATALOG.map(entry => entry.probeNote).filter(Boolean);
 		expect(notes.length).toBeGreaterThan(0);
 		for (const note of notes) {
-			expect(note).toMatch(/^modifiziert durch (ZK|SK)$/);
+			expect(bekannt).toContain(note);
 		}
 	});
 });

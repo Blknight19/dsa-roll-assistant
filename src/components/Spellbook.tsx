@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { nanoid } from '@reduxjs/toolkit';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,10 +20,22 @@ import {
 	SPELL_COST_MAX, SPELL_LIMIT, SPELL_NAME_MAX, SPELL_NOTE_MAX,
 	addSpell, removeSpell, updateSpell
 } from '@/store/spellbookSlice';
-import { SPELL_CATALOG, type SpellCatalogEntry } from '@/data/spells';
+import { MERKMALE, SPELL_CATALOG, VERBREITUNGEN, type SpellCatalogEntry } from '@/data/spells';
 import { BookOpen, ChevronDown, Plus, Trash2 } from 'lucide-react';
 
 const DEFAULT_ATTRIBUTES: [AttributeKey, AttributeKey, AttributeKey] = ['KL', 'KL', 'IN'];
+
+const ALLE = 'alle';
+
+/**
+ * Hexenflüche führen keine Verbreitung, weil sie ausschließlich Hexen offenstehen —
+ * unter dem Filter „Hexen" gehören sie trotzdem dazu.
+ */
+const passtZurVerbreitung = (entry: SpellCatalogEntry, verbreitung: string) => {
+	if (verbreitung === ALLE) return true;
+	if (entry.klasse === 'hexenfluch') return verbreitung === 'Hexen';
+	return (entry.verbreitung ?? []).includes(verbreitung);
+};
 
 const Spellbook = () => {
 	const dispatch = useDispatch();
@@ -33,12 +45,26 @@ const Spellbook = () => {
 	const [attributes, setAttributes] = useState<[AttributeKey, AttributeKey, AttributeKey]>(DEFAULT_ATTRIBUTES);
 	const [cost, setCost] = useState(4);
 	const [catalogOpen, setCatalogOpen] = useState(false);
+	const [verbreitung, setVerbreitung] = useState(ALLE);
+	const [merkmal, setMerkmal] = useState(ALLE);
 	// Löschen ist der einzige Weg, einen Zauber samt Notiz zu verlieren — wie in der
 	// Historie fragt die App vorher nach.
 	const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
 
 	const full = spells.length >= SPELL_LIMIT;
 	const owned = new Set(spells.map(spell => spell.catalogId).filter(Boolean));
+
+	// Der Katalog zählt 348 Einträge; ohne Vorauswahl ist die Liste nur noch über die
+	// Suche zu bedienen.
+	const catalog = useMemo(
+		() =>
+			SPELL_CATALOG.filter(
+				entry =>
+					passtZurVerbreitung(entry, verbreitung) &&
+					(merkmal === ALLE || entry.merkmal === merkmal)
+			),
+		[verbreitung, merkmal]
+	);
 
 	const adopt = (entry: SpellCatalogEntry) => {
 		dispatch(addSpell({
@@ -257,12 +283,36 @@ const Spellbook = () => {
 							</Button>
 						</PopoverTrigger>
 						<PopoverContent className="w-[min(28rem,90vw)] p-0">
+							<div className="flex gap-2 border-b p-2">
+								<Select value={verbreitung} onValueChange={setVerbreitung}>
+									<SelectTrigger className="flex-1 font-body" aria-label="Nach Verbreitung filtern">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value={ALLE} className="font-body">Alle Traditionen</SelectItem>
+										{VERBREITUNGEN.map(name => (
+											<SelectItem key={name} value={name} className="font-body">{name}</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+								<Select value={merkmal} onValueChange={setMerkmal}>
+									<SelectTrigger className="flex-1 font-body" aria-label="Nach Merkmal filtern">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value={ALLE} className="font-body">Alle Merkmale</SelectItem>
+										{MERKMALE.map(name => (
+											<SelectItem key={name} value={name} className="font-body">{name}</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
 							<Command>
 								<CommandInput placeholder="Zauber suchen…" className="font-body" />
 								<CommandList>
 									<CommandEmpty>Kein Zauber gefunden</CommandEmpty>
-									<CommandGroup>
-										{SPELL_CATALOG.map(entry => (
+									<CommandGroup heading={`${catalog.length} von ${SPELL_CATALOG.length}`}>
+										{catalog.map(entry => (
 											<CommandItem
 												key={entry.id}
 												value={entry.name}

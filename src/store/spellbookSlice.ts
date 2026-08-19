@@ -45,9 +45,9 @@ export const ASP_MAX = 999;
  * `clampSpellText` gemeinsam — sonst überlebt ein zu langer Wert die Sitzung und
  * ändert sich still beim nächsten Laden.
  */
-export const SPELL_COST_TEXT_MAX = 120;
-export const SPELL_PROBE_NOTE_MAX = 60;
-export const SPELL_DURATION_MAX = 60;
+export const SPELL_COST_TEXT_MAX = 160;
+export const SPELL_PROBE_NOTE_MAX = 90;
+export const SPELL_DURATION_MAX = 80;
 export const SPELL_NOTE_MAX = 500;
 
 export const initialSpellbookState: SpellbookState = {
