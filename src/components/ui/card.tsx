@@ -53,13 +53,14 @@ function CardHeader({ className, ref, ...props }: CardHeaderProps) {
 }
 CardHeader.displayName = 'CardHeader';
 
-interface CardTitleProps extends React.HTMLAttributes<HTMLDivElement> {
-  ref?: React.Ref<HTMLDivElement>
+interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
+  ref?: React.Ref<HTMLHeadingElement>
 }
 
+/** `h2`, weil die Seite genau eine `h1` trägt und die Karten flach darunter liegen. */
 function CardTitle({ className, ref, ...props }: CardTitleProps) {
   return (
-    <div
+    <h2
       ref={ref}
       className={cn('font-heading text-2xl font-semibold leading-none tracking-tight', className)}
       {...props}

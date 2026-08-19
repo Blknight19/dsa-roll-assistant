@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import ModifierControl from './ModifierControl';
 import { Button } from '@/components/ui/button';
 import { Dices } from 'lucide-react';
@@ -46,6 +47,12 @@ const RollBar = ({
 	className
 }: RollBarProps) => {
 	const total = modifier + autoModifier;
+	const reasonId = useId();
+	/**
+	 * `aria-disabled` statt `disabled`: ein echtes `disabled` nimmt den Knopf aus der
+	 * Tabreihenfolge, dann erreicht ihn niemand und die Begründung wird nie angesagt.
+	 */
+	const showsReason = disabled && Boolean(disabledReason);
 
 	return (
 		<div
@@ -61,19 +68,26 @@ const RollBar = ({
 				<ModifierControl value={modifier} onChange={onModifierChange} hintValue={total} />
 
 				<Button
-					onClick={onRoll}
+					onClick={disabled ? undefined : onRoll}
 					size="xl"
 					variant="aventurian"
-					disabled={disabled}
-					className="w-full shadow-lg hover:shadow-xl sm:mb-5 sm:w-auto sm:flex-1"
+					aria-disabled={disabled || undefined}
+					aria-describedby={showsReason ? reasonId : undefined}
+					className={cn(
+						'w-full shadow-lg hover:shadow-xl sm:mb-5 sm:w-auto sm:flex-1',
+						disabled && 'cursor-not-allowed opacity-50 hover:shadow-lg'
+					)}
 				>
 					<Dices className="mr-2 h-6 w-6" />
 					{label}
 				</Button>
 			</div>
 
-			{disabled && disabledReason && (
-				<p className="mx-auto mt-2 max-w-3xl text-center text-sm text-muted-foreground">
+			{showsReason && (
+				<p
+					id={reasonId}
+					className="mx-auto mt-2 max-w-3xl text-center text-sm text-muted-foreground"
+				>
 					{disabledReason}
 				</p>
 			)}
